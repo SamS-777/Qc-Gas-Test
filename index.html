@@ -1,0 +1,1290 @@
+<!doctype html>
+<html lang="fr-CA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Essence sur mon trajet</title>
+<meta name="description" content="Les stations-service les moins chères sur ton trajet ou près de toi, avec les prix de la Régie de l'énergie du Québec en direct.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="theme-color" content="#FAF9F5" media="(prefers-color-scheme: light)" data-auto="#FAF9F5">
+<meta name="theme-color" content="#1F1E1D" media="(prefers-color-scheme: dark)" data-auto="#1F1E1D">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Essence">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+/* Layout : colonne de contrôle (formulaire + palmarès) à gauche, carte collante à droite ; empilé sur téléphone (carte entre formulaire et palmarès). */
+:root {
+  --bg: #FAF9F5; --panel: #F0EEE6; --surface: #FFFFFF; --ink: #141413; --muted: #6B6964; --faint: #9C9A92; --line: #E5E1D6;
+  --clay: #D97757; --clay-ink: #B5532F; --clay-soft: #F7E6DD; --on-clay: #FFFFFF;
+  --route: #2F6BDB; --route-soft: #E3ECFB; --casing: #FFFFFF; --alt: #A9A498; --good: #3E7D52; --bad: #B3402A;
+  --shadow: 0 1px 2px rgba(20,20,19,.04), 0 10px 30px rgba(20,20,19,.07);
+  --tiles: saturate(.85) sepia(.08);
+  --serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --sans: "DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --r: 14px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #1F1E1D; --panel: #262624; --surface: #30302E; --ink: #F5F4EE; --muted: #B4B1A8; --faint: #8A877F; --line: #3F3D39;
+  --clay: #D97757; --clay-ink: #EE9F80; --clay-soft: #47302A; --on-clay: #FFFFFF;
+  --route: #6F9BFF; --route-soft: #26324A; --casing: #1F1E1D; --alt: #6E6B64; --good: #82C595; --bad: #F08D77;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px rgba(0,0,0,.35);
+  --tiles: invert(.9) hue-rotate(180deg) saturate(.5) brightness(.95) contrast(.9);
+  color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #1F1E1D; --panel: #262624; --surface: #30302E; --ink: #F5F4EE; --muted: #B4B1A8; --faint: #8A877F; --line: #3F3D39;
+  --clay: #D97757; --clay-ink: #EE9F80; --clay-soft: #47302A; --on-clay: #FFFFFF;
+  --route: #6F9BFF; --route-soft: #26324A; --casing: #1F1E1D; --alt: #6E6B64; --good: #82C595; --bad: #F08D77;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px rgba(0,0,0,.35);
+  --tiles: invert(.9) hue-rotate(180deg) saturate(.5) brightness(.95) contrast(.9);
+  color-scheme: dark }
+
+* { box-sizing: border-box }
+[hidden] { display: none !important }
+html, body { margin: 0 }
+body { background: var(--bg); color: var(--ink); font: 15px/1.5 var(--sans); -webkit-font-smoothing: antialiased;
+  padding-top: max(20px, env(safe-area-inset-top, 0px)); padding-bottom: 32px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)) }
+button, input { font: inherit; color: inherit }
+:focus-visible { outline: 2px solid var(--clay); outline-offset: 2px }
+
+.app { max-width: 1400px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px }
+.side { display: contents }
+.head { order: 0 } .form { order: 1 } #status { order: 2 } .mapcol { order: 3 } .results { order: 4 } .note { order: 5 }
+@media (min-width: 980px) {
+  .app { display: grid; grid-template-columns: minmax(400px, 460px) minmax(0, 1fr); gap: 28px; align-items: start }
+  .side { display: flex; flex-direction: column; gap: 18px; min-width: 0 }
+  .app .mapcol { position: sticky; top: 20px; height: calc(100vh - 40px); min-height: 520px }
+  .mapcol #map { height: 100% }
+}
+
+/* En-tête */
+.head { display: flex; align-items: center; gap: 10px 14px; flex-wrap: wrap }
+.head-text { min-width: 0; flex: 1 1 200px }
+.prefs { display: flex; gap: 6px; flex-wrap: wrap }
+.mini-seg { display: inline-flex; background: var(--panel); border: 1px solid var(--line); border-radius: 99px; padding: 2px }
+.mini-seg button { border: 0; background: transparent; color: var(--muted); padding: 4px 10px; border-radius: 99px; font-size: .76rem; font-weight: 600; cursor: pointer }
+.mini-seg button:hover { color: var(--ink) }
+.mini-seg button.on { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.14) }
+.mark { width: 44px; height: 44px; border-radius: 12px; background: var(--clay); color: var(--on-clay); display: grid; place-items: center; flex: none;
+  box-shadow: inset 0 -2px 0 rgba(0,0,0,.12) }
+.mark svg { width: 24px; height: 24px }
+h1 { font: 600 1.75rem/1.05 var(--serif); letter-spacing: -.01em; margin: 0; text-wrap: balance }
+.fresh { margin: 3px 0 0; color: var(--muted); font-size: .84rem; display: flex; align-items: center; gap: 7px; flex-wrap: wrap }
+.live { width: 7px; height: 7px; border-radius: 50%; background: var(--good); box-shadow: 0 0 0 3px color-mix(in srgb, var(--good) 22%, transparent); flex: none }
+.live.wait { background: var(--faint); box-shadow: none }
+
+/* Formulaire */
+.form { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 16px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px }
+.legs { position: relative; display: grid; gap: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 6px 52px 6px 6px }
+.leg { position: relative }
+.leg label { position: absolute; left: 40px; top: 7px; font-size: .7rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); pointer-events: none }
+.leg input { width: 100%; min-width: 0; border: 0; background: transparent; border-radius: 10px; padding: 24px 44px 8px 40px; font-size: 1rem; font-weight: 500 }
+.leg input:focus { background: var(--panel); outline: none }
+.leg + .leg { border-top: 1px dashed var(--line); padding-top: 8px }
+.leg + .leg label { top: 15px }
+.pt { position: absolute; left: 14px; top: 50%; width: 14px; height: 14px; border-radius: 50%; transform: translateY(-50%); pointer-events: none }
+.leg + .leg .pt { top: calc(50% + 4px) }
+.pt-a { border: 3px solid var(--ink); background: var(--surface) }
+.pt-b { background: var(--route); box-shadow: 0 0 0 3px var(--route-soft) }
+.legs::before { content: ""; position: absolute; left: 26px; top: 38px; bottom: 34px; border-left: 2px dotted var(--faint) }
+.locate { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 34px; height: 34px; border-radius: 9px; border: 0; background: transparent; color: var(--muted); display: grid; place-items: center; cursor: pointer }
+.locate:hover { background: var(--panel); color: var(--clay-ink) }
+.swap { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--line); background: var(--panel); color: var(--muted); display: grid; place-items: center; cursor: pointer; transition: transform .25s }
+.swap:hover { color: var(--clay-ink); transform: translateY(-50%) rotate(180deg) }
+.locate svg, .swap svg { width: 18px; height: 18px }
+
+.suggest { position: absolute; left: 0; right: -46px; top: calc(100% + 6px); margin: 0; padding: 6px; list-style: none; display: grid; gap: 2px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); z-index: 1200 }
+.suggest li { padding: 9px 10px 9px 34px; border-radius: 8px; cursor: pointer; overflow-wrap: anywhere; position: relative; font-size: .93rem }
+.suggest li::before { content: ""; position: absolute; left: 13px; top: 15px; width: 7px; height: 7px; border-radius: 50%; background: var(--faint) }
+.suggest li:hover, .suggest li.on { background: var(--panel) }
+.suggest li.on::before, .suggest li:hover::before { background: var(--clay) }
+.hint { display: block; padding: 0 10px 6px 40px; font-size: .8rem; color: var(--good) }
+.hint:empty { display: none }
+
+.lbl { font-size: .72rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted) }
+.seg { border: 0; margin: 0; padding: 0; display: grid; gap: 6px; min-width: 0 }
+.seg legend { padding: 0; margin-bottom: 6px }
+.seg-row { display: grid; grid-template-columns: repeat(3, 1fr); background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 4px; gap: 4px }
+.seg-row input { position: absolute; opacity: 0; pointer-events: none }
+.seg-row label { text-align: center; padding: 8px 4px; border-radius: 9px; cursor: pointer; font-weight: 500; color: var(--muted); transition: background .15s, color .15s }
+.seg-row input:checked + label { background: var(--ink); color: var(--bg) }
+.seg-row input:focus-visible + label { outline: 2px solid var(--clay); outline-offset: 1px }
+
+.nums { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: start }
+.num { display: grid; gap: 6px; min-width: 0; align-content: start }
+.unit { display: flex; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 0 12px; min-width: 0 }
+.unit:focus-within { border-color: var(--clay); box-shadow: 0 0 0 3px var(--clay-soft) }
+.unit input { border: 0; background: transparent; width: 100%; min-width: 0; padding: 11px 0; font-size: 1.05rem; font-weight: 600; font-variant-numeric: tabular-nums; outline: none }
+.unit span { color: var(--faint); font-weight: 500; padding-left: 6px }
+
+.switch { display: flex; align-items: center; gap: 10px; cursor: pointer; font-weight: 500; width: fit-content }
+.switch input { position: absolute; opacity: 0 }
+.track { width: 38px; height: 22px; border-radius: 99px; background: var(--line); position: relative; transition: background .2s; flex: none }
+.track::after { content: ""; position: absolute; left: 3px; top: 3px; width: 16px; height: 16px; border-radius: 50%; background: var(--surface); box-shadow: 0 1px 2px rgba(0,0,0,.25); transition: transform .2s }
+.switch input:checked + .track { background: var(--clay) }
+.switch input:checked + .track::after { transform: translateX(16px) }
+.switch input:focus-visible + .track { outline: 2px solid var(--clay); outline-offset: 2px }
+
+.cta { border: 0; border-radius: 12px; background: var(--clay); color: var(--on-clay); padding: 14px 16px; font-weight: 600; font-size: 1.02rem; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: inset 0 -2px 0 rgba(0,0,0,.14); transition: filter .15s, transform .05s }
+.cta:hover { filter: brightness(1.05) }
+.cta:active { transform: translateY(1px) }
+.cta:disabled { cursor: progress; filter: saturate(.7) }
+.spin { width: 16px; height: 16px; border-radius: 50%; border: 2px solid rgba(255,255,255,.45); border-top-color: #fff; animation: spin .7s linear infinite }
+@keyframes spin { to { transform: rotate(360deg) } }
+
+.adv { border-top: 1px solid var(--line); padding-top: 12px }
+.adv summary { cursor: pointer; display: flex; align-items: center; gap: 8px; font-weight: 500; list-style: none }
+.adv summary::-webkit-details-marker { display: none }
+.adv summary .chev { margin-left: auto; color: var(--faint); transition: transform .2s }
+.adv[open] summary .chev { transform: rotate(180deg) }
+.state { font-size: .72rem; font-weight: 600; padding: 2px 8px; border-radius: 99px; background: var(--line); color: var(--muted) }
+.state.on { background: color-mix(in srgb, var(--good) 18%, transparent); color: var(--good) }
+.adv-body { display: grid; gap: 6px; padding-top: 10px }
+.adv-body small { color: var(--muted); font-size: .78rem }
+.routes-wrap { display: grid; gap: 8px }
+.lbl-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap }
+.src { font-size: .78rem; color: var(--muted); white-space: nowrap }
+.src.is-live::before { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--good); margin-right: 6px; vertical-align: 1px }
+.routes { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px }
+.rt { text-align: left; border: 1px solid var(--line); background: var(--surface); border-radius: 12px; padding: 10px 12px; cursor: pointer; display: grid; gap: 2px; min-width: 0; transition: border-color .15s, box-shadow .15s }
+.rt:hover { border-color: color-mix(in srgb, var(--route) 50%, var(--line)) }
+.rt b { font-weight: 600; font-size: .9rem; overflow-wrap: anywhere }
+.rt span { font-size: .85rem; color: var(--muted); font-variant-numeric: tabular-nums }
+.rt em { font-style: normal; font-size: .75rem; color: var(--clay-ink) }
+.rt.on { border-color: var(--route); box-shadow: 0 0 0 3px var(--route-soft) }
+.rt.on b { color: var(--route) }
+.status { margin: 0; padding: 11px 14px; border-radius: 12px; background: var(--panel); border: 1px solid var(--line); font-size: .92rem }
+.status[data-kind="error"] { color: var(--bad); border-color: color-mix(in srgb, var(--bad) 45%, var(--line)) }
+.status[data-kind="warn"] { color: var(--clay-ink) }
+
+/* Mode, favoris, bannières */
+.mode-row { grid-template-columns: 1fr 1fr }
+.form.nearby .leg-to, .form.nearby .swap, .form.nearby .legs::before { display: none }
+.form.nearby .legs { padding-right: 6px }
+.form.nearby .only-route, .form:not(.nearby) .only-near { display: none }
+.favs { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px }
+.fav-row { display: flex; flex-wrap: wrap; gap: 6px; min-width: 0 }
+.fav { display: inline-flex; min-width: 0; align-items: stretch; border: 1px solid var(--line); background: var(--surface); border-radius: 99px; overflow: hidden; max-width: 100% }
+.fav:hover { border-color: var(--clay) }
+.fav-go { border: 0; background: transparent; padding: 6px 2px 6px 12px; font-size: .85rem; font-weight: 500; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0 }
+.fav-go::before { content: "★"; color: var(--clay); margin-right: 6px }
+.fav-x { border: 0; background: transparent; color: var(--faint); padding: 0 11px 0 7px; cursor: pointer; font-size: 1rem; line-height: 1 }
+.fav-x:hover { color: var(--bad) }
+.sum-top { display: flex; justify-content: space-between; align-items: center; gap: 10px }
+.favbtn { border: 1px solid var(--line); background: var(--surface); color: var(--muted); border-radius: 99px; padding: 5px 12px; font-size: .82rem; font-weight: 600; cursor: pointer; white-space: nowrap; flex: none }
+.favbtn.on, .favbtn:hover { color: var(--clay-ink); border-color: var(--clay); background: var(--clay-soft) }
+.state { min-width: 0; max-width: 62%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.brand-tools { display: flex; gap: 6px; flex-wrap: wrap }
+.brand-tools button, .more { border: 1px solid var(--line); background: var(--surface); color: var(--muted); border-radius: 99px; padding: 4px 11px; font-size: .78rem; font-weight: 600; cursor: pointer }
+.brand-tools button:hover, .more:hover { color: var(--clay-ink); border-color: var(--clay) }
+.more { justify-self: start }
+.brand-head { display: flex; justify-content: space-between; font-size: .7rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); padding: 4px 4px 0 }
+.brands { list-style: none; margin: 0; display: grid; gap: 1px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 4px }
+.brands li { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 3px 4px 3px 8px; border-radius: 8px }
+.brands li:hover { background: var(--panel) }
+.brands li.muted { color: var(--muted); padding: 8px }
+.bchk { display: flex; align-items: center; gap: 9px; cursor: pointer; min-width: 0; flex: 1 }
+.bchk input { width: 17px; height: 17px; accent-color: var(--clay); flex: none; margin: 0 }
+.bname { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500 }
+.cnt { color: var(--faint); font-size: .76rem; font-variant-numeric: tabular-nums }
+.unit.mini { width: 76px; flex: none; padding: 0 8px; border-radius: 8px }
+.unit.mini input { padding: 5px 0; font-size: .9rem; text-align: right }
+.unit.mini input::-webkit-inner-spin-button { display: none }
+.posted { font-size: .72rem; color: var(--good); margin-top: 5px; font-weight: 500 }
+.links { display: flex; flex-wrap: wrap; gap: 4px 16px }
+.pill.det.wait { opacity: .65 }
+.pill.det.ok { background: var(--route-soft); color: var(--route) }
+
+/* Carte */
+.mapcol { border-radius: 18px; overflow: hidden; border: 1px solid var(--line); background: var(--panel); box-shadow: var(--shadow); position: relative }
+#map { height: 320px; background: var(--panel) }
+.leaflet-tile-pane { filter: var(--tiles) }
+.leaflet-container { font-family: var(--sans) }
+.leaflet-bar a { background: var(--surface); color: var(--ink); border-color: var(--line) }
+.leaflet-bar a:hover { background: var(--panel) }
+.leaflet-control-attribution { background: color-mix(in srgb, var(--surface) 80%, transparent) !important; color: var(--muted) }
+.leaflet-control-attribution a { color: var(--muted) }
+.leaflet-popup-content-wrapper, .leaflet-popup-tip { background: var(--surface); color: var(--ink); box-shadow: var(--shadow) }
+.leaflet-popup-content { margin: 10px 12px; font-size: .88rem }
+.pin { background: var(--surface); color: var(--ink); border: 2px solid var(--clay); border-radius: 50%; display: grid; place-items: center; font: 700 .78rem var(--sans); box-shadow: 0 2px 6px rgba(0,0,0,.25) }
+.pin-best { background: var(--clay); color: var(--on-clay); border-color: var(--surface); font-size: .9rem }
+.pin.sel { transform: scale(1.25); z-index: 1000 !important }
+.endpoint { border-radius: 50%; box-shadow: 0 1px 4px rgba(0,0,0,.35) }
+.endpoint.a { background: var(--surface); border: 4px solid #141413 }
+.endpoint.b { background: var(--route); border: 3px solid #fff }
+.maptag { position: absolute; z-index: 500; right: 12px; top: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 99px; padding: 5px 12px; font-size: .8rem; font-weight: 500; box-shadow: var(--shadow); display: flex; gap: 8px; align-items: center }
+.maptag i { width: 18px; height: 4px; border-radius: 2px; background: var(--route) }
+
+/* Palmarès */
+.results { display: grid; gap: 12px; min-width: 0 }
+.summary { display: grid; gap: 2px }
+.summary h2 { margin: 0; font: 600 1.25rem var(--serif) }
+.summary p { margin: 0; color: var(--muted); font-size: .88rem; font-variant-numeric: tabular-nums }
+ol.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px }
+.card { display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 14px; cursor: pointer; transition: border-color .15s, box-shadow .15s }
+.card:hover { border-color: color-mix(in srgb, var(--clay) 50%, var(--line)) }
+.card.sel { border-color: var(--clay); box-shadow: 0 0 0 3px var(--clay-soft) }
+.card.best { border-color: var(--clay); box-shadow: var(--shadow) }
+.rank { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--panel); color: var(--muted); font-weight: 700; font-size: .85rem }
+.best .rank { background: var(--clay); color: var(--on-clay) }
+.info { display: grid; gap: 7px; min-width: 0 }
+.top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px }
+.who { min-width: 0 }
+.brand { font-weight: 600; font-size: 1.02rem; overflow-wrap: anywhere }
+.tag { display: inline-block; margin-left: 6px; font-size: .68rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--clay-ink); background: var(--clay-soft); padding: 2px 7px; border-radius: 99px; vertical-align: 2px }
+.addr { color: var(--muted); font-size: .86rem; overflow-wrap: anywhere }
+.price { text-align: right; white-space: nowrap; line-height: 1 }
+.price .n { font: 600 1.9rem var(--serif); font-variant-numeric: tabular-nums; letter-spacing: -.02em }
+.best .price .n { color: var(--clay-ink) }
+.price .u { font-size: .78rem; color: var(--faint); margin-left: 2px }
+.meta { display: flex; flex-wrap: wrap; gap: 6px }
+.pill { display: inline-flex; align-items: center; gap: 5px; font-size: .78rem; padding: 3px 9px; border-radius: 99px; background: var(--panel); color: var(--muted); font-variant-numeric: tabular-nums }
+.pill.on { background: var(--route-soft); color: var(--route) }
+.pill svg { width: 12px; height: 12px }
+.foot { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px 12px; padding-top: 8px; border-top: 1px solid var(--line); font-size: .88rem; font-variant-numeric: tabular-nums }
+.save { font-weight: 600; color: var(--muted) }
+.save.pos { color: var(--good) } .save.neg { color: var(--bad) }
+.go { color: var(--clay-ink); font-weight: 600; text-decoration: none; font-size: .86rem }
+.go:hover { text-decoration: underline }
+
+.empty { background: var(--panel); border: 1px dashed var(--line); border-radius: var(--r); padding: 22px 18px; color: var(--muted); display: grid; gap: 6px }
+.empty b { color: var(--ink); font: 600 1.1rem var(--serif) }
+.note { margin: 0; color: var(--faint); font-size: .78rem; line-height: 1.5 }
+
+@media (max-width: 420px) { h1 { font-size: 1.5rem } .price .n { font-size: 1.6rem } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation-duration: .01ms !important } }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="side">
+    <header class="head">
+      <div class="mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V5a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v16"/><path d="M3 21h13"/><path d="M7 8h5"/><path d="M15 9h2a2 2 0 0 1 2 2v5a1.5 1.5 0 0 0 3 0V8l-3-3"/></svg>
+      </div>
+      <div class="head-text">
+        <h1 data-i18n="appName">Essence sur mon trajet</h1>
+        <p class="fresh"><span class="live wait" id="live"></span><span id="fresh">Chargement des prix de la Régie…</span></p>
+      </div>
+      <div class="prefs">
+        <div class="mini-seg" role="group" data-i18n-aria="themeLabel" aria-label="Thème">
+          <button type="button" data-theme-set="auto" data-i18n="themeAuto">Auto</button><button type="button" data-theme-set="light" data-i18n="themeLight">Clair</button><button type="button" data-theme-set="dark" data-i18n="themeDark">Sombre</button>
+        </div>
+        <div class="mini-seg" role="group" data-i18n-aria="langLabel" aria-label="Langue">
+          <button type="button" data-lang-set="fr" lang="fr">FR</button><button type="button" data-lang-set="en" lang="en">EN</button>
+        </div>
+      </div>
+    </header>
+
+    <form id="form" class="form" novalidate>
+      <div class="seg-row mode-row" role="radiogroup" data-i18n-aria="modeLabel" aria-label="Mode de recherche">
+        <input type="radio" name="mode" id="modeRoute" value="route" checked><label for="modeRoute" data-i18n="modeRoute">Sur mon trajet</label>
+        <input type="radio" name="mode" id="modeNear" value="near"><label for="modeNear" data-i18n="modeNear">Près de moi</label>
+      </div>
+
+      <div class="favs" id="favs" hidden>
+        <span class="lbl" data-i18n="favorites">Favoris</span>
+        <div class="fav-row" id="favRow"></div>
+      </div>
+
+      <div class="legs">
+        <div class="leg ac">
+          <label for="from" data-i18n="from">Départ</label>
+          <span class="pt pt-a"></span>
+          <input id="from" autocomplete="off" spellcheck="false" data-i18n-ph="addrPh" placeholder="Adresse ou lieu" required>
+          <button type="button" class="locate" id="locate" data-i18n-title="useLoc" data-i18n-aria="useLoc" title="Utiliser ma position" aria-label="Utiliser ma position">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+          </button>
+          <ul id="fromList" class="suggest" hidden></ul>
+          <small id="fromHint" class="hint"></small>
+        </div>
+        <div class="leg ac leg-to">
+          <label for="to" data-i18n="to">Destination</label>
+          <span class="pt pt-b"></span>
+          <input id="to" autocomplete="off" spellcheck="false" data-i18n-ph="addrPh" placeholder="Adresse ou lieu" required>
+          <ul id="toList" class="suggest" hidden></ul>
+          <small id="toHint" class="hint"></small>
+        </div>
+        <button type="button" class="swap" id="swap" data-i18n-title="swap" data-i18n-aria="swap" title="Inverser départ et destination" aria-label="Inverser départ et destination">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4v16M3 8l4-4 4 4M17 20V4M13 16l4 4 4-4"/></svg>
+        </button>
+      </div>
+
+      <fieldset class="seg">
+        <legend class="lbl" data-i18n="fuel">Carburant</legend>
+        <div class="seg-row">
+          <input type="radio" name="fuel" id="fuel0" value="0" checked><label for="fuel0" data-i18n="fuelReg">Régulier</label>
+          <input type="radio" name="fuel" id="fuel1" value="1"><label for="fuel1" data-i18n="fuelSup">Super 91</label>
+          <input type="radio" name="fuel" id="fuel2" value="2"><label for="fuel2" data-i18n="fuelDie">Diesel</label>
+        </div>
+      </fieldset>
+
+      <div class="nums">
+        <div class="num only-route">
+          <label class="lbl" for="corridor" data-i18n="corridor">Écart max du trajet</label>
+          <div class="unit"><input id="corridor" type="number" inputmode="numeric" min="25" max="5000" step="25" value="300"><span>m</span></div>
+        </div>
+        <div class="num only-near">
+          <label class="lbl" for="radius" data-i18n="radius">Rayon</label>
+          <div class="unit"><input id="radius" type="number" inputmode="decimal" min="0.5" max="50" step="0.5" value="3"><span>km</span></div>
+        </div>
+        <div class="num">
+          <label class="lbl" for="fillL" data-i18n="fill">Plein</label>
+          <div class="unit"><input id="fillL" type="number" inputmode="decimal" min="1" max="200" step="1" value="40"><span>L</span></div>
+        </div>
+      </div>
+
+      <details class="adv" id="brandsBox">
+        <summary><span data-i18n="brands">Bannières et rabais</span> <span class="state" id="brandState">…</span><span class="chev" aria-hidden="true">▾</span></summary>
+        <div class="adv-body">
+          <div class="brand-tools"><button type="button" id="allOn" data-i18n="allOn">Tout cocher</button><button type="button" id="allOff" data-i18n="allOff">Tout décocher</button></div>
+          <div class="brand-head"><span data-i18n="brandHead">Bannière · stations</span><span data-i18n="rebateHead">Ton rabais</span></div>
+          <ul class="brands" id="brandList"><li class="muted" data-i18n="loadingBrands">Chargement des bannières…</li></ul>
+          <button type="button" class="more" id="brandMore" hidden></button>
+          <small data-i18n="rebateHelp">Le rabais (en ¢/L) est soustrait du prix affiché, et le classement se fait sur ton prix réel. Ex. : 3 pour −3 ¢/L avec ta carte de fidélité.</small>
+        </div>
+      </details>
+
+      <details class="adv" id="adv">
+        <summary><span data-i18n="traffic">Circulation en direct</span> <span class="state" id="trafficState">Inactive</span><span class="chev" aria-hidden="true">▾</span></summary>
+        <div class="adv-body">
+          <label class="lbl" for="ttkey" data-i18n="ttKey">Clé TomTom</label>
+          <div class="unit"><input id="ttkey" type="password" autocomplete="off" spellcheck="false" data-i18n-ph="ttKeyPh" placeholder="Colle ta clé ici"></div>
+          <small data-i18n="ttHelp">Gardée dans ce navigateur seulement. Sans clé, le trajet est calculé sans la circulation (OSRM).</small>
+        </div>
+      </details>
+
+      <button id="go" class="cta" type="submit"><span id="goLabel">Trouver les meilleurs prix</span></button>
+    </form>
+
+    <p id="status" class="status" hidden></p>
+
+    <section class="results" aria-live="polite">
+      <div class="routes-wrap" id="routesWrap" hidden>
+        <div class="lbl-row"><span class="lbl" data-i18n="routes">Trajets proposés</span><span class="src" id="routeSrc"></span></div>
+        <div class="routes" id="routes"></div>
+      </div>
+      <div class="summary" id="summary" hidden>
+        <div class="sum-top"><h2 id="sumTitle"></h2><button type="button" class="favbtn" id="favBtn" hidden>☆ Enregistrer</button></div>
+        <p id="sumMeta"></p>
+      </div>
+      <ol class="list" id="results"></ol>
+      <div class="empty" id="empty">
+        <b data-i18n="emptyTitle">Où faire le plein, sans chercher.</b>
+        <span id="emptyText"></span>
+      </div>
+    </section>
+
+    <p class="note" data-i18n="note">Prix déclarés à la Régie de l'énergie du Québec (mis à jour aux 5 minutes). Distances à vol d'oiseau, sauf le détour et le temps en voiture, calculés par la route pour les 5 premières stations. Trajet : TomTom (circulation en direct) ou OSRM · Adresses : Photon / OpenStreetMap · Carte : Esri.</p>
+  </div>
+
+  <div class="mapcol">
+    <div id="map" role="region" data-i18n-aria="mapLabel" aria-label="Carte du trajet"></div>
+    <div class="maptag" id="maptag" hidden><i></i><span data-i18n="yourRoute">Ton trajet</span></div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+/* ---------- Logique pure ---------- */
+function projector(lat0) {
+  const kx = 111.32 * Math.cos(lat0 * Math.PI / 180), ky = 110.574;
+  return (lat, lon) => [lon * kx, lat * ky];
+}
+function nearestOnRoute(p, pts, cum) {
+  let best = Infinity, along = 0;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const [ax, ay] = pts[i], [bx, by] = pts[i + 1];
+    const dx = bx - ax, dy = by - ay, len2 = dx * dx + dy * dy;
+    let t = len2 ? ((p[0] - ax) * dx + (p[1] - ay) * dy) / len2 : 0;
+    t = t < 0 ? 0 : t > 1 ? 1 : t;
+    const d = Math.hypot(ax + t * dx - p[0], ay + t * dy - p[1]);
+    if (d < best) { best = d; along = cum[i] + t * (cum[i + 1] - cum[i]); }
+  }
+  return { dist: best, along };
+}
+function haversineKm(lat1, lon1, lat2, lon2) {
+  const r = Math.PI / 180, dLat = (lat2 - lat1) * r, dLon = (lon2 - lon1) * r;
+  const x = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * r) * Math.cos(lat2 * r) * Math.sin(dLon / 2) ** 2;
+  return 2 * 6371 * Math.asin(Math.sqrt(x));
+}
+/* stations : [lat, lon, nom, bannière, adresse, reg, super, diesel]
+   o : { fuel, fillL, corridorKm, radiusKm, off: Set des bannières exclues, rebates: { bannière: ¢/L } } */
+function effective(s, o) {
+  const price = s[5 + o.fuel];
+  if (price == null || o.off.has(s[3])) return null;
+  const rebate = o.rebates[s[3]] || 0;
+  return { price, rebate, eff: price - rebate };
+}
+function item(s, e, extra) { return { lat: s[0], lon: s[1], name: s[2], brand: s[3], address: s[4], ...e, ...extra }; }
+/* Classement : prix réel (affiché − rabais), puis proximité. */
+function finish(out, o) {
+  out.sort((a, b) => a.eff - b.eff || a.dist - b.dist);
+  const ps = out.map(x => x.eff).sort((a, b) => a - b), n = ps.length;
+  const median = n ? (n % 2 ? ps[(n - 1) / 2] : (ps[n / 2 - 1] + ps[n / 2]) / 2) : 0;
+  for (const x of out) { x.fill = x.eff / 100 * o.fillL; x.saving = (median - x.eff) / 100 * o.fillL; }
+  return { ranked: out, median };
+}
+function rankOnRoute(stations, route, o) {
+  const proj = projector(route.reduce((s, c) => s + c[1], 0) / route.length);
+  const pts = route.map(c => proj(c[1], c[0]));
+  const cum = [0];
+  for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (const [x, y] of pts) { minX = Math.min(minX, x); maxX = Math.max(maxX, x); minY = Math.min(minY, y); maxY = Math.max(maxY, y); }
+  const pad = o.corridorKm, out = [];
+  for (const s of stations) {
+    const e = effective(s, o);
+    if (!e) continue;
+    const p = proj(s[0], s[1]);
+    if (p[0] < minX - pad || p[0] > maxX + pad || p[1] < minY - pad || p[1] > maxY + pad) continue;
+    const { dist, along } = nearestOnRoute(p, pts, cum);
+    if (dist > o.corridorKm) continue;
+    out.push(item(s, e, { dist, offM: dist * 1000, alongKm: along }));
+  }
+  return finish(out, o);
+}
+function rankNearby(stations, c, o) {
+  const out = [], dLat = o.radiusKm / 110;
+  for (const s of stations) {
+    if (Math.abs(s[0] - c.lat) > dLat) continue;
+    const e = effective(s, o);
+    if (!e) continue;
+    const d = haversineKm(c.lat, c.lon, s[0], s[1]);
+    if (d > o.radiusKm) continue;
+    out.push(item(s, e, { dist: d }));
+  }
+  return finish(out, o);
+}
+
+/* ---------- Préférences enregistrées ---------- */
+const store = {
+  get(k, d) { try { const v = localStorage.getItem("et_" + k); return v == null ? d : v; } catch { return d; } },
+  set(k, v) { try { localStorage.setItem("et_" + k, v); } catch {} },
+};
+function parseJSON(s, d) { try { const v = JSON.parse(s); return v == null ? d : v; } catch { return d; } }
+
+/* ---------- Langue ---------- */
+const I18N = {
+  fr: {
+    appName: "Essence sur mon trajet", loadingPrices: "Chargement des prix de la Régie…", pricesDown: "Prix indisponibles",
+    freshLine: "{n} stations en direct", freshAt: " · prix de {t}",
+    themeLabel: "Thème", themeAuto: "Auto", themeLight: "Clair", themeDark: "Sombre", langLabel: "Langue",
+    modeLabel: "Mode de recherche", modeRoute: "Sur mon trajet", modeNear: "Près de moi", favorites: "Favoris",
+    from: "Départ", to: "Destination", addrPh: "Adresse ou lieu", useLoc: "Utiliser ma position", swap: "Inverser départ et destination",
+    myLoc: "Ma position", savedLoc: "Position enregistrée",
+    fuel: "Carburant", fuelReg: "Régulier", fuelSup: "Super 91", fuelDie: "Diesel",
+    corridor: "Écart max du trajet", radius: "Rayon", fill: "Plein",
+    brands: "Bannières et rabais", allOn: "Tout cocher", allOff: "Tout décocher", brandHead: "Bannière · stations", rebateHead: "Ton rabais",
+    loadingBrands: "Chargement des bannières…", noBrand: "Sans bannière", rebateAria: "Rabais {b}, en cents par litre",
+    rebateHelp: "Le rabais (en ¢/L) est soustrait du prix affiché, et le classement se fait sur ton prix réel. Ex. : 3 pour −3 ¢/L avec ta carte de fidélité.",
+    moreBrands: "Afficher les {n} autres bannières", lessBrands: "Masquer les petites bannières",
+    stAll: "Toutes", stNone: "Aucune", stOnly: "Seulement {l}", stExcept: "Toutes sauf {l}", stCount: "{a} sur {b}", stRebates: " · {n} rabais",
+    traffic: "Circulation en direct", on: "Active", offState: "Inactive", ttKey: "Clé TomTom", ttKeyPh: "Colle ta clé ici",
+    ttHelp: "Gardée dans ce navigateur seulement. Sans clé, le trajet est calculé sans la circulation (OSRM).",
+    goRoute: "Trouver les meilleurs prix", goNear: "Trouver les stations près de moi", searching: "Recherche…",
+    routes: "Trajets proposés", via: "Via {v}", routeN: "Trajet {n}", trafficIncl: "dont {n} min de trafic",
+    srcLive: "Circulation en direct · TomTom", srcOsrm: "Sans circulation · OSRM",
+    save: "☆ Enregistrer", saved: "★ Favori", saveTitle: "Ajouter aux favoris", unsaveTitle: "Retirer des favoris",
+    around: "Autour de {p}", removeFav: "Retirer le favori {n}",
+    emptyTitle: "Où faire le plein, sans chercher.",
+    emptyRoute: "Entre ton départ et ta destination : les stations sur ton chemin apparaissent ici, de la moins chère à la plus chère, avec le vrai détour pour les 5 premières. À toi de juger si ça vaut le coup.",
+    emptyNear: "Entre une adresse ou touche le bouton de localisation : les stations dans ton rayon apparaissent ici, de la moins chère à la plus chère, avec le temps pour t'y rendre.",
+    note: "Prix déclarés à la Régie de l'énergie du Québec (mis à jour aux 5 minutes). Distances à vol d'oiseau, sauf le détour et le temps en voiture, calculés par la route pour les 5 premières stations. Trajet : TomTom (circulation en direct) ou OSRM · Adresses : Photon / OpenStreetMap · Carte : Esri.",
+    mapLabel: "Carte du trajet", yourRoute: "Ton trajet",
+    nStationsRoute: "{n} station{s} sur ton chemin", noneRoute: "Aucune station sur ton chemin",
+    nStationsNear: "{n} station{s} autour de {p}", you: "toi", noneNear: "Aucune station dans ton rayon",
+    metaRoute: "{km} km · {dur} · à {d} ou moins", metaNear: "Rayon de {r} km", metaMedian: " · médiane {m} ¢",
+    warnNoBrand: "Aucune bannière n'est cochée. Ouvre « Bannières et rabais ».",
+    warnNear: "Aucune station dans un rayon de {r} km. Augmente le rayon.", warnRoute: "Aucune station à {d} ou moins du trajet. Augmente l'écart permis.",
+    best: "Meilleur prix", posted: "affiché {p} · rabais {r} ¢", onRoute: "Sur le trajet", offRoute: "à {d} du trajet", alongKm: "km {a} sur {b}",
+    away: "à {d}", fillLine: "Plein de {l} L · ", vsMedian: " vs médiane", median: "Prix médian",
+    gmRoute: "Google Maps (trajet avec arrêt) ↗", gm: "Google Maps ↗", waze: "Waze (jusqu'à la station) ↗",
+    wazeTitle: "Waze ne prend pas d'arrêt intermédiaire par lien : il te guide jusqu'à la station seulement.",
+    calcTime: "Calcul du temps…", calcDetour: "Calcul du détour…", drive: "{m} min en voiture · {km} km", lt1: "moins d'1",
+    noDetour: "Aucun détour", detour: "Détour {m}", detourLt1: "de moins d'1 min", popRoute: "à {d} du trajet", popNear: "à {d}",
+    errRegie: "Impossible de joindre la Régie de l'énergie. Vérifie ta connexion Internet.", errRegieCode: "La Régie a répondu {c}. Réessaie dans une minute.",
+    errFrom: "Entre un point de départ.", errTo: "Entre une destination.",
+    errAddr: "Adresse introuvable : « {q} ». Essaie le nom complet de la rue, ou choisis une suggestion.",
+    ttNoAnswer: "TomTom ne répond pas", ttRefused: "Clé TomTom refusée", ttQuota: "Quota TomTom atteint", ttOther: "TomTom : {w}", ttNoRoute: "TomTom n'a trouvé aucun trajet",
+    routeNote: "{e} : trajet calculé sans la circulation (OSRM).",
+    errRouteSvc: "Le service de trajet ne répond pas. Réessaie dans un instant.", errNoRoute: "Aucun trajet routier trouvé entre ces deux points.",
+    locNone: "La localisation n'est pas disponible sur cet appareil.", locDenied: "Localisation refusée ou indisponible. Tape l'adresse.",
+  },
+  en: {
+    appName: "Gas on My Route", loadingPrices: "Loading Régie prices…", pricesDown: "Prices unavailable",
+    freshLine: "{n} live stations", freshAt: " · prices as of {t}",
+    themeLabel: "Theme", themeAuto: "Auto", themeLight: "Light", themeDark: "Dark", langLabel: "Language",
+    modeLabel: "Search mode", modeRoute: "On my route", modeNear: "Near me", favorites: "Favourites",
+    from: "From", to: "To", addrPh: "Address or place", useLoc: "Use my location", swap: "Swap start and destination",
+    myLoc: "My location", savedLoc: "Saved location",
+    fuel: "Fuel", fuelReg: "Regular", fuelSup: "Premium 91", fuelDie: "Diesel",
+    corridor: "Max distance from route", radius: "Radius", fill: "Fill-up",
+    brands: "Brands & discounts", allOn: "Select all", allOff: "Clear all", brandHead: "Brand · stations", rebateHead: "Your discount",
+    loadingBrands: "Loading brands…", noBrand: "No brand", rebateAria: "{b} discount, in cents per litre",
+    rebateHelp: "The discount (in ¢/L) is subtracted from the posted price, and stations are ranked on your real price. E.g. 3 for −3 ¢/L with your loyalty card.",
+    moreBrands: "Show {n} more brands", lessBrands: "Hide smaller brands",
+    stAll: "All", stNone: "None", stOnly: "Only {l}", stExcept: "All except {l}", stCount: "{a} of {b}", stRebates: " · {n} discount{s}",
+    traffic: "Live traffic", on: "On", offState: "Off", ttKey: "TomTom key", ttKeyPh: "Paste your key here",
+    ttHelp: "Stored in this browser only. Without a key, routes are calculated without traffic (OSRM).",
+    goRoute: "Find the best prices", goNear: "Find stations near me", searching: "Searching…",
+    routes: "Suggested routes", via: "Via {v}", routeN: "Route {n}", trafficIncl: "incl. {n} min of traffic",
+    srcLive: "Live traffic · TomTom", srcOsrm: "No traffic · OSRM",
+    save: "☆ Save", saved: "★ Saved", saveTitle: "Add to favourites", unsaveTitle: "Remove from favourites",
+    around: "Around {p}", removeFav: "Remove favourite {n}",
+    emptyTitle: "Where to fill up, without searching.",
+    emptyRoute: "Enter your start and destination: stations along your way appear here, cheapest first, with the real detour for the top 5. You decide whether it's worth it.",
+    emptyNear: "Enter an address or tap the location button: stations within your radius appear here, cheapest first, with the time to get there.",
+    note: "Prices reported to Québec's Régie de l'énergie (updated every 5 minutes). Straight-line distances, except the detour and drive time, which are calculated by road for the top 5 stations. Routes: TomTom (live traffic) or OSRM · Addresses: Photon / OpenStreetMap · Map: Esri.",
+    mapLabel: "Route map", yourRoute: "Your route",
+    nStationsRoute: "{n} station{s} on your way", noneRoute: "No stations on your way",
+    nStationsNear: "{n} station{s} around {p}", you: "you", noneNear: "No stations within your radius",
+    metaRoute: "{km} km · {dur} · within {d}", metaNear: "{r} km radius", metaMedian: " · median {m}¢",
+    warnNoBrand: "No brand is selected. Open “Brands & discounts”.",
+    warnNear: "No stations within {r} km. Increase the radius.", warnRoute: "No stations within {d} of the route. Increase the max distance.",
+    best: "Best price", posted: "posted {p} · discount {r}¢", onRoute: "On your route", offRoute: "{d} from route", alongKm: "km {a} of {b}",
+    away: "{d} away", fillLine: "{l} L fill-up · ", vsMedian: " vs median", median: "Median price",
+    gmRoute: "Google Maps (route with stop) ↗", gm: "Google Maps ↗", waze: "Waze (to the station only) ↗",
+    wazeTitle: "Waze links can't include a stop: it guides you to the station only.",
+    calcTime: "Calculating time…", calcDetour: "Calculating detour…", drive: "{m} min drive · {km} km", lt1: "under 1",
+    noDetour: "No detour", detour: "Detour {m}", detourLt1: "under 1 min", popRoute: "{d} from route", popNear: "{d} away",
+    errRegie: "Can't reach the Régie de l'énergie. Check your internet connection.", errRegieCode: "The Régie answered {c}. Try again in a minute.",
+    errFrom: "Enter a starting point.", errTo: "Enter a destination.",
+    errAddr: "Address not found: “{q}”. Try the full street name, or pick a suggestion.",
+    ttNoAnswer: "TomTom isn't responding", ttRefused: "TomTom key rejected", ttQuota: "TomTom quota reached", ttOther: "TomTom: {w}", ttNoRoute: "TomTom found no route",
+    routeNote: "{e}: route calculated without traffic (OSRM).",
+    errRouteSvc: "The routing service isn't responding. Try again in a moment.", errNoRoute: "No driving route found between these two points.",
+    locNone: "Location isn't available on this device.", locDenied: "Location denied or unavailable. Type the address.",
+  },
+};
+let lang = store.get("lang", "fr") === "en" ? "en" : "fr";
+let LOC = lang === "en" ? "en-CA" : "fr-CA";
+function t(k, v = {}) {
+  const s = (I18N[lang][k] ?? I18N.fr[k] ?? k);
+  return s.replace(/\{(\w+)\}/g, (_, x) => (v[x] ?? ""));
+}
+const plural = n => (n > 1 ? "s" : "");
+
+/* ---------- Interface ---------- */
+const $ = id => document.getElementById(id);
+const money = v => v.toLocaleString(LOC, { style: "currency", currency: "CAD" });
+const num = (v, d = 1) => v.toLocaleString(LOC, { minimumFractionDigits: d, maximumFractionDigits: d });
+const SHOW = 10, DET_N = 5, BRAND_TOP = 12;
+const FEED_URL = "https://regieessencequebec.ca/stations.geojson.gz";
+const FUEL_KEYS = { "Régulier": 0, "Super": 1, "Diesel": 2 };
+let stations = null, loadedAt = 0, generatedAt = null, here = null, map = null, layer = null, markers = [];
+let lastRoute = null, lastA = null, lastB = null, lastTop = [], lastMode = null;
+let mode = "route";
+
+function status(msg, kind = "") { const el = $("status"); el.textContent = msg; el.dataset.kind = kind; el.hidden = !msg; }
+function css(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+const shortName = l => (l || "").split(",")[0].trim();
+const isMyLoc = q => ["ma position", "my location"].includes(q.trim().toLowerCase());
+const placeLabel = p => (p.label === "@me" ? t("myLoc") : p.label === "@saved" ? t("savedLoc") : p.label);
+
+/* Thème : auto (suit l'ordinateur), clair ou sombre */
+let theme = ["auto", "light", "dark"].includes(store.get("theme", "auto")) ? store.get("theme", "auto") : "auto";
+function applyTheme() {
+  if (theme === "auto") document.documentElement.removeAttribute("data-theme");
+  else document.documentElement.setAttribute("data-theme", theme);
+  document.querySelectorAll("[data-theme-set]").forEach(b => { const on = b.dataset.themeSet === theme; b.classList.toggle("on", on); b.setAttribute("aria-pressed", on); });
+  document.querySelectorAll('meta[name="theme-color"]').forEach(m => { m.content = theme === "dark" ? "#1F1E1D" : theme === "light" ? "#FAF9F5" : m.dataset.auto; });
+}
+function setTheme(x) { theme = x; store.set("theme", x); applyTheme(); rerender(); }
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { if (theme === "auto") rerender(); });
+
+/* Langue : textes statiques */
+function applyLang() {
+  LOC = lang === "en" ? "en-CA" : "fr-CA";
+  document.documentElement.lang = lang === "en" ? "en-CA" : "fr-CA";
+  document.title = t("appName");
+  document.querySelectorAll("[data-i18n]").forEach(el => { el.textContent = t(el.dataset.i18n); });
+  document.querySelectorAll("[data-i18n-ph]").forEach(el => { el.placeholder = t(el.dataset.i18nPh); });
+  document.querySelectorAll("[data-i18n-title]").forEach(el => { el.title = t(el.dataset.i18nTitle); });
+  document.querySelectorAll("[data-i18n-aria]").forEach(el => { el.setAttribute("aria-label", t(el.dataset.i18nAria)); });
+  document.querySelectorAll("[data-lang-set]").forEach(b => { const on = b.dataset.langSet === lang; b.classList.toggle("on", on); b.setAttribute("aria-pressed", on); });
+  ["from", "to"].forEach(f => { if (isMyLoc($(f).value)) $(f).value = t("myLoc"); });
+  renderFresh();
+  syncKey();
+  $("goLabel").textContent = goText();
+  $("emptyText").textContent = t(mode === "near" ? "emptyNear" : "emptyRoute");
+}
+function setLang(x) {
+  lang = x === "en" ? "en" : "fr";
+  store.set("lang", lang);
+  applyLang();
+  if (stations) buildBrands();
+  renderFavs();
+  if (lastRoutes.length) renderRoutes();
+  rerender();
+}
+
+/* Prix de la Régie */
+function parsePrice(raw) {
+  const m = String(raw ?? "").match(/\d+(?:[.,]\d+)?/);
+  if (!m) return null;
+  const v = parseFloat(m[0].replace(",", "."));
+  return v > 50 && v < 500 ? v : null;
+}
+function compact(doc) {
+  const out = [];
+  for (const f of doc.features || []) {
+    const p = f.properties || {}, c = f.geometry && f.geometry.coordinates;
+    if (!c || !c[0] || !c[1]) continue;
+    const st = (p.Status || "").trim();
+    if (st && st !== "En opération") continue;
+    const prices = [null, null, null];
+    for (const e of p.Prices || []) {
+      const i = FUEL_KEYS[e.GasType];
+      if (i !== undefined && e.IsAvailable !== false) prices[i] = parsePrice(e.Price);
+    }
+    const brand = (p.brand || "").trim();
+    out.push([c[1], c[0], (p.Name || "").trim(), brand === "Aucun" ? "" : brand, (p.Address || "").trim(), ...prices]);
+  }
+  return out;
+}
+let freshState = "loading";
+function renderFresh() {
+  if (freshState === "loading") { $("fresh").textContent = t("loadingPrices"); return; }
+  if (freshState === "down") { $("fresh").textContent = t("pricesDown"); return; }
+  const tm = generatedAt ? new Date(generatedAt) : null;
+  $("fresh").textContent = t("freshLine", { n: stations.length.toLocaleString(LOC) })
+    + (tm ? t("freshAt", { t: tm.toLocaleTimeString(LOC, { hour: "2-digit", minute: "2-digit" }) }) : "");
+}
+async function loadStations() {
+  let r;
+  try { r = await fetch(FEED_URL, { cache: "no-store" }); }
+  catch { throw new Error(t("errRegie")); }
+  if (!r.ok) throw new Error(t("errRegieCode", { c: r.status }));
+  const buf = new Uint8Array(await r.arrayBuffer());
+  const text = buf[0] === 0x1f && buf[1] === 0x8b
+    ? await new Response(new Blob([buf]).stream().pipeThrough(new DecompressionStream("gzip"))).text()
+    : new TextDecoder().decode(buf);
+  const doc = JSON.parse(text);
+  stations = compact(doc); loadedAt = Date.now();
+  generatedAt = doc.metadata && doc.metadata.generated_at;
+  freshState = "ok";
+  $("live").classList.remove("wait");
+  renderFresh();
+  buildBrands();
+}
+
+/* Bannières et rabais */
+const brandLabel = b => b || t("noBrand");
+let off = new Set(parseJSON(store.get("brandsOff", null), store.get("costco", "0") === "1" ? [] : ["Costco"]));
+let rebates = parseJSON(store.get("rebates", "{}"), {});
+let brandCounts = [], brandsExpanded = false;
+function buildBrands() {
+  const cnt = new Map();
+  for (const s of stations) cnt.set(s[3], (cnt.get(s[3]) || 0) + 1);
+  brandCounts = [...cnt.entries()].sort((a, b) => (a[0] === "" ? 1 : 0) - (b[0] === "" ? 1 : 0) || b[1] - a[1] || a[0].localeCompare(b[0], "fr"));
+  $("brandList").replaceChildren(...brandCounts.map(([b, n], i) => {
+    const li = document.createElement("li");
+    if (i >= BRAND_TOP) { li.className = "extra"; li.hidden = !brandsExpanded; }
+    const lab = document.createElement("label"); lab.className = "bchk";
+    const cb = document.createElement("input"); cb.type = "checkbox"; cb.checked = !off.has(b);
+    cb.addEventListener("change", () => { cb.checked ? off.delete(b) : off.add(b); saveBrands(); });
+    const name = document.createElement("span"); name.className = "bname"; name.textContent = brandLabel(b);
+    const c = document.createElement("span"); c.className = "cnt"; c.textContent = n;
+    lab.append(cb, name, c);
+    const u = document.createElement("div"); u.className = "unit mini";
+    const r = document.createElement("input");
+    Object.assign(r, { type: "number", inputMode: "decimal", min: "0", max: "50", step: "0.1", placeholder: "0" });
+    r.setAttribute("aria-label", t("rebateAria", { b: brandLabel(b) }));
+    if (rebates[b]) r.value = rebates[b];
+    r.addEventListener("change", () => {
+      const v = Math.min(50, Math.max(0, parseFloat(String(r.value).replace(",", ".")) || 0));
+      if (v) rebates[b] = v; else delete rebates[b];
+      r.value = v || "";
+      saveBrands();
+    });
+    const sp = document.createElement("span"); sp.textContent = "¢";
+    u.append(r, sp);
+    li.append(lab, u);
+    return li;
+  }));
+  syncMore();
+  syncBrandState();
+}
+function syncMore() {
+  const extra = Math.max(0, brandCounts.length - BRAND_TOP);
+  $("brandMore").hidden = !extra;
+  $("brandMore").textContent = brandsExpanded ? t("lessBrands") : t("moreBrands", { n: extra });
+  document.querySelectorAll("#brandList li.extra").forEach(li => { li.hidden = !brandsExpanded; });
+}
+function syncBrandState() {
+  const names = brandCounts.map(x => x[0]);
+  const offN = names.filter(b => off.has(b)), onN = names.filter(b => !off.has(b));
+  let s;
+  if (!names.length) s = "…";
+  else if (!offN.length) s = t("stAll");
+  else if (!onN.length) s = t("stNone");
+  else if (onN.length <= 3) s = t("stOnly", { l: onN.map(brandLabel).join(", ") });
+  else if (offN.length <= 2) s = t("stExcept", { l: offN.map(brandLabel).join(", ") });
+  else s = t("stCount", { a: onN.length, b: names.length });
+  const nr = Object.keys(rebates).length;
+  if (nr) s += t("stRebates", { n: nr, s: plural(nr) });
+  $("brandState").textContent = s;
+  $("brandState").title = s;
+  $("brandState").classList.toggle("on", !!offN.length || !!nr);
+}
+function saveBrands() {
+  store.set("brandsOff", JSON.stringify([...off]));
+  store.set("rebates", JSON.stringify(rebates));
+  syncBrandState();
+  rerender();
+}
+
+/* Adresses */
+const picked = { from: null, to: null };
+function photonLabel(p) {
+  const street = [p.housenumber, p.street || (p.housenumber ? "" : p.name)].filter(Boolean).join(" ");
+  const place = p.name && p.street && p.name !== p.street ? p.name : "";
+  return [place, street, p.city || p.county || p.state].filter(Boolean).join(", ");
+}
+async function photon(q, limit) {
+  const bias = here ? `&lat=${here[0]}&lon=${here[1]}` : "&lat=45.52&lon=-73.6";
+  const j = await (await fetch(`https://photon.komoot.io/api/?lang=${lang}&limit=${limit}&bbox=-79.8,44.9,-57.1,62.6${bias}&q=` + encodeURIComponent(q))).json();
+  const seen = new Set();
+  const hits = (j.features || []).map(f => ({ lat: f.geometry.coordinates[1], lon: f.geometry.coordinates[0], label: photonLabel(f.properties), hn: f.properties.housenumber }))
+    .filter(h => h.label && !seen.has(h.label) && seen.add(h.label));
+  const n = q.match(/^\s*(\d+)/);
+  return n ? [...hits.filter(h => h.hn === n[1]), ...hits.filter(h => h.hn !== n[1])] : hits;
+}
+async function nominatim(q) {
+  const j = await (await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&countrycodes=ca&accept-language=${lang}&q=` + encodeURIComponent(q))).json();
+  return j.length ? { lat: +j[0].lat, lon: +j[0].lon, label: j[0].display_name.split(",").slice(0, 3).join(",") } : null;
+}
+async function geocode(field) {
+  const q = $(field).value.trim();
+  if (!q) throw new Error(t(field === "from" ? "errFrom" : "errTo"));
+  if (picked[field] && picked[field].q === q) return picked[field];
+  if (isMyLoc(q) && here) return { lat: here[0], lon: here[1], label: "@me" };
+  let hits = [];
+  try { hits = await photon(q, 6); } catch {}
+  let best = hits[0] || null;
+  if (!best) { try { best = await nominatim(q); } catch {} }
+  if (!best) throw new Error(t("errAddr", { q }));
+  picked[field] = { ...best, q };
+  $(field + "Hint").textContent = "→ " + best.label;
+  return best;
+}
+function attachSuggest(field) {
+  const input = $(field), box = $(field + "List");
+  let timer = 0, seq = 0, items = [], active = -1;
+  const close = () => { box.hidden = true; active = -1; };
+  const choose = i => {
+    const h = items[i]; if (!h) return;
+    input.value = h.label; picked[field] = { ...h, q: h.label };
+    $(field + "Hint").textContent = ""; close();
+  };
+  input.addEventListener("input", () => {
+    picked[field] = null; $(field + "Hint").textContent = "";
+    clearTimeout(timer);
+    const q = input.value.trim();
+    if (q.length < 3) { seq++; return close(); }
+    timer = setTimeout(async () => {
+      const my = ++seq;
+      try { items = await photon(q, 5); } catch { items = []; }
+      if (my !== seq || document.activeElement !== input) return;
+      box.replaceChildren(...items.map((h, i) => {
+        const li = document.createElement("li");
+        li.textContent = h.label;
+        li.addEventListener("mousedown", e => { e.preventDefault(); choose(i); });
+        return li;
+      }));
+      active = -1; box.hidden = !items.length;
+    }, 250);
+  });
+  input.addEventListener("keydown", e => {
+    if (box.hidden || !items.length) return;
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      active = (active + (e.key === "ArrowDown" ? 1 : items.length - 1)) % items.length;
+      [...box.children].forEach((li, i) => li.classList.toggle("on", i === active));
+    } else if (e.key === "Enter" && active >= 0) { e.preventDefault(); choose(active); }
+    else if (e.key === "Escape") close();
+  });
+  input.addEventListener("blur", () => setTimeout(close, 150));
+}
+
+/* Trajets : TomTom (circulation en direct) si une clé est fournie, sinon OSRM. */
+function viaFrom(segs, taken) {
+  const tot = new Map();
+  for (const s of segs) if (s.name) tot.set(s.name, (tot.get(s.name) || 0) + s.m);
+  const names = [...tot.entries()].sort((a, b) => b[1] - a[1]).map(e => e[0]);
+  return names.find(n => !taken.includes(n)) || names[0] || "";
+}
+function ttError(r, j) {
+  const why = (j.detailedError && j.detailedError.message) || (j.error && j.error.description) || `code ${r.status}`;
+  return new Error(r.status === 401 || r.status === 403 ? t("ttRefused") : r.status === 429 ? t("ttQuota") : t("ttOther", { w: why }));
+}
+async function routesTomTom(a, b, key) {
+  const url = `https://api.tomtom.com/routing/1/calculateRoute/${a.lat},${a.lon}:${b.lat},${b.lon}/json`
+    + `?key=${encodeURIComponent(key)}&traffic=true&travelMode=car&routeType=fastest&departAt=now&maxAlternatives=2&instructionsType=text&language=${lang === "en" ? "en-US" : "fr-FR"}`;
+  let r;
+  try { r = await fetch(url); } catch { throw new Error(t("ttNoAnswer")); }
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw ttError(r, j);
+  if (!j.routes || !j.routes.length) throw new Error(t("ttNoRoute"));
+  const taken = [];
+  return j.routes.map(rt => {
+    const s = rt.summary, ins = (rt.guidance && rt.guidance.instructions) || [];
+    const segs = ins.map((x, i) => ({ name: x.street || (x.roadNumbers || []).join(" / "), m: (ins[i + 1] ? ins[i + 1].routeOffsetInMeters : s.lengthInMeters) - x.routeOffsetInMeters }));
+    const via = viaFrom(segs, taken); taken.push(via);
+    return { coords: rt.legs.flatMap(l => l.points.map(p => [p.longitude, p.latitude])), km: s.lengthInMeters / 1000, min: s.travelTimeInSeconds / 60,
+      delayMin: (s.trafficDelayInSeconds || 0) / 60, via, traffic: true };
+  });
+}
+async function routesOSRM(a, b) {
+  let j;
+  try { j = await (await fetch(`https://router.project-osrm.org/route/v1/driving/${a.lon},${a.lat};${b.lon},${b.lat}?overview=full&geometries=geojson&alternatives=3&steps=true`)).json(); }
+  catch { throw new Error(t("errRouteSvc")); }
+  if (j.code !== "Ok" || !j.routes.length) throw new Error(t("errNoRoute"));
+  const taken = [];
+  return j.routes.map(rt => {
+    const segs = rt.legs.flatMap(l => l.steps.map(s => ({ name: s.name || s.ref || "", m: s.distance })));
+    const via = viaFrom(segs, taken); taken.push(via);
+    return { coords: rt.geometry.coordinates, km: rt.distance / 1000, min: rt.duration / 60, delayMin: 0, via, traffic: false };
+  });
+}
+/* Sans circulation, OSRM surestime les grands boulevards : on préfère un trajet ≥ 10 % plus court s'il est au plus 5 % plus lent. */
+function defaultRoute(routes) {
+  if (routes[0].traffic) return 0;
+  const f = routes[0]; let best = 0;
+  routes.forEach((r, i) => { if (r.min <= f.min * 1.05 && r.km <= f.km * 0.9 && r.km < routes[best].km) best = i; });
+  return best;
+}
+let routeNote = "";
+async function getRoutes(a, b) {
+  routeNote = "";
+  const key = $("ttkey").value.trim();
+  if (key) {
+    try { return await routesTomTom(a, b, key); }
+    catch (e) { routeNote = t("routeNote", { e: e.message }); }
+  }
+  return routesOSRM(a, b);
+}
+let lastRoutes = [], sel = 0;
+const routeName = (r, i) => (r.via ? t("via", { v: r.via }) : t("routeN", { n: i + 1 }));
+function renderRoutes() {
+  $("routes").replaceChildren(...lastRoutes.map((r, i) => {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "rt" + (i === sel ? " on" : "");
+    b.setAttribute("aria-pressed", i === sel);
+    const tt = document.createElement("b"); tt.textContent = routeName(r, i);
+    const m = document.createElement("span"); m.textContent = `${num(r.km, 1)} km · ${fmtDur(r.min)}`;
+    b.append(tt, m);
+    if (r.traffic && r.delayMin >= 1) { const d = document.createElement("em"); d.textContent = t("trafficIncl", { n: Math.round(r.delayMin) }); b.append(d); }
+    b.addEventListener("click", () => chooseRoute(i));
+    return b;
+  }));
+  const live = lastRoutes[0] && lastRoutes[0].traffic;
+  $("routeSrc").textContent = t(live ? "srcLive" : "srcOsrm");
+  $("routeSrc").classList.toggle("is-live", !!live);
+  $("routesWrap").hidden = !lastRoutes.length;
+}
+function chooseRoute(i) { sel = i; lastRoute = lastRoutes[i]; renderRoutes(); render(); }
+
+/* Vrai détour (trajet) ou temps en voiture (près de moi), par la route, pour les 5 premières stations */
+async function travelTomTom(pts, key) {
+  const r = await fetch(`https://api.tomtom.com/routing/1/calculateRoute/${pts.map(p => `${p.lat},${p.lon}`).join(":")}/json`
+    + `?key=${encodeURIComponent(key)}&traffic=true&travelMode=car&routeType=fastest&departAt=now&routeRepresentation=summaryOnly`);
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok || !j.routes) throw ttError(r, j);
+  const s = j.routes[0].summary;
+  return { min: s.travelTimeInSeconds / 60, km: s.lengthInMeters / 1000 };
+}
+async function travelOSRM(pts) {
+  const j = await (await fetch(`https://router.project-osrm.org/route/v1/driving/${pts.map(p => `${p.lon},${p.lat}`).join(";")}?overview=false`)).json();
+  if (j.code !== "Ok") throw new Error(j.code);
+  return { min: j.routes[0].duration / 60, km: j.routes[0].distance / 1000 };
+}
+const detCache = new Map();
+let detGen = 0;
+async function computeDetours() {
+  const gen = ++detGen;
+  const near = lastMode === "near", key = $("ttkey").value.trim();
+  // Trajet : le détour se compare au trajet choisi, donc même fournisseur que lui.
+  const useTT = near ? !!key : !!(lastRoute && lastRoute.traffic);
+  const items = lastTop.slice(0, DET_N);
+  for (let i = 0; i < items.length; i++) {
+    const s = items[i];
+    const ck = [near ? "n" : "r", useTT ? "tt" : "os", lastA.lat, lastA.lon, near ? "" : `${lastB.lat},${lastB.lon}#${sel}`, s.lat, s.lon].join("|");
+    if (!detCache.has(ck)) {
+      let v = null;
+      try {
+        const pts = near ? [lastA, s] : [lastA, s, lastB];
+        let tr;
+        if (useTT) {
+          try { tr = await travelTomTom(pts, key); }
+          catch (e) { if (!near) throw e; tr = await travelOSRM(pts); }
+        } else tr = await travelOSRM(pts);
+        v = near ? tr : { min: tr.min - lastRoute.min, km: tr.km - lastRoute.km };
+      } catch { v = null; }
+      if (gen !== detGen) return;
+      detCache.set(ck, v);
+    }
+    if (gen !== detGen) return;
+    paintDetour(i, detCache.get(ck), near);
+  }
+}
+const ICON_CAR = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 16h14v-4l-2-5H7l-2 5z"/><circle cx="8" cy="16.5" r="1.6"/><circle cx="16" cy="16.5" r="1.6"/></svg>';
+function paintDetour(i, v, near) {
+  const el = document.querySelector(`[data-det="${i}"]`);
+  if (!el) return;
+  if (!v) { el.remove(); return; }
+  el.classList.remove("wait");
+  let text;
+  if (near) text = t("drive", { m: v.min < 1 ? t("lt1") : Math.round(v.min), km: num(v.km) });
+  else if (v.min < 0.5 && v.km < 0.3) { text = t("noDetour"); el.classList.add("ok"); }
+  else text = t("detour", { m: v.min < 0.5 ? t("detourLt1") : `+${Math.round(v.min)} min` }) + (v.km >= 0.05 ? ` · +${num(v.km)} km` : "");
+  el.innerHTML = ICON_CAR;
+  el.append(text);
+}
+
+/* Réglages */
+function corridorM() {
+  const v = Math.round(+$("corridor").value);
+  return Number.isFinite(v) && v > 0 ? Math.min(5000, Math.max(25, v)) : 300;
+}
+function radiusKm() {
+  const v = parseFloat(String($("radius").value).replace(",", "."));
+  return Number.isFinite(v) && v > 0 ? Math.min(50, Math.max(0.5, v)) : 3;
+}
+function fuel() { return +document.querySelector('input[name="fuel"]:checked').value; }
+function opts() { return { fuel: fuel(), fillL: Math.max(1, +$("fillL").value || 40), corridorKm: corridorM() / 1000, radiusKm: radiusKm(), off, rebates }; }
+function fmtDist(m) { return m < 1000 ? `${Math.max(10, Math.round(m / 10) * 10)} m` : `${num(m / 1000)} km`; }
+function fmtDur(min) { const h = Math.floor(min / 60), m = Math.round(min % 60); return h ? `${h} h ${String(m).padStart(2, "0")}` : `${m} min`; }
+
+/* Mode */
+function goText() { return t(mode === "near" ? "goNear" : "goRoute"); }
+function setMode(m) {
+  mode = m === "near" ? "near" : "route";
+  store.set("mode", mode);
+  $("form").classList.toggle("nearby", mode === "near");
+  $(mode === "near" ? "modeNear" : "modeRoute").checked = true;
+  $("goLabel").textContent = goText();
+  clearResults();
+}
+function clearResults() {
+  lastMode = null; lastRoutes = []; lastRoute = null; lastTop = []; markers = []; detGen++;
+  $("results").replaceChildren();
+  $("summary").hidden = true; $("routesWrap").hidden = true; $("maptag").hidden = true;
+  $("empty").hidden = false; $("emptyText").textContent = t(mode === "near" ? "emptyNear" : "emptyRoute");
+  status("");
+  if (layer) { layer.remove(); layer = null; }
+}
+function rerender() { if (stations && lastMode && lastMode === mode) render(); }
+
+/* Rendu */
+function render() {
+  const o = opts(), near = lastMode === "near";
+  const res = near ? rankNearby(stations, lastA, o) : rankOnRoute(stations, lastRoute.coords, o);
+  const n = res.ranked.length;
+  const med = n ? t("metaMedian", { m: num(res.median) }) : "";
+  $("results").replaceChildren();
+  $("empty").hidden = true;
+  $("summary").hidden = false;
+  if (near) {
+    const who = lastA.label === "@me" ? t("you") : shortName(placeLabel(lastA));
+    $("sumTitle").textContent = n ? t("nStationsNear", { n, s: plural(n), p: who }) : t("noneNear");
+    $("sumMeta").textContent = t("metaNear", { r: num(o.radiusKm, o.radiusKm % 1 ? 1 : 0) }) + med;
+  } else {
+    $("sumTitle").textContent = n ? t("nStationsRoute", { n, s: plural(n) }) : t("noneRoute");
+    $("sumMeta").textContent = t("metaRoute", { km: num(lastRoute.km, lastRoute.km < 10 ? 1 : 0), dur: fmtDur(lastRoute.min), d: fmtDist(corridorM()) }) + med;
+  }
+  const noBrand = brandCounts.length && brandCounts.every(([b]) => off.has(b));
+  if (noBrand) status(t("warnNoBrand"), "warn");
+  else if (!n) status(near ? t("warnNear", { r: num(o.radiusKm, 1) }) : t("warnRoute", { d: fmtDist(corridorM()) }), "warn");
+  else status("");
+  lastTop = res.ranked.slice(0, SHOW);
+  lastTop.forEach((s, i) => $("results").append(card(s, i, o, near)));
+  draw(near, o);
+  syncFavBtn();
+  computeDetours();
+}
+
+const ICON_ROUTE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 19c4-1 4-13 14-14"/></svg>';
+const ICON_KM = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 22s7-6.5 7-12a7 7 0 0 0-14 0c0 5.5 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>';
+function pill(icon, text, cls = "") {
+  const sp = document.createElement("span");
+  sp.className = "pill" + (cls ? " " + cls : "");
+  sp.innerHTML = icon;
+  sp.append(text);
+  return sp;
+}
+function card(s, i, o, near) {
+  const li = document.createElement("li");
+  li.className = "card" + (i === 0 ? " best" : "");
+  const onRoute = !near && s.offM < 30;
+  const sv = s.saving;
+  li.innerHTML = `
+    <div class="rank">${i + 1}</div>
+    <div class="info">
+      <div class="top">
+        <div class="who"><span class="brand"></span><span class="tag" hidden></span><div class="addr"></div></div>
+        <div class="price"><span class="n">${num(s.eff)}</span><span class="u">¢/L</span><div class="posted" hidden></div></div>
+      </div>
+      <div class="meta"></div>
+      <div class="foot">
+        <span class="fillcost"></span>
+        <span class="save ${sv >= 0.005 ? "pos" : sv <= -0.005 ? "neg" : ""}"></span>
+      </div>
+      <div class="links">
+        <a class="go gm" target="_blank" rel="noopener"></a>
+        <a class="go wz" target="_blank" rel="noopener"></a>
+      </div>
+    </div>`;
+  li.querySelector(".brand").textContent = s.brand || s.name;
+  li.querySelector(".addr").textContent = s.address;
+  if (i === 0) { const tg = li.querySelector(".tag"); tg.textContent = t("best"); tg.hidden = false; }
+  if (s.rebate) { const p = li.querySelector(".posted"); p.textContent = t("posted", { p: num(s.price), r: num(s.rebate, s.rebate % 1 ? 1 : 0) }); p.hidden = false; }
+  const meta = li.querySelector(".meta");
+  if (near) meta.append(pill(ICON_KM, t("away", { d: fmtDist(s.dist * 1000) })));
+  else {
+    meta.append(pill(ICON_ROUTE, onRoute ? t("onRoute") : t("offRoute", { d: fmtDist(s.offM) }), onRoute ? "on" : ""));
+    meta.append(pill(ICON_KM, t("alongKm", { a: num(s.alongKm, s.alongKm < 10 ? 1 : 0), b: num(lastRoute.km, 0) })));
+  }
+  if (i < DET_N) { const d = pill(ICON_CAR, t(near ? "calcTime" : "calcDetour"), "det wait"); d.dataset.det = i; meta.append(d); }
+  const fc = li.querySelector(".fillcost");
+  fc.append(t("fillLine", { l: num(o.fillL, 0) }));
+  const bold = document.createElement("b"); bold.textContent = money(s.fill); fc.append(bold);
+  li.querySelector(".save").textContent = sv >= 0.005 ? "−" + money(sv) + t("vsMedian") : sv <= -0.005 ? "+" + money(-sv) + t("vsMedian") : t("median");
+  const gm = li.querySelector(".gm");
+  if (near) {
+    gm.textContent = t("gm");
+    gm.href = `https://www.google.com/maps/dir/?api=1&origin=${lastA.lat},${lastA.lon}&destination=${s.lat},${s.lon}&travelmode=driving`;
+  } else {
+    gm.textContent = t("gmRoute");
+    gm.href = `https://www.google.com/maps/dir/?api=1&origin=${lastA.lat},${lastA.lon}&destination=${lastB.lat},${lastB.lon}&waypoints=${s.lat},${s.lon}&travelmode=driving`;
+  }
+  const wz = li.querySelector(".wz");
+  wz.textContent = t("waze"); wz.title = t("wazeTitle");
+  wz.href = `https://waze.com/ul?ll=${s.lat},${s.lon}&navigate=yes`;
+  li.addEventListener("click", e => { if (e.target.closest("a")) return; select(i, true); });
+  return li;
+}
+
+function select(i, fromList) {
+  document.querySelectorAll("#results .card").forEach((c, k) => c.classList.toggle("sel", k === i));
+  markers.forEach((m, k) => { const el = m.getElement(); if (el) el.classList.toggle("sel", k === i); });
+  const s = lastTop[i]; if (!s) return;
+  if (fromList && map) { map.flyTo([s.lat, s.lon], Math.max(map.getZoom(), 15), { duration: .6 }); markers[i].openPopup(); }
+  if (!fromList) { const c = $("results").children[i]; if (c) c.scrollIntoView({ behavior: "smooth", block: "nearest" }); }
+}
+
+function initMap() {
+  if (map || typeof L === "undefined") return;
+  map = L.map("map", { zoomControl: true, attributionControl: true }).setView([45.53, -73.62], 11);
+  map.attributionControl.setPrefix(false);
+  // Les tuiles d'OpenStreetMap.org refusent une page ouverte en fichier local : Esri, puis OSM France en secours.
+  const esri = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}", {
+    maxZoom: 19, referrerPolicy: "no-referrer", attribution: "Esri, HERE, Garmin · © OpenStreetMap",
+  }).addTo(map);
+  let errors = 0;
+  esri.on("tileerror", () => {
+    if (++errors !== 3) return;
+    map.removeLayer(esri);
+    L.tileLayer("https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png", {
+      maxZoom: 19, subdomains: "abc", referrerPolicy: "no-referrer", attribution: "© OpenStreetMap France · © OpenStreetMap",
+    }).addTo(map);
+  });
+}
+
+function draw(near, o) {
+  if (!map) return;
+  if (layer) layer.remove();
+  layer = L.layerGroup().addTo(map);
+  const frame = [];
+  const ep = cls => L.divIcon({ className: "endpoint " + cls, iconSize: [18, 18], iconAnchor: [9, 9] });
+  if (near) {
+    frame.push(L.circle([lastA.lat, lastA.lon], { radius: o.radiusKm * 1000, color: css("--clay") || "#D97757", weight: 1.5, fillColor: css("--clay") || "#D97757", fillOpacity: .06, interactive: false }).addTo(layer));
+    L.marker([lastA.lat, lastA.lon], { icon: ep("a"), keyboard: false, interactive: false }).addTo(layer);
+    $("maptag").hidden = true;
+  } else {
+    lastRoutes.forEach((r, i) => {
+      if (i === sel) return;
+      const pl = L.polyline(r.coords.map(c => [c[1], c[0]]), { color: css("--alt") || "#A9A498", weight: 5, opacity: .8, lineCap: "round" }).addTo(layer);
+      pl.bindTooltip(routeName(r, i), { sticky: true });
+      pl.on("click", () => chooseRoute(i));
+      frame.push(pl);
+    });
+    const latlngs = lastRoute.coords.map(c => [c[1], c[0]]);
+    L.polyline(latlngs, { color: css("--casing") || "#ffffff", weight: 9, opacity: .9, lineCap: "round", interactive: false }).addTo(layer);
+    frame.push(L.polyline(latlngs, { color: css("--route") || "#2F6BDB", weight: 5, opacity: 1, lineCap: "round", interactive: false }).addTo(layer));
+    L.marker([lastA.lat, lastA.lon], { icon: ep("a"), keyboard: false, interactive: false }).addTo(layer);
+    L.marker([lastB.lat, lastB.lon], { icon: ep("b"), keyboard: false, interactive: false }).addTo(layer);
+    $("maptag").hidden = false;
+  }
+  markers = lastTop.map((s, i) => {
+    const size = i === 0 ? 32 : 26;
+    const icon = L.divIcon({ className: "pin" + (i === 0 ? " pin-best" : ""), html: String(i + 1), iconSize: [size, size], iconAnchor: [size / 2, size / 2] });
+    const pop = document.createElement("div");
+    const b = document.createElement("b"); b.textContent = s.brand || s.name;
+    pop.append(b, document.createElement("br"), `${num(s.eff)} ¢/L · ${near ? t("popNear", { d: fmtDist(s.dist * 1000) }) : t("popRoute", { d: fmtDist(s.offM) })}`);
+    const m = L.marker([s.lat, s.lon], { icon, zIndexOffset: (SHOW - i) * 10 }).addTo(layer).bindPopup(pop);
+    m.on("click", () => select(i, false));
+    return m;
+  });
+  map.fitBounds(L.featureGroup(frame).getBounds(), { padding: [36, 36] });
+  setTimeout(() => map.invalidateSize(), 60);
+}
+
+/* Favoris (« @me » = ma position au moment de l'enregistrement, affichée dans la langue choisie) */
+let favs = parseJSON(store.get("favs", "[]"), []);
+for (const f of favs) for (const p of [f.from, f.to]) if (p && ["Position enregistrée", "Saved location"].includes(p.label)) p.label = "@saved";
+const favKey = f => [f.mode, f.from.lat.toFixed(4), f.from.lon.toFixed(4), f.to ? `${f.to.lat.toFixed(4)},${f.to.lon.toFixed(4)}` : ""].join("|");
+function currentFav() {
+  if (!lastMode || !lastA) return null;
+  const pt = p => ({ label: p.label === "@me" ? "@saved" : p.label, lat: p.lat, lon: p.lon });
+  return { mode: lastMode, from: pt(lastA), to: lastMode === "route" ? pt(lastB) : null };
+}
+function favName(f) {
+  return f.mode === "near" ? t("around", { p: shortName(placeLabel(f.from)) }) : `${shortName(placeLabel(f.from))} → ${shortName(placeLabel(f.to))}`;
+}
+function renderFavs() {
+  $("favs").hidden = !favs.length;
+  $("favRow").replaceChildren(...favs.map((f, i) => {
+    const w = document.createElement("span"); w.className = "fav";
+    const b = document.createElement("button"); b.type = "button"; b.className = "fav-go";
+    b.textContent = favName(f);
+    b.title = f.mode === "near" ? t("around", { p: placeLabel(f.from) }) : `${placeLabel(f.from)} → ${placeLabel(f.to)}`;
+    b.addEventListener("click", () => useFav(f));
+    const x = document.createElement("button"); x.type = "button"; x.className = "fav-x";
+    x.textContent = "×"; x.setAttribute("aria-label", t("removeFav", { n: favName(f) }));
+    x.addEventListener("click", () => { favs.splice(i, 1); saveFavs(); });
+    w.append(b, x);
+    return w;
+  }));
+  syncFavBtn();
+}
+function saveFavs() { store.set("favs", JSON.stringify(favs)); renderFavs(); }
+function syncFavBtn() {
+  const c = currentFav(), btn = $("favBtn");
+  if (!c) { btn.hidden = true; return; }
+  const on = favs.some(f => favKey(f) === favKey(c));
+  btn.hidden = false;
+  btn.classList.toggle("on", on);
+  btn.textContent = t(on ? "saved" : "save");
+  btn.setAttribute("aria-pressed", on);
+  btn.title = t(on ? "unsaveTitle" : "saveTitle");
+}
+function useFav(f) {
+  if (f.mode !== mode) setMode(f.mode);
+  const fill = (field, p) => {
+    const label = placeLabel(p);
+    $(field).value = label; picked[field] = { ...p, q: label }; $(field + "Hint").textContent = "";
+  };
+  fill("from", f.from);
+  if (f.to) fill("to", f.to);
+  $("form").requestSubmit();
+}
+
+/* Événements */
+$("form").addEventListener("submit", async e => {
+  e.preventDefault();
+  const btn = $("go");
+  if (btn.disabled) return;
+  btn.disabled = true;
+  $("goLabel").textContent = t("searching");
+  btn.insertAdjacentHTML("afterbegin", '<span class="spin" aria-hidden="true"></span>');
+  try {
+    status("");
+    if (!stations || Date.now() - loadedAt > 5 * 60 * 1000) await loadStations();
+    if (mode === "near") {
+      const a = await geocode("from");
+      lastA = a; lastB = null; lastRoutes = []; lastRoute = null; lastMode = "near";
+      $("routesWrap").hidden = true;
+      store.set("from", $("from").value);
+      render();
+    } else {
+      const [a, b] = await Promise.all([geocode("from"), geocode("to")]);
+      lastA = a; lastB = b;
+      lastRoutes = await getRoutes(a, b);
+      sel = defaultRoute(lastRoutes); lastRoute = lastRoutes[sel]; lastMode = "route";
+      store.set("from", $("from").value); store.set("to", $("to").value);
+      renderRoutes();
+      render();
+      if (routeNote) status(routeNote, "warn");
+    }
+  } catch (err) {
+    status(err.message || String(err), "error");
+  } finally {
+    btn.disabled = false;
+    $("goLabel").textContent = goText();
+    const sp = btn.querySelector(".spin"); if (sp) sp.remove();
+  }
+});
+
+document.querySelectorAll('input[name="mode"]').forEach(r => r.addEventListener("change", () => setMode(r.value)));
+document.querySelectorAll('input[name="fuel"]').forEach(r => r.addEventListener("change", () => { store.set("fuel", fuel()); rerender(); }));
+document.querySelectorAll("[data-theme-set]").forEach(b => b.addEventListener("click", () => setTheme(b.dataset.themeSet)));
+document.querySelectorAll("[data-lang-set]").forEach(b => b.addEventListener("click", () => setLang(b.dataset.langSet)));
+$("corridor").addEventListener("change", () => { $("corridor").value = corridorM(); store.set("corridorM", corridorM()); rerender(); });
+$("radius").addEventListener("change", () => { $("radius").value = radiusKm(); store.set("radiusKm", radiusKm()); rerender(); });
+$("fillL").addEventListener("change", () => { store.set("fillL", $("fillL").value); rerender(); });
+$("allOn").addEventListener("click", () => { off.clear(); buildBrands(); saveBrands(); });
+$("allOff").addEventListener("click", () => { off = new Set(brandCounts.map(x => x[0])); buildBrands(); saveBrands(); });
+$("brandMore").addEventListener("click", () => { brandsExpanded = !brandsExpanded; syncMore(); });
+$("favBtn").addEventListener("click", () => {
+  const c = currentFav(); if (!c) return;
+  const k = favKey(c), i = favs.findIndex(f => favKey(f) === k);
+  if (i >= 0) favs.splice(i, 1); else favs = [c, ...favs].slice(0, 8);
+  saveFavs();
+});
+
+$("locate").addEventListener("click", () => {
+  if (!navigator.geolocation) return status(t("locNone"), "warn");
+  navigator.geolocation.getCurrentPosition(
+    p => { here = [p.coords.latitude, p.coords.longitude]; $("from").value = t("myLoc"); picked.from = null; $("fromHint").textContent = ""; },
+    () => status(t("locDenied"), "warn"),
+    { enableHighAccuracy: true, timeout: 10000 });
+});
+$("swap").addEventListener("click", () => {
+  const f = $("from").value; $("from").value = $("to").value; $("to").value = f;
+  [picked.from, picked.to] = [picked.to, picked.from];
+  const fh = $("fromHint").textContent; $("fromHint").textContent = $("toHint").textContent; $("toHint").textContent = fh;
+});
+
+/* Démarrage */
+function syncKey() {
+  const on = !!$("ttkey").value.trim();
+  $("trafficState").textContent = t(on ? "on" : "offState");
+  $("trafficState").classList.toggle("on", on);
+}
+attachSuggest("from"); attachSuggest("to");
+$("from").value = store.get("from", "");
+$("to").value = store.get("to", "");
+const savedFuel = document.getElementById("fuel" + store.get("fuel", "0")); if (savedFuel) savedFuel.checked = true;
+$("corridor").value = store.get("corridorM", "300");
+$("radius").value = store.get("radiusKm", "3");
+$("fillL").value = store.get("fillL", "40");
+$("ttkey").value = store.get("ttkey", "");
+$("ttkey").addEventListener("input", () => { store.set("ttkey", $("ttkey").value.trim()); syncKey(); });
+$("adv").open = !$("ttkey").value.trim();
+applyTheme();
+mode = store.get("mode", "route") === "near" ? "near" : "route";
+applyLang();
+setMode(mode);
+renderFavs();
+initMap();
+loadStations().catch(err => { freshState = "down"; renderFresh(); status(err.message, "error"); });
+
+/* Application installable : le service worker n'existe qu'une fois l'appli en ligne (https). */
+if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
+  navigator.serviceWorker.register("sw.js").catch(() => {});
+}
+</script>
+</body>
+</html>
