@@ -151,6 +151,7 @@ h1 { font: 600 1.75rem/1.05 var(--serif); letter-spacing: -.01em; margin: 0; tex
 .state.on { background: color-mix(in srgb, var(--good) 18%, transparent); color: var(--good) }
 .adv-body { display: grid; gap: 6px; padding-top: 10px }
 .adv-body small { color: var(--muted); font-size: .78rem }
+.adv-body .key2 { margin-top: 8px }
 .routes-wrap { display: grid; gap: 8px }
 .lbl-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap }
 .src { font-size: .78rem; color: var(--muted); white-space: nowrap }
@@ -358,7 +359,10 @@ ol.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px }
       <details class="adv" id="adv">
         <summary><span data-i18n="traffic">Circulation en direct</span> <span class="state" id="trafficState">Inactive</span><span class="chev" aria-hidden="true">▾</span></summary>
         <div class="adv-body">
-          <label class="lbl" for="ttkey" data-i18n="ttKey">Clé TomTom</label>
+          <label class="lbl" for="gkey" data-i18n="gKey">Clé Google Maps</label>
+          <div class="unit"><input id="gkey" type="password" autocomplete="off" spellcheck="false" data-i18n-ph="gKeyPh" placeholder="Colle ta clé Google ici"></div>
+          <small data-i18n="gHelp">Prioritaire : trajets avec circulation et carte Google. Les clés restent dans ce navigateur seulement.</small>
+          <label class="lbl key2" for="ttkey" data-i18n="ttKey">Clé TomTom</label>
           <div class="unit"><input id="ttkey" type="password" autocomplete="off" spellcheck="false" data-i18n-ph="ttKeyPh" placeholder="Colle ta clé ici"></div>
           <small data-i18n="ttHelp">Gardée dans ce navigateur seulement. Sans clé, le trajet est calculé sans la circulation (OSRM).</small>
         </div>
@@ -385,7 +389,7 @@ ol.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px }
       </div>
     </section>
 
-    <p class="note" data-i18n="note">Prix déclarés à la Régie de l'énergie du Québec (mis à jour aux 5 minutes). Distances à vol d'oiseau, sauf le détour et le temps en voiture, calculés par la route pour les 5 premières stations. Trajet : TomTom (circulation en direct) ou OSRM · Adresses : Photon / OpenStreetMap · Carte : Esri.</p>
+    <p class="note" data-i18n="note">Prix déclarés à la Régie de l'énergie du Québec (mis à jour aux 5 minutes). Distances à vol d'oiseau, sauf le détour et le temps en voiture, calculés par la route pour les 5 premières stations. Trajet : Google ou TomTom (circulation en direct), sinon OSRM · Adresses : Photon / OpenStreetMap · Carte : Google ou Esri.</p>
   </div>
 
   <div class="mapcol">
@@ -491,7 +495,13 @@ const I18N = {
     moreBrands: "Afficher les {n} autres bannières", lessBrands: "Masquer les petites bannières",
     stAll: "Toutes", stNone: "Aucune", stOnly: "Seulement {l}", stExcept: "Toutes sauf {l}", stCount: "{a} sur {b}", stRebates: " · {n} rabais",
     traffic: "Circulation en direct", on: "Active", offState: "Inactive", ttKey: "Clé TomTom", ttKeyPh: "Colle ta clé ici",
-    ttHelp: "Gardée dans ce navigateur seulement. Sans clé, le trajet est calculé sans la circulation (OSRM).",
+    ttHelp: "Utilisée si tu n'as pas de clé Google, ou en secours. Sans aucune clé, le trajet est calculé sans la circulation (OSRM).",
+    gKey: "Clé Google Maps", gKeyPh: "Colle ta clé Google ici",
+    gHelp: "Prioritaire : trajets avec circulation et carte Google. Les clés restent dans ce navigateur seulement.",
+    gReload: "Nouvelle clé Google : l'appli se recharge pour l'appliquer.",
+    srcGoogle: "Circulation en direct · Google", gNoRoute: "Google n'a trouvé aucun trajet", gErr: "Google : {w}", gQuota: "Quota Google atteint",
+    gDenied: "Clé Google refusée", gAuthFail: "La clé Google est refusée (clé invalide, API non activée ou site non autorisé). Carte et trajets passent à Esri et TomTom/OSRM.",
+    gLoadFail: "La carte Google n'a pas pu se charger. Carte Esri utilisée.",
     goRoute: "Trouver les meilleurs prix", goNear: "Trouver les stations près de moi", searching: "Recherche…",
     routes: "Trajets proposés", via: "Via {v}", routeN: "Trajet {n}", trafficIncl: "dont {n} min de trafic",
     srcLive: "Circulation en direct · TomTom", srcOsrm: "Sans circulation · OSRM",
@@ -500,7 +510,7 @@ const I18N = {
     emptyTitle: "Où faire le plein, sans chercher.",
     emptyRoute: "Entre ton départ et ta destination : les stations sur ton chemin apparaissent ici, de la moins chère à la plus chère, avec le vrai détour pour les 5 premières. À toi de juger si ça vaut le coup.",
     emptyNear: "Entre une adresse ou touche le bouton de localisation : les stations dans ton rayon apparaissent ici, de la moins chère à la plus chère, avec le temps pour t'y rendre.",
-    note: "Prix déclarés à la Régie de l'énergie du Québec (mis à jour aux 5 minutes). Distances à vol d'oiseau, sauf le détour et le temps en voiture, calculés par la route pour les 5 premières stations. Trajet : TomTom (circulation en direct) ou OSRM · Adresses : Photon / OpenStreetMap · Carte : Esri.",
+    note: "Prix déclarés à la Régie de l'énergie du Québec (mis à jour aux 5 minutes). Distances à vol d'oiseau, sauf le détour et le temps en voiture, calculés par la route pour les 5 premières stations. Trajet : Google ou TomTom (circulation en direct), sinon OSRM · Adresses : Photon / OpenStreetMap · Carte : Google ou Esri.",
     mapLabel: "Carte du trajet", yourRoute: "Ton trajet",
     nStationsRoute: "{n} station{s} sur ton chemin", noneRoute: "Aucune station sur ton chemin",
     nStationsNear: "{n} station{s} autour de {p}", you: "toi", noneNear: "Aucune station dans ton rayon",
@@ -536,7 +546,13 @@ const I18N = {
     moreBrands: "Show {n} more brands", lessBrands: "Hide smaller brands",
     stAll: "All", stNone: "None", stOnly: "Only {l}", stExcept: "All except {l}", stCount: "{a} of {b}", stRebates: " · {n} discount{s}",
     traffic: "Live traffic", on: "On", offState: "Off", ttKey: "TomTom key", ttKeyPh: "Paste your key here",
-    ttHelp: "Stored in this browser only. Without a key, routes are calculated without traffic (OSRM).",
+    ttHelp: "Used if you have no Google key, or as a backup. With no key at all, routes are calculated without traffic (OSRM).",
+    gKey: "Google Maps key", gKeyPh: "Paste your Google key here",
+    gHelp: "Takes priority: routes with traffic and Google map. Keys stay in this browser only.",
+    gReload: "New Google key: the app reloads to apply it.",
+    srcGoogle: "Live traffic · Google", gNoRoute: "Google found no route", gErr: "Google: {w}", gQuota: "Google quota reached",
+    gDenied: "Google key rejected", gAuthFail: "The Google key was rejected (invalid key, API not enabled or site not allowed). Map and routes switch to Esri and TomTom/OSRM.",
+    gLoadFail: "The Google map couldn't load. Using the Esri map.",
     goRoute: "Find the best prices", goNear: "Find stations near me", searching: "Searching…",
     routes: "Suggested routes", via: "Via {v}", routeN: "Route {n}", trafficIncl: "incl. {n} min of traffic",
     srcLive: "Live traffic · TomTom", srcOsrm: "No traffic · OSRM",
@@ -545,7 +561,7 @@ const I18N = {
     emptyTitle: "Where to fill up, without searching.",
     emptyRoute: "Enter your start and destination: stations along your way appear here, cheapest first, with the real detour for the top 5. You decide whether it's worth it.",
     emptyNear: "Enter an address or tap the location button: stations within your radius appear here, cheapest first, with the time to get there.",
-    note: "Prices reported to Québec's Régie de l'énergie (updated every 5 minutes). Straight-line distances, except the detour and drive time, which are calculated by road for the top 5 stations. Routes: TomTom (live traffic) or OSRM · Addresses: Photon / OpenStreetMap · Map: Esri.",
+    note: "Prices reported to Québec's Régie de l'énergie (updated every 5 minutes). Straight-line distances, except the detour and drive time, which are calculated by road for the top 5 stations. Routes: Google or TomTom (live traffic), otherwise OSRM · Addresses: Photon / OpenStreetMap · Map: Google or Esri.",
     mapLabel: "Route map", yourRoute: "Your route",
     nStationsRoute: "{n} station{s} on your way", noneRoute: "No stations on your way",
     nStationsNear: "{n} station{s} around {p}", you: "you", noneNear: "No stations within your radius",
@@ -582,7 +598,7 @@ const num = (v, d = 1) => v.toLocaleString(LOC, { minimumFractionDigits: d, maxi
 const SHOW = 10, DET_N = 5, BRAND_TOP = 12;
 const FEED_URL = "https://regieessencequebec.ca/stations.geojson.gz";
 const FUEL_KEYS = { "Régulier": 0, "Super": 1, "Diesel": 2 };
-let stations = null, loadedAt = 0, generatedAt = null, here = null, map = null, layer = null, markers = [];
+let stations = null, loadedAt = 0, generatedAt = null, here = null, mapA = null, markers = [];
 let lastRoute = null, lastA = null, lastB = null, lastTop = [], lastMode = null;
 let mode = "route";
 
@@ -599,9 +615,11 @@ function applyTheme() {
   else document.documentElement.setAttribute("data-theme", theme);
   document.querySelectorAll("[data-theme-set]").forEach(b => { const on = b.dataset.themeSet === theme; b.classList.toggle("on", on); b.setAttribute("aria-pressed", on); });
   document.querySelectorAll('meta[name="theme-color"]').forEach(m => { m.content = theme === "dark" ? "#1F1E1D" : theme === "light" ? "#FAF9F5" : m.dataset.auto; });
+  if (mapA) mapA.theme();
 }
+const isDark = () => theme === "dark" || (theme === "auto" && matchMedia("(prefers-color-scheme: dark)").matches);
 function setTheme(x) { theme = x; store.set("theme", x); applyTheme(); rerender(); }
-matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { if (theme === "auto") rerender(); });
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { if (theme === "auto") { if (mapA) mapA.theme(); rerender(); } });
 
 /* Langue : textes statiques */
 function applyLang() {
@@ -843,7 +861,7 @@ async function routesTomTom(a, b, key) {
     const segs = ins.map((x, i) => ({ name: x.street || (x.roadNumbers || []).join(" / "), m: (ins[i + 1] ? ins[i + 1].routeOffsetInMeters : s.lengthInMeters) - x.routeOffsetInMeters }));
     const via = viaFrom(segs, taken); taken.push(via);
     return { coords: rt.legs.flatMap(l => l.points.map(p => [p.longitude, p.latitude])), km: s.lengthInMeters / 1000, min: s.travelTimeInSeconds / 60,
-      delayMin: (s.trafficDelayInSeconds || 0) / 60, via, traffic: true };
+      delayMin: (s.trafficDelayInSeconds || 0) / 60, via, traffic: true, provider: "tomtom" };
   });
 }
 async function routesOSRM(a, b) {
@@ -855,7 +873,7 @@ async function routesOSRM(a, b) {
   return j.routes.map(rt => {
     const segs = rt.legs.flatMap(l => l.steps.map(s => ({ name: s.name || s.ref || "", m: s.distance })));
     const via = viaFrom(segs, taken); taken.push(via);
-    return { coords: rt.geometry.coordinates, km: rt.distance / 1000, min: rt.duration / 60, delayMin: 0, via, traffic: false };
+    return { coords: rt.geometry.coordinates, km: rt.distance / 1000, min: rt.duration / 60, delayMin: 0, via, traffic: false, provider: "osrm" };
   });
 }
 /* Sans circulation, OSRM surestime les grands boulevards : on préfère un trajet ≥ 10 % plus court s'il est au plus 5 % plus lent. */
@@ -865,14 +883,76 @@ function defaultRoute(routes) {
   routes.forEach((r, i) => { if (r.min <= f.min * 1.05 && r.km <= f.km * 0.9 && r.km < routes[best].km) best = i; });
   return best;
 }
+/* Google : bibliothèque « routes » de Maps JavaScript (facturée comme l'API Routes, niveau Pro avec la circulation). */
+let gmapsPromise = null, googleBad = false;
+const gKey = () => $("gkey").value.trim();
+const googleOn = () => !!gKey() && !googleBad;
+function loadGoogle() {
+  if (window.google && google.maps && google.maps.importLibrary) return Promise.resolve();
+  if (gmapsPromise) return gmapsPromise;
+  gmapsPromise = new Promise((resolve, reject) => {
+    window.__gmReady = () => resolve();
+    // Google appelle cette fonction si la clé est invalide, l'API non activée ou le site non autorisé.
+    window.gm_authFailure = () => { googleBad = true; onGoogleFail(t("gAuthFail")); };
+    const s = document.createElement("script");
+    s.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(gKey())}&v=weekly&loading=async&callback=__gmReady&language=${lang}&region=CA`;
+    s.async = true;
+    s.onerror = () => reject(new Error(t("gLoadFail")));
+    document.head.append(s);
+  });
+  return gmapsPromise;
+}
+function gError(e) {
+  const m = String((e && (e.code || e.message)) || e);
+  if (/RESOURCE_EXHAUSTED|quota|OVER_QUERY_LIMIT|429/i.test(m)) return new Error(t("gQuota"));
+  if (/PERMISSION_DENIED|REQUEST_DENIED|API_KEY|not authorized|not activated|disabled|403/i.test(m)) return new Error(t("gDenied"));
+  return new Error(t("gErr", { w: m.slice(0, 120) }));
+}
+const llOf = p => (typeof p.lat === "function" ? [p.lng(), p.lat()] : [p.lng, p.lat]);
+async function gCompute(req) {
+  await loadGoogle();
+  if (googleBad) throw new Error(t("gDenied"));
+  const { Route } = await google.maps.importLibrary("routes");
+  try { return (await Route.computeRoutes(req)).routes || []; }
+  catch (e) { throw gError(e); }
+}
+async function routesGoogle(a, b) {
+  const routes = await gCompute({
+    origin: { lat: a.lat, lng: a.lon }, destination: { lat: b.lat, lng: b.lon },
+    travelMode: "DRIVING", routingPreference: "TRAFFIC_AWARE", computeAlternativeRoutes: true,
+    language: lang === "en" ? "en-CA" : "fr-CA", region: "ca",
+    fields: ["path", "durationMillis", "staticDurationMillis", "distanceMeters", "description"],
+  });
+  if (!routes.length) throw new Error(t("gNoRoute"));
+  return routes.map(r => ({
+    coords: (r.path || []).map(llOf), km: r.distanceMeters / 1000, min: r.durationMillis / 60000,
+    delayMin: Math.max(0, (r.durationMillis - (r.staticDurationMillis ?? r.durationMillis)) / 60000),
+    via: (r.description || "").trim(), traffic: true, provider: "google",
+  }));
+}
+async function travelGoogle(pts) {
+  const routes = await gCompute({
+    origin: { lat: pts[0].lat, lng: pts[0].lon }, destination: { lat: pts[pts.length - 1].lat, lng: pts[pts.length - 1].lon },
+    intermediates: pts.slice(1, -1).map(p => ({ location: { lat: p.lat, lng: p.lon } })),
+    travelMode: "DRIVING", routingPreference: "TRAFFIC_AWARE", fields: ["durationMillis", "distanceMeters"],
+  });
+  if (!routes.length) throw new Error(t("gNoRoute"));
+  return { min: routes[0].durationMillis / 60000, km: routes[0].distanceMeters / 1000 };
+}
 let routeNote = "";
 async function getRoutes(a, b) {
   routeNote = "";
+  const notes = [];
+  if (googleOn()) {
+    try { return await routesGoogle(a, b); }
+    catch (e) { notes.push(e.message); }
+  }
   const key = $("ttkey").value.trim();
   if (key) {
-    try { return await routesTomTom(a, b, key); }
-    catch (e) { routeNote = t("routeNote", { e: e.message }); }
+    try { const r = await routesTomTom(a, b, key); if (notes.length) routeNote = notes.join(" · ") + " → TomTom."; return r; }
+    catch (e) { notes.push(e.message); }
   }
+  if (notes.length) routeNote = t("routeNote", { e: notes.join(" · ") });
   return routesOSRM(a, b);
 }
 let lastRoutes = [], sel = 0;
@@ -889,8 +969,8 @@ function renderRoutes() {
     b.addEventListener("click", () => chooseRoute(i));
     return b;
   }));
-  const live = lastRoutes[0] && lastRoutes[0].traffic;
-  $("routeSrc").textContent = t(live ? "srcLive" : "srcOsrm");
+  const pv = lastRoutes[0] && lastRoutes[0].provider, live = pv === "google" || pv === "tomtom";
+  $("routeSrc").textContent = t(pv === "google" ? "srcGoogle" : pv === "tomtom" ? "srcLive" : "srcOsrm");
   $("routeSrc").classList.toggle("is-live", !!live);
   $("routesWrap").hidden = !lastRoutes.length;
 }
@@ -915,23 +995,23 @@ let detGen = 0;
 async function computeDetours() {
   const gen = ++detGen;
   const near = lastMode === "near", key = $("ttkey").value.trim();
-  // Trajet : le détour se compare au trajet choisi, donc même fournisseur que lui.
-  const useTT = near ? !!key : !!(lastRoute && lastRoute.traffic);
+  // Trajet : le détour se compare au trajet choisi, donc même fournisseur que lui (sinon on n'affiche rien).
+  // Près de moi : Google, puis TomTom, puis OSRM.
+  const chain = near
+    ? [googleOn() && "google", key && "tomtom", "osrm"].filter(Boolean)
+    : [lastRoute.provider];
+  const run = (pv, pts) => pv === "google" ? travelGoogle(pts) : pv === "tomtom" ? travelTomTom(pts, key) : travelOSRM(pts);
   const items = lastTop.slice(0, DET_N);
   for (let i = 0; i < items.length; i++) {
     const s = items[i];
-    const ck = [near ? "n" : "r", useTT ? "tt" : "os", lastA.lat, lastA.lon, near ? "" : `${lastB.lat},${lastB.lon}#${sel}`, s.lat, s.lon].join("|");
+    const ck = [near ? "n" : "r", chain[0], lastA.lat, lastA.lon, near ? "" : `${lastB.lat},${lastB.lon}#${sel}`, s.lat, s.lon].join("|");
     if (!detCache.has(ck)) {
       let v = null;
-      try {
-        const pts = near ? [lastA, s] : [lastA, s, lastB];
-        let tr;
-        if (useTT) {
-          try { tr = await travelTomTom(pts, key); }
-          catch (e) { if (!near) throw e; tr = await travelOSRM(pts); }
-        } else tr = await travelOSRM(pts);
-        v = near ? tr : { min: tr.min - lastRoute.min, km: tr.km - lastRoute.km };
-      } catch { v = null; }
+      const pts = near ? [lastA, s] : [lastA, s, lastB];
+      for (const pv of chain) {
+        try { const tr = await run(pv, pts); v = near ? tr : { min: tr.min - lastRoute.min, km: tr.km - lastRoute.km }; break; }
+        catch { v = null; }
+      }
       if (gen !== detGen) return;
       detCache.set(ck, v);
     }
@@ -983,7 +1063,7 @@ function clearResults() {
   $("summary").hidden = true; $("routesWrap").hidden = true; $("maptag").hidden = true;
   $("empty").hidden = false; $("emptyText").textContent = t(mode === "near" ? "emptyNear" : "emptyRoute");
   status("");
-  if (layer) { layer.remove(); layer = null; }
+  if (mapA) mapA.clear();
 }
 function rerender() { if (stations && lastMode && lastMode === mode) render(); }
 
@@ -1078,67 +1158,178 @@ function card(s, i, o, near) {
 
 function select(i, fromList) {
   document.querySelectorAll("#results .card").forEach((c, k) => c.classList.toggle("sel", k === i));
-  markers.forEach((m, k) => { const el = m.getElement(); if (el) el.classList.toggle("sel", k === i); });
+  markers.forEach((m, k) => m.setSel(k === i));
   const s = lastTop[i]; if (!s) return;
-  if (fromList && map) { map.flyTo([s.lat, s.lon], Math.max(map.getZoom(), 15), { duration: .6 }); markers[i].openPopup(); }
+  if (fromList && mapA) { mapA.flyTo(s.lat, s.lon, 15); markers[i].open(); }
   if (!fromList) { const c = $("results").children[i]; if (c) c.scrollIntoView({ behavior: "smooth", block: "nearest" }); }
 }
 
-function initMap() {
-  if (map || typeof L === "undefined") return;
-  map = L.map("map", { zoomControl: true, attributionControl: true }).setView([45.53, -73.62], 11);
-  map.attributionControl.setPrefix(false);
+/* Carte Esri (Leaflet) — sans clé Google, ou en secours */
+function leafletAdapter() {
+  const m = L.map("map", { zoomControl: true, attributionControl: true }).setView([45.53, -73.62], 11);
+  m.attributionControl.setPrefix(false);
   // Les tuiles d'OpenStreetMap.org refusent une page ouverte en fichier local : Esri, puis OSM France en secours.
   const esri = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}", {
     maxZoom: 19, referrerPolicy: "no-referrer", attribution: "Esri, HERE, Garmin · © OpenStreetMap",
-  }).addTo(map);
+  }).addTo(m);
   let errors = 0;
   esri.on("tileerror", () => {
     if (++errors !== 3) return;
-    map.removeLayer(esri);
+    m.removeLayer(esri);
     L.tileLayer("https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png", {
       maxZoom: 19, subdomains: "abc", referrerPolicy: "no-referrer", attribution: "© OpenStreetMap France · © OpenStreetMap",
-    }).addTo(map);
+    }).addTo(m);
   });
+  let group = L.layerGroup().addTo(m);
+  return {
+    kind: "esri",
+    clear() { group.remove(); group = L.layerGroup().addTo(m); },
+    polyline(coords, o) {
+      const pl = L.polyline(coords.map(c => [c[1], c[0]]), { color: o.color, weight: o.weight, opacity: o.opacity ?? 1, lineCap: "round", interactive: !!o.onClick }).addTo(group);
+      if (o.onClick) pl.on("click", o.onClick);
+      if (o.tip) pl.bindTooltip(o.tip, { sticky: true });
+    },
+    circle(lat, lon, r, color) { L.circle([lat, lon], { radius: r, color, weight: 1.5, fillColor: color, fillOpacity: .06, interactive: false }).addTo(group); },
+    endpoint(lat, lon, cls) { L.marker([lat, lon], { icon: L.divIcon({ className: "endpoint " + cls, iconSize: [18, 18], iconAnchor: [9, 9] }), keyboard: false, interactive: false }).addTo(group); },
+    pin(lat, lon, o) {
+      const icon = L.divIcon({ className: o.cls, html: o.html, iconSize: [o.size, o.size], iconAnchor: [o.size / 2, o.size / 2] });
+      const mk = L.marker([lat, lon], { icon, zIndexOffset: o.z }).addTo(group).bindPopup(o.popup);
+      mk.on("click", o.onClick);
+      return { setSel(on) { const el = mk.getElement(); if (el) el.classList.toggle("sel", on); }, open() { mk.openPopup(); } };
+    },
+    fit(pts) { if (pts.length) m.fitBounds(L.latLngBounds(pts), { padding: [36, 36] }); },
+    flyTo(lat, lon, z) { m.flyTo([lat, lon], Math.max(m.getZoom(), z), { duration: .6 }); },
+    invalidate() { m.invalidateSize(); },
+    theme() {},
+    destroy() { m.remove(); },
+  };
+}
+
+/* Carte Google — avec une clé Google (obligatoire pour afficher des trajets Google) */
+const GOOGLE_DARK = [
+  { elementType: "geometry", stylers: [{ color: "#262624" }] },
+  { elementType: "labels.text.fill", stylers: [{ color: "#B4B1A8" }] },
+  { elementType: "labels.text.stroke", stylers: [{ color: "#1F1E1D" }] },
+  { featureType: "poi", stylers: [{ visibility: "off" }] },
+  { featureType: "road", elementType: "geometry", stylers: [{ color: "#3F3D39" }] },
+  { featureType: "road", elementType: "geometry.stroke", stylers: [{ color: "#1F1E1D" }] },
+  { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#57534C" }] },
+  { featureType: "transit", stylers: [{ visibility: "off" }] },
+  { featureType: "water", elementType: "geometry", stylers: [{ color: "#17202B" }] },
+  { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#6E6B64" }] },
+];
+const GOOGLE_LIGHT = [{ featureType: "poi.business", stylers: [{ visibility: "off" }] }, { featureType: "transit", stylers: [{ visibility: "off" }] }];
+async function googleAdapter() {
+  await loadGoogle();
+  const { Map, Polyline, Circle, InfoWindow, OverlayView } = await google.maps.importLibrary("maps");
+  const { LatLng, LatLngBounds, Size } = await google.maps.importLibrary("core");
+  const el = $("map");
+  el.replaceChildren();
+  const gm = new Map(el, {
+    center: { lat: 45.53, lng: -73.62 }, zoom: 11, disableDefaultUI: true, zoomControl: true, clickableIcons: false,
+    gestureHandling: "greedy", styles: isDark() ? GOOGLE_DARK : GOOGLE_LIGHT,
+  });
+  const info = new InfoWindow({ pixelOffset: new Size(0, -12) });
+  // Repère HTML (mêmes pastilles que sur la carte Esri), sans dépendre d'un Map ID.
+  class Html extends OverlayView {
+    constructor(lat, lon, div, size, z) { super(); this.pos = new LatLng(lat, lon); this.div = div; this.size = size; this.z = z; }
+    onAdd() {
+      Object.assign(this.div.style, { position: "absolute", width: this.size + "px", height: this.size + "px", zIndex: this.z });
+      OverlayView.preventMapHitsAndGesturesFrom(this.div);
+      this.getPanes().overlayMouseTarget.appendChild(this.div);
+    }
+    draw() {
+      const p = this.getProjection().fromLatLngToDivPixel(this.pos);
+      if (p) { this.div.style.left = (p.x - this.size / 2) + "px"; this.div.style.top = (p.y - this.size / 2) + "px"; }
+    }
+    onRemove() { this.div.remove(); }
+  }
+  let items = [];
+  const add = x => { items.push(x); return x; };
+  const path = coords => coords.map(c => ({ lat: c[1], lng: c[0] }));
+  return {
+    kind: "google",
+    clear() { items.forEach(x => x.setMap(null)); items = []; info.close(); },
+    polyline(coords, o) {
+      const pl = add(new Polyline({ map: gm, path: path(coords), strokeColor: o.color, strokeWeight: o.weight, strokeOpacity: o.opacity ?? 1, clickable: !!o.onClick, zIndex: o.z || 1 }));
+      if (o.onClick) pl.addListener("click", o.onClick);
+    },
+    circle(lat, lon, r, color) { add(new Circle({ map: gm, center: { lat, lng: lon }, radius: r, strokeColor: color, strokeWeight: 1.5, fillColor: color, fillOpacity: .06, clickable: false })); },
+    endpoint(lat, lon, cls) {
+      const d = document.createElement("div"); d.className = "endpoint " + cls;
+      add(new Html(lat, lon, d, 18, 500)).setMap(gm);
+    },
+    pin(lat, lon, o) {
+      const d = document.createElement("div"); d.className = o.cls; d.textContent = o.html;
+      const ov = add(new Html(lat, lon, d, o.size, 1000 + o.z));
+      ov.setMap(gm);
+      const open = () => { info.setContent(o.popup); info.setPosition({ lat, lng: lon }); info.open({ map: gm }); };
+      d.addEventListener("click", () => { open(); o.onClick(); });
+      return { setSel(on) { d.classList.toggle("sel", on); }, open };
+    },
+    fit(pts) {
+      if (!pts.length) return;
+      const b = new LatLngBounds();
+      for (const [lat, lon] of pts) b.extend({ lat, lng: lon });
+      gm.fitBounds(b, 36);
+    },
+    flyTo(lat, lon, z) { gm.panTo({ lat, lng: lon }); if (gm.getZoom() < z) gm.setZoom(z); },
+    invalidate() {},
+    theme() { gm.setOptions({ styles: isDark() ? GOOGLE_DARK : GOOGLE_LIGHT }); },
+    destroy() { this.clear(); el.replaceChildren(); },
+  };
+}
+function useEsri() {
+  if (mapA && mapA.kind === "esri") return;
+  if (mapA) mapA.destroy();
+  $("map").replaceChildren();
+  $("map").classList.remove("gmap");
+  mapA = typeof L !== "undefined" ? leafletAdapter() : null;
+}
+async function initMap() {
+  if (googleOn()) {
+    try { mapA = await googleAdapter(); $("map").classList.add("gmap"); }
+    catch (e) { googleBad = googleBad || /gDenied|refus|reject/i.test(e.message); useEsri(); status(t("gLoadFail"), "warn"); }
+  } else useEsri();
+  rerender();
+}
+function onGoogleFail(msg) {
+  if (mapA && mapA.kind === "google") useEsri();
+  status(msg, "warn");
+  rerender();
 }
 
 function draw(near, o) {
-  if (!map) return;
-  if (layer) layer.remove();
-  layer = L.layerGroup().addTo(map);
-  const frame = [];
-  const ep = cls => L.divIcon({ className: "endpoint " + cls, iconSize: [18, 18], iconAnchor: [9, 9] });
+  if (!mapA) return;
+  mapA.clear();
+  const pts = [];
   if (near) {
-    frame.push(L.circle([lastA.lat, lastA.lon], { radius: o.radiusKm * 1000, color: css("--clay") || "#D97757", weight: 1.5, fillColor: css("--clay") || "#D97757", fillOpacity: .06, interactive: false }).addTo(layer));
-    L.marker([lastA.lat, lastA.lon], { icon: ep("a"), keyboard: false, interactive: false }).addTo(layer);
+    const r = o.radiusKm * 1000, dLat = r / 111320, dLon = r / (111320 * Math.cos(lastA.lat * Math.PI / 180));
+    mapA.circle(lastA.lat, lastA.lon, r, css("--clay") || "#D97757");
+    pts.push([lastA.lat - dLat, lastA.lon - dLon], [lastA.lat + dLat, lastA.lon + dLon]);
+    mapA.endpoint(lastA.lat, lastA.lon, "a");
     $("maptag").hidden = true;
   } else {
     lastRoutes.forEach((r, i) => {
       if (i === sel) return;
-      const pl = L.polyline(r.coords.map(c => [c[1], c[0]]), { color: css("--alt") || "#A9A498", weight: 5, opacity: .8, lineCap: "round" }).addTo(layer);
-      pl.bindTooltip(routeName(r, i), { sticky: true });
-      pl.on("click", () => chooseRoute(i));
-      frame.push(pl);
+      mapA.polyline(r.coords, { color: css("--alt") || "#A9A498", weight: 5, opacity: .8, onClick: () => chooseRoute(i), tip: routeName(r, i), z: 1 });
+      for (const c of r.coords) pts.push([c[1], c[0]]);
     });
-    const latlngs = lastRoute.coords.map(c => [c[1], c[0]]);
-    L.polyline(latlngs, { color: css("--casing") || "#ffffff", weight: 9, opacity: .9, lineCap: "round", interactive: false }).addTo(layer);
-    frame.push(L.polyline(latlngs, { color: css("--route") || "#2F6BDB", weight: 5, opacity: 1, lineCap: "round", interactive: false }).addTo(layer));
-    L.marker([lastA.lat, lastA.lon], { icon: ep("a"), keyboard: false, interactive: false }).addTo(layer);
-    L.marker([lastB.lat, lastB.lon], { icon: ep("b"), keyboard: false, interactive: false }).addTo(layer);
+    mapA.polyline(lastRoute.coords, { color: css("--casing") || "#ffffff", weight: 9, opacity: .9, z: 2 });
+    mapA.polyline(lastRoute.coords, { color: css("--route") || "#2F6BDB", weight: 5, opacity: 1, z: 3 });
+    for (const c of lastRoute.coords) pts.push([c[1], c[0]]);
+    mapA.endpoint(lastA.lat, lastA.lon, "a");
+    mapA.endpoint(lastB.lat, lastB.lon, "b");
     $("maptag").hidden = false;
   }
   markers = lastTop.map((s, i) => {
-    const size = i === 0 ? 32 : 26;
-    const icon = L.divIcon({ className: "pin" + (i === 0 ? " pin-best" : ""), html: String(i + 1), iconSize: [size, size], iconAnchor: [size / 2, size / 2] });
     const pop = document.createElement("div");
     const b = document.createElement("b"); b.textContent = s.brand || s.name;
     pop.append(b, document.createElement("br"), `${num(s.eff)} ¢/L · ${near ? t("popNear", { d: fmtDist(s.dist * 1000) }) : t("popRoute", { d: fmtDist(s.offM) })}`);
-    const m = L.marker([s.lat, s.lon], { icon, zIndexOffset: (SHOW - i) * 10 }).addTo(layer).bindPopup(pop);
-    m.on("click", () => select(i, false));
-    return m;
+    return mapA.pin(s.lat, s.lon, { html: String(i + 1), cls: "pin" + (i === 0 ? " pin-best" : ""), size: i === 0 ? 32 : 26, z: (SHOW - i) * 10, popup: pop, onClick: () => select(i, false) });
   });
-  map.fitBounds(L.featureGroup(frame).getBounds(), { padding: [36, 36] });
-  setTimeout(() => map.invalidateSize(), 60);
+  mapA.fit(pts);
+  setTimeout(() => mapA && mapA.invalidate(), 60);
 }
 
 /* Favoris (« @me » = ma position au moment de l'enregistrement, affichée dans la langue choisie) */
@@ -1259,9 +1450,9 @@ $("swap").addEventListener("click", () => {
 
 /* Démarrage */
 function syncKey() {
-  const on = !!$("ttkey").value.trim();
-  $("trafficState").textContent = t(on ? "on" : "offState");
-  $("trafficState").classList.toggle("on", on);
+  const g = !!gKey(), tt = !!$("ttkey").value.trim();
+  $("trafficState").textContent = g ? "Google" : tt ? "TomTom" : t("offState");
+  $("trafficState").classList.toggle("on", g || tt);
 }
 attachSuggest("from"); attachSuggest("to");
 $("from").value = store.get("from", "");
@@ -1271,8 +1462,17 @@ $("corridor").value = store.get("corridorM", "300");
 $("radius").value = store.get("radiusKm", "3");
 $("fillL").value = store.get("fillL", "40");
 $("ttkey").value = store.get("ttkey", "");
+$("gkey").value = store.get("gkey", "");
 $("ttkey").addEventListener("input", () => { store.set("ttkey", $("ttkey").value.trim()); syncKey(); });
-$("adv").open = !$("ttkey").value.trim();
+$("gkey").addEventListener("input", () => { store.set("gkey", gKey()); syncKey(); });
+// Une clé Google ne peut pas être changée une fois la carte Google chargée : on recharge l'appli.
+$("gkey").addEventListener("change", () => {
+  const k = gKey();
+  if (gmapsPromise) { status(t("gReload"), "warn"); setTimeout(() => location.reload(), 900); return; }
+  googleBad = false;
+  if (k) initMap(); else useEsri();
+});
+$("adv").open = !$("ttkey").value.trim() && !gKey();
 applyTheme();
 mode = store.get("mode", "route") === "near" ? "near" : "route";
 applyLang();

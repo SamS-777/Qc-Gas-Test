@@ -25,6 +25,26 @@ Application web installable qui montre les stations-service les moins chères su
 
 Ensuite, dans l'appli installée : ouvre *Circulation en direct* et colle ta clé TomTom une seule fois. Tes favoris, rabais et bannières sont à refaire sur le téléphone : chaque appareil garde ses propres réglages.
 
+## Clé Google Maps (optionnelle, prioritaire sur TomTom)
+
+Avec une clé Google, l'appli utilise les trajets Google avec la circulation et affiche la carte Google. Sans clé Google, ou si Google refuse, elle passe à TomTom, puis à OSRM.
+
+Dans Google Cloud Console (console.cloud.google.com) :
+
+1. **Projet :** crée un projet (ex. `essence`).
+2. **Facturation :** active la facturation sur ce projet (carte obligatoire, même pour le palier gratuit).
+3. **API :** dans *API et services* → *Bibliothèque*, active **Maps JavaScript API** et **Routes API**.
+4. **Clé :** *API et services* → *Identifiants* → *Créer des identifiants* → *Clé API*.
+5. **Restreindre la clé** (même écran, modifier la clé) :
+   - *Restrictions relatives aux applications* : **Sites Web** → ajoute `https://sams-777.github.io/*`
+   - *Restrictions relatives aux API* : **Maps JavaScript API** et **Routes API** seulement.
+6. **Plafonds quotidiens** (ce qui empêche vraiment de payer) : *API et services* → **Routes API** → onglet *Quotas* → limite **par jour** des requêtes de calcul de trajet : `160`. Même chose pour **Maps JavaScript API** (chargements de carte par jour) : `300`.
+7. **Alerte budgétaire :** *Facturation* → *Budgets et alertes* → budget de `1 $` avec alerte. Elle prévient seulement, elle ne bloque pas : ce sont les quotas de l'étape 6 qui bloquent.
+
+Colle ensuite la clé dans l'appli : *Circulation en direct* → *Clé Google Maps*.
+
+Repères : chaque recherche fait environ 6 calculs de trajet avec circulation (1 trajet + 5 détours). Le palier gratuit en couvre 5 000 par mois, soit environ 830 recherches.
+
 ## Protéger ta clé TomTom (recommandé)
 
 Sur my.tomtom.com → *API & SDK Keys* → menu **…** à côté de ta clé → active la liste blanche de domaines (*domain whitelist*) et ajoute `TON-NOM.github.io`. La clé ne fonctionnera alors que depuis ton site.
