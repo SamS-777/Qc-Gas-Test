@@ -1276,25 +1276,49 @@ async function googleAdapter() {
     flyTo(lat, lon, z) { gm.panTo({ lat, lng: lon }); if (gm.getZoom() < z) gm.setZoom(z); },
     invalidate() {},
     theme() { gm.setOptions({ styles: isDark() ? GOOGLE_DARK : GOOGLE_LIGHT }); },
-    destroy() { this.clear(); el.replaceChildren(); },
+    destroy() { this.clear(); },
   };
+}
+function freshMapEl() {
+  const old = $("map"), el = document.createElement("div");
+  el.id = "map";
+  el.setAttribute("role", "region");
+  el.dataset.i18nAria = "mapLabel";
+  el.setAttribute("aria-label", t("mapLabel"));
+  old.replaceWith(el);
+  return el;
+}
+function dropMap() {
+  if (mapA) { try { mapA.destroy(); } catch {} }
+  mapA = null;
+  markers = [];
+  freshMapEl();
 }
 function useEsri() {
   if (mapA && mapA.kind === "esri") return;
-  if (mapA) mapA.destroy();
-  $("map").replaceChildren();
-  $("map").classList.remove("gmap");
+  dropMap();
   mapA = typeof L !== "undefined" ? leafletAdapter() : null;
 }
+let mapInit = 0;
 async function initMap() {
+  const my = ++mapInit;
   if (googleOn()) {
-    try { mapA = await googleAdapter(); $("map").classList.add("gmap"); }
-    catch (e) { googleBad = googleBad || /gDenied|refus|reject/i.test(e.message); useEsri(); status(t("gLoadFail"), "warn"); }
+    dropMap();
+    try {
+      const g = await googleAdapter();
+      if (my !== mapInit || googleBad) { g.destroy(); if (my === mapInit) useEsri(); return; }
+      mapA = g;
+    } catch (e) {
+      if (my !== mapInit) return;
+      useEsri();
+      status(t("gLoadFail"), "warn");
+    }
   } else useEsri();
   rerender();
 }
 function onGoogleFail(msg) {
-  if (mapA && mapA.kind === "google") useEsri();
+  mapInit++;
+  if (!mapA || mapA.kind !== "esri") useEsri();
   status(msg, "warn");
   rerender();
 }
