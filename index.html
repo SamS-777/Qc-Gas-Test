@@ -217,6 +217,8 @@ h1 { font: 600 1.75rem/1.05 var(--serif); letter-spacing: -.01em; margin: 0; tex
 .leaflet-control-attribution a { color: var(--muted) }
 .leaflet-popup-content-wrapper, .leaflet-popup-tip { background: var(--surface); color: var(--ink); box-shadow: var(--shadow) }
 .leaflet-popup-content { margin: 10px 12px; font-size: .88rem }
+.gm-style .gpop { color: #141413; font: 500 .88rem/1.4 var(--sans); padding: 2px 2px 0 }
+.gm-style .gpop b { font-weight: 700 }
 .pin { background: var(--surface); color: var(--ink); border: 2px solid var(--clay); border-radius: 50%; display: grid; place-items: center; font: 700 .78rem var(--sans); box-shadow: 0 2px 6px rgba(0,0,0,.25) }
 .pin-best { background: var(--clay); color: var(--on-clay); border-color: var(--surface); font-size: .9rem }
 .pin.sel { transform: scale(1.25); z-index: 1000 !important }
@@ -1234,7 +1236,8 @@ async function googleAdapter() {
     gestureHandling: "greedy", styles: isDark() ? GOOGLE_DARK : GOOGLE_LIGHT,
   });
   gm.fitBounds({ south: HOME[0][0], west: HOME[0][1], north: HOME[1][0], east: HOME[1][1] }, 8);
-  const info = new InfoWindow({ pixelOffset: new Size(0, -12) });
+  const info = new InfoWindow({ pixelOffset: new Size(0, -12), headerDisabled: true });
+  gm.addListener("click", () => info.close());
   // Repère HTML (mêmes pastilles que sur la carte Esri), sans dépendre d'un Map ID.
   class Html extends OverlayView {
     constructor(lat, lon, div, size, z) { super(); this.pos = new LatLng(lat, lon); this.div = div; this.size = size; this.z = z; }
@@ -1354,6 +1357,7 @@ function draw(near, o) {
   }
   markers = lastTop.map((s, i) => {
     const pop = document.createElement("div");
+    pop.className = "gpop";
     const b = document.createElement("b"); b.textContent = s.brand || s.name;
     pop.append(b, document.createElement("br"), `${num(s.eff)} ¢/L · ${near ? t("popNear", { d: fmtDist(s.dist * 1000) }) : t("popRoute", { d: fmtDist(s.offM) })}`);
     return mapA.pin(s.lat, s.lon, { html: String(i + 1), cls: "pin" + (i === 0 ? " pin-best" : ""), size: i === 0 ? 32 : 26, z: (SHOW - i) * 10, popup: pop, onClick: () => select(i, false) });
