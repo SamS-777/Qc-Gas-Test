@@ -520,7 +520,7 @@ const I18N = {
     warnNoBrand: "Aucune bannière n'est cochée. Ouvre « Bannières et rabais ».",
     warnNear: "Aucune station dans un rayon de {r} km. Augmente le rayon.", warnRoute: "Aucune station à {d} ou moins du trajet. Augmente l'écart permis.",
     best: "Meilleur prix", posted: "affiché {p} · rabais {r} ¢", onRoute: "Sur le trajet", offRoute: "à {d} du trajet", alongKm: "km {a} sur {b}",
-    away: "à {d}", fillLine: "Plein de {l} L · ", vsMedian: " vs médiane", median: "Prix médian",
+    away: "à {d}", fillLine: "Plein de {l} L · ", vsMedian: " vs médiane", median: "Dans la médiane du secteur ({m} ¢)",
     gmRoute: "Google Maps (trajet avec arrêt) ↗", gm: "Google Maps ↗", waze: "Waze (jusqu'à la station) ↗",
     wazeTitle: "Waze ne prend pas d'arrêt intermédiaire par lien : il te guide jusqu'à la station seulement.",
     calcTime: "Calcul du temps…", calcDetour: "Calcul du détour…", drive: "{m} min en voiture · {km} km", lt1: "moins d'1",
@@ -571,7 +571,7 @@ const I18N = {
     warnNoBrand: "No brand is selected. Open “Brands & discounts”.",
     warnNear: "No stations within {r} km. Increase the radius.", warnRoute: "No stations within {d} of the route. Increase the max distance.",
     best: "Best price", posted: "posted {p} · discount {r}¢", onRoute: "On your route", offRoute: "{d} from route", alongKm: "km {a} of {b}",
-    away: "{d} away", fillLine: "{l} L fill-up · ", vsMedian: " vs median", median: "Median price",
+    away: "{d} away", fillLine: "{l} L fill-up · ", vsMedian: " vs median", median: "At the area median ({m}¢)",
     gmRoute: "Google Maps (route with stop) ↗", gm: "Google Maps ↗", waze: "Waze (to the station only) ↗",
     wazeTitle: "Waze links can't include a stop: it guides you to the station only.",
     calcTime: "Calculating time…", calcDetour: "Calculating detour…", drive: "{m} min drive · {km} km", lt1: "under 1",
@@ -602,7 +602,7 @@ const FEED_URL = "https://regieessencequebec.ca/stations.geojson.gz";
 const FUEL_KEYS = { "Régulier": 0, "Super": 1, "Diesel": 2 };
 let stations = null, loadedAt = 0, generatedAt = null, here = null, mapA = null, markers = [];
 let lastRoute = null, lastA = null, lastB = null, lastTop = [], lastMode = null;
-let mode = "route";
+let mode = "route", lastMedian = 0;
 
 function status(msg, kind = "") { const el = $("status"); el.textContent = msg; el.dataset.kind = kind; el.hidden = !msg; }
 function css(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
@@ -1075,6 +1075,7 @@ function render() {
   const res = near ? rankNearby(stations, lastA, o) : rankOnRoute(stations, lastRoute.coords, o);
   const n = res.ranked.length;
   const med = n ? t("metaMedian", { m: num(res.median) }) : "";
+  lastMedian = res.median;
   $("results").replaceChildren();
   $("empty").hidden = true;
   $("summary").hidden = false;
@@ -1142,7 +1143,7 @@ function card(s, i, o, near) {
   const fc = li.querySelector(".fillcost");
   fc.append(t("fillLine", { l: num(o.fillL, 0) }));
   const bold = document.createElement("b"); bold.textContent = money(s.fill); fc.append(bold);
-  li.querySelector(".save").textContent = sv >= 0.005 ? "−" + money(sv) + t("vsMedian") : sv <= -0.005 ? "+" + money(-sv) + t("vsMedian") : t("median");
+  li.querySelector(".save").textContent = sv >= 0.005 ? "−" + money(sv) + t("vsMedian") : sv <= -0.005 ? "+" + money(-sv) + t("vsMedian") : t("median", { m: num(lastMedian) });
   const gm = li.querySelector(".gm");
   if (near) {
     gm.textContent = t("gm");

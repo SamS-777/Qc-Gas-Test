@@ -2,7 +2,7 @@
    - L'appli (page, icônes, bibliothèque de carte, polices) est gardée en cache : démarrage instantané, même hors connexion.
    - La page est d'abord demandée au réseau : une nouvelle version mise en ligne arrive dès la prochaine ouverture.
    - Les prix, trajets, adresses et tuiles de carte ne sont jamais mis en cache : ils restent toujours en direct. */
-const VERSION = "essence-v5";
+const VERSION = "essence-v6";
 const SHELL = [
   "./",
   "./index.html",
