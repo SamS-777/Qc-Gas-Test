@@ -57,6 +57,22 @@ Dans le dépôt : *Add file* → *Upload files* → glisse le nouveau `index.htm
 
 Si `sw.js` change aussi, téléverse-le de la même façon.
 
+## Historique des prix
+
+Une tâche automatique (*Actions* → *Historique des prix*) lit le fichier de la Régie toutes les 30 minutes et enregistre les changements de prix dans la branche **`historique`**. La branche `main`, qui fait tourner le site, n'est pas touchée.
+
+| Fichier (branche `historique`) | Contenu |
+|---|---|
+| `data/changes/AAAA-MM.csv` | Chaque changement : heure (UTC), station, carburant (R/S/D), prix en ¢/L (vide = plus disponible) |
+| `data/state.jsonl` | Dernier prix connu, nom, bannière, adresse, région et position de chaque station |
+| `data/summary/regions.json` | Par jour, région et carburant : min, 1er quartile, médiane, 3e quartile, max, nombre de stations |
+| `data/meta.json` | Dernier passage (pour vérifier que la collecte tourne) |
+
+- **Pour arrêter :** *Actions* → *Historique des prix* → **⋯** → *Disable workflow*.
+- **Pour relancer à la main :** même endroit → *Run workflow*.
+- Le premier passage enregistre toutes les stations. Avec les changements suivants, on peut reconstituer le prix de n'importe quelle station à n'importe quel moment depuis le début de la collecte.
+- GitHub peut retarder les passages de 10 à 30 minutes aux heures chargées.
+
 ## Sources de données
 
 - Prix : Régie de l'énergie du Québec (regieessencequebec.ca)
