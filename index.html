@@ -283,6 +283,7 @@ h1 { font: 600 1.75rem/1.05 var(--serif); letter-spacing: -.01em; margin: 0; tex
 .drawundo { border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 99px; padding: 12px 16px; font: 600 .9rem var(--sans); box-shadow: var(--shadow); cursor: pointer }
 .vtx { border-radius: 50%; background: #fff; border: 2.5px solid var(--clay); box-sizing: border-box; pointer-events: none }
 .mapcol.drawing #map, .mapcol.drawing .leaflet-container { cursor: crosshair }
+.mapcol.drawing .dot, .mapcol.drawing .pin, .mapcol.drawing .leaflet-interactive { pointer-events: none }
 .mapcol.picking .maplegend, .mapcol.picking .maptag { display: none }
 .maplegend { position: absolute; z-index: 500; left: 10px; bottom: 30px; background: var(--surface); border: 1px solid var(--line); border-radius: 99px; padding: 4px 11px; font-size: .72rem; font-weight: 500; color: var(--muted); box-shadow: var(--shadow); display: flex; gap: 10px; align-items: center; white-space: nowrap }
 .maplegend span { display: flex; align-items: center; gap: 5px }
@@ -1517,6 +1518,21 @@ async function runZone(poly, name) {
     if (!name) zoneName(c.lat, c.lon).then(nm => { if (lastPoly && !lastPolyName) { lastPolyName = nm; syncFavBtn(); } });
   } catch (err) { status(err.message || String(err), "error"); }
 }
+// Toucher court sur la carte = un coin de plus. Géré ici (et non par la carte) pour que chaque toucher compte,
+// même rapproché ou posé sur une icône de la carte.
+(() => {
+  const col = document.querySelector(".mapcol");
+  let down = null;
+  col.addEventListener("pointerdown", e => { down = drawing && e.isPrimary && e.button === 0 && e.target.closest("#map") ? [e.clientX, e.clientY, Date.now()] : null; }, true);
+  col.addEventListener("pointerup", e => {
+    if (!down || !drawing || !mapA) return;
+    const [x, y, t0] = down; down = null;
+    if (Math.hypot(e.clientX - x, e.clientY - y) > 8 || Date.now() - t0 > 600) return; // déplacement de la carte, pas un toucher
+    const r = $("map").getBoundingClientRect(), ll = mapA.latLngAt(x - r.left, y - r.top);
+    if (ll) mapClick(ll[0], ll[1]);
+  }, true);
+  col.addEventListener("pointercancel", () => { down = null; }, true);
+})();
 $("drawBtn").addEventListener("click", () => (drawing ? drawExit() : drawEnter()));
 $("drawUndo").addEventListener("click", () => { drawPts.pop(); drawSync(); });
 $("drawDone").addEventListener("click", () => { if (drawPts.length >= 3) runZone(drawPts.slice()); });
@@ -1773,7 +1789,6 @@ function leafletAdapter() {
   });
   let group = L.layerGroup().addTo(m);
   m.on("move", pickTrack);
-  m.on("click", e => mapClick(e.latlng.lat, e.latlng.lng));
   let ghostC = null, sk = L.layerGroup().addTo(m);
   return {
     kind: "esri",
@@ -1865,7 +1880,6 @@ async function googleAdapter() {
   let items = [];
   const add = x => { items.push(x); return x; };
   gm.addListener("center_changed", pickTrack);
-  gm.addListener("click", e => { if (e.latLng) mapClick(e.latLng.lat(), e.latLng.lng()); });
   let ghostC = null, skItems = [];
   // Overlay vide qui donne accès à la projection (pixel de la carte → latitude/longitude).
   const proj = new (class extends OverlayView { onAdd() {} draw() {} onRemove() {} })();
