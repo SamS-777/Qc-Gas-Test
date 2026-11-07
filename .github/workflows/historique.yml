@@ -1,0 +1,46 @@
+# Historique des prix : toutes les 30 minutes, enregistre les changements de prix de la Régie
+# dans la branche « historique » (séparée du site : la mise en ligne de l'appli n'est pas touchée).
+name: Historique des prix
+
+on:
+  schedule:
+    - cron: "7,37 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: historique
+  cancel-in-progress: false
+
+jobs:
+  collecte:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Préparer la branche historique
+        run: |
+          git config --global user.name "historique-prix"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git ls-remote --exit-code --heads origin historique >/dev/null; then
+            git fetch --depth 1 origin historique
+            git worktree add hist FETCH_HEAD
+            git -C hist switch -c historique
+          else
+            git worktree add --detach hist
+            git -C hist switch --orphan historique
+          fi
+
+      - name: Collecter les prix
+        run: python3 scripts/collect.py hist/data
+
+      - name: Enregistrer
+        working-directory: hist
+        run: |
+          git add data
+          if git diff --cached --quiet; then echo "Aucun changement."; exit 0; fi
+          git commit -q -m "Prix $(date -u +'%Y-%m-%d %H:%M') UTC"
+          git push -q origin historique
