@@ -30,6 +30,7 @@ FUELS = {"Régulier": 0, "Super": 1, "Diesel": 2}
 CODES = "RSD"
 TZ = ZoneInfo("America/Toronto")
 KEEP_DAYS = 400
+SERIES_DAYS = 35
 
 
 def fetch(local=None):
@@ -131,6 +132,71 @@ def region_stats(cur):
     return out
 
 
+def epoch_min(stamp):
+    return int(datetime.strptime(stamp, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc).timestamp() // 60)
+
+
+def p10(v):
+    # Prix en dixièmes de cent (1719 = 171,9 ¢) ; 0 = pas de prix.
+    return int(round(float(v) * 10)) if v not in ("", None) else 0
+
+
+def update_series(data_dir, rows, when):
+    """Fichiers compacts lus par l'appli : data/series/{R,S,D}.json.
+
+    Pour chaque station, les paliers de prix des SERIES_DAYS derniers jours :
+      {"t0": minutes depuis 1970 (UTC), "debut": premier point, "maj": ..., "s": {station: [t, prix, t, prix, ...]}}
+    t = minutes après t0 ; prix en dixièmes de cent, 0 = pas de prix. Le premier point de chaque station
+    donne son prix au début de la fenêtre. Mis à jour à chaque passage (ou reconstruit depuis data/changes)."""
+    sdir = os.path.join(data_dir, "series")
+    os.makedirs(sdir, exist_ok=True)
+    now = epoch_min(when.strftime("%Y-%m-%dT%H:%M:%SZ"))
+    start = now - SERIES_DAYS * 1440
+    series = {c: {} for c in CODES}
+    debut = {}
+    paths = {c: os.path.join(sdir, c + ".json") for c in CODES}
+    if all(os.path.exists(p) for p in paths.values()):
+        for c, p in paths.items():
+            doc = json.load(open(p, encoding="utf-8"))
+            t0, debut[c] = doc["t0"], doc.get("debut")
+            series[c] = {k: [[t0 + v[i], v[i + 1]] for i in range(0, len(v), 2)] for k, v in doc["s"].items()}
+        feed = rows
+    else:  # première fois : on reconstruit à partir de tous les changements enregistrés
+        feed = []
+        cdir = os.path.join(data_dir, "changes")
+        for name in sorted(os.listdir(cdir)):
+            with open(os.path.join(cdir, name), encoding="utf-8") as fh:
+                feed += [r for r in csv.reader(fh) if r and r[0] != "t"]
+        feed.sort(key=lambda r: r[0])
+    for t, k, c, v in feed:
+        tm, val = epoch_min(t), p10(v)
+        pts = series[c].setdefault(k, [])
+        if pts and pts[-1][1] == val:
+            continue
+        if pts and pts[-1][0] == tm:
+            pts[-1][1] = val
+        else:
+            pts.append([tm, val])
+        if not debut.get(c):
+            debut[c] = tm
+    stamp = when.strftime("%Y-%m-%dT%H:%M:%SZ")
+    for c in CODES:
+        out, t0 = {}, max(start, debut.get(c) or start)
+        for k, pts in series[c].items():
+            # On garde le dernier palier d'avant la fenêtre, ramené au début de la fenêtre.
+            i = 0
+            while i + 1 < len(pts) and pts[i + 1][0] <= t0:
+                i += 1
+            pts = [[max(pts[i][0], t0), pts[i][1]]] + pts[i + 1:]
+            if any(p[1] for p in pts):
+                out[k] = [x for p in pts for x in (p[0] - t0, p[1])]
+        doc = {"t0": t0, "debut": debut.get(c), "maj": stamp, "fenetre_jours": SERIES_DAYS, "s": out}
+        tmp = paths[c] + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as fh:
+            json.dump(doc, fh, separators=(",", ":"))
+        os.replace(tmp, paths[c])
+
+
 def main(data_dir, local=None):
     os.makedirs(os.path.join(data_dir, "changes"), exist_ok=True)
     os.makedirs(os.path.join(data_dir, "summary"), exist_ok=True)
@@ -188,6 +254,8 @@ def main(data_dir, local=None):
     reg["maj"] = stamp
     with open(reg_path, "w", encoding="utf-8") as fh:
         json.dump(reg, fh, ensure_ascii=False, separators=(",", ":"))
+
+    update_series(data_dir, rows, when)
 
     meta.update({"generated_at": gen, "dernier_passage": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
                  "stations": len(cur), "changements_ce_passage": len(rows),
