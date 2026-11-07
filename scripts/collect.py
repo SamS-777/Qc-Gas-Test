@@ -63,7 +63,7 @@ def station_key(name, address):
 
 
 def read_feed(doc):
-    out = {}
+    out, dups = {}, 0
     for f in doc.get("features", []):
         p = f.get("properties") or {}
         name, addr = (p.get("Name") or "").strip(), (p.get("Address") or "").strip()
@@ -80,12 +80,17 @@ def read_feed(doc):
                 if i is not None and e.get("IsAvailable", True):
                     prices[i] = parse_price(e.get("Price"))
         brand = (p.get("brand") or "").strip()
-        out[station_key(name, addr)] = {
+        key = station_key(name, addr)
+        if key in out:
+            dups += 1  # même nom + adresse (ou collision) : le dernier l'emporte, on le signale
+        out[key] = {
             "n": name, "b": "" if brand == "Aucun" else brand, "a": addr,
             "r": (p.get("Region") or "").strip(),
             "y": round(lat, 5) if lat else None, "x": round(lon, 5) if lon else None,
             "p": prices,
         }
+    if dups:
+        print(f"Attention : {dups} station(s) en double (même nom et adresse) fusionnée(s).")
     return out
 
 
@@ -130,6 +135,15 @@ def region_stats(cur):
             q1, med, q3 = quartiles(vals)
             out[region][code] = [min(vals), round(q1, 1), round(med, 1), round(q3, 1), max(vals), len(vals)]
     return out
+
+
+def parse_time(s):
+    """Horodatage ISO complet (Z ou décalage) → UTC. Sans fuseau : considéré comme UTC."""
+    try:
+        d = datetime.fromisoformat(s.strip().replace("Z", "+00:00"))
+    except ValueError:  # format inattendu (ex. trop de décimales sur un vieux Python) : secondes seulement, en UTC
+        d = datetime.strptime(s.strip()[:19], "%Y-%m-%dT%H:%M:%S")
+    return (d if d.tzinfo else d.replace(tzinfo=timezone.utc)).astimezone(timezone.utc)
 
 
 def epoch_min(stamp):
@@ -209,7 +223,11 @@ def main(data_dir, local=None):
         print(f"Fichier de la Régie inchangé ({gen}) : rien à enregistrer.")
         return 0
 
-    when = datetime.fromisoformat(gen[:19]).replace(tzinfo=timezone.utc) if gen else datetime.now(timezone.utc)
+    when = parse_time(gen) if gen else datetime.now(timezone.utc)
+    prev = parse_time(meta["generated_at"]) if meta.get("generated_at") else None
+    if prev and when < prev:
+        print(f"Fichier de la Régie plus ancien que le dernier enregistré ({gen} < {meta['generated_at']}) : ignoré.")
+        return 0
     stamp = when.strftime("%Y-%m-%dT%H:%M:%SZ")
     cur = read_feed(doc)
     if len(cur) < 500:
