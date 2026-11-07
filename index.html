@@ -203,6 +203,24 @@ h1 { font: 600 1.75rem/1.05 var(--serif); letter-spacing: -.01em; margin: 0; tex
 .unit.mini input::-webkit-inner-spin-button { display: none }
 .posted { font-size: .72rem; color: var(--good); margin-top: 5px; font-weight: 500 }
 .links { display: grid; grid-template-columns: 1fr 1fr; gap: 8px }
+.rest { display: grid; gap: 8px; min-width: 0 }
+.rest .more { justify-self: stretch; padding: 9px 14px; font-size: .84rem; border-radius: 12px }
+.rest-list { list-style: none; margin: 0; padding: 0; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; min-width: 0 }
+.rest-list li + li { border-top: 1px solid var(--line) }
+.rest-list li.open { background: var(--panel) }
+.rest-list .links { padding: 0 12px 12px }
+.row-main { width: 100%; display: grid; grid-template-columns: minmax(0, 1fr) auto 62px; gap: 10px; align-items: center; padding: 9px 12px; background: none; border: 0; color: inherit; font: inherit; text-align: left; cursor: pointer }
+.row-main:hover { background: var(--panel) }
+.r-who { min-width: 0 }
+.r-who b, .r-who small { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+.r-who b { font-size: .9rem; font-weight: 600 }
+.r-who small { color: var(--muted); font-size: .76rem }
+.r-price { font: 600 1rem var(--serif); font-variant-numeric: tabular-nums; white-space: nowrap }
+.r-price small { font: 500 .7rem var(--sans); color: var(--muted); margin-left: 2px }
+.dif { font-size: .72rem; font-weight: 600; padding: 3px 0; border-radius: 99px; text-align: center; background: var(--panel); color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap }
+.rest-list li.open .dif.eq { background: var(--surface) }
+.dif.pos { background: color-mix(in srgb, var(--good) 16%, transparent); color: var(--good) }
+.dif.neg { background: color-mix(in srgb, var(--bad) 14%, transparent); color: var(--bad) }
 .pill.det.wait { opacity: .65 }
 .pill.det.ok { background: var(--route-soft); color: var(--route) }
 
@@ -227,6 +245,10 @@ h1 { font: 600 1.75rem/1.05 var(--serif); letter-spacing: -.01em; margin: 0; tex
 .endpoint.b { background: var(--route); border: 3px solid #fff }
 .maptag { position: absolute; z-index: 500; right: 12px; top: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 99px; padding: 5px 12px; font-size: .8rem; font-weight: 500; box-shadow: var(--shadow); display: flex; gap: 8px; align-items: center }
 .maptag i { width: 18px; height: 4px; border-radius: 2px; background: var(--route) }
+.maplegend { position: absolute; z-index: 500; left: 10px; bottom: 30px; background: var(--surface); border: 1px solid var(--line); border-radius: 99px; padding: 4px 11px; font-size: .72rem; font-weight: 500; color: var(--muted); box-shadow: var(--shadow); display: flex; gap: 10px; align-items: center; white-space: nowrap }
+.maplegend span { display: flex; align-items: center; gap: 5px }
+.maplegend i { width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid #fff; box-shadow: 0 0 0 .5px rgba(0,0,0,.35) }
+.dot { border-radius: 50%; border: 1.5px solid #fff; box-shadow: 0 0 0 .5px rgba(0,0,0,.35); box-sizing: border-box; cursor: pointer }
 
 /* Palmarès */
 .results { display: grid; gap: 12px; min-width: 0 }
@@ -389,6 +411,11 @@ ol.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px }
         <p id="sumMeta"></p>
       </div>
       <ol class="list" id="results"></ol>
+      <div class="rest" id="rest" hidden>
+        <button type="button" class="more" id="restToggle" aria-expanded="false" aria-controls="restList"></button>
+        <ol class="rest-list" id="restList" hidden></ol>
+        <button type="button" class="more" id="restMore" hidden></button>
+      </div>
       <div class="empty" id="empty">
         <b data-i18n="emptyTitle">Où faire le plein, sans chercher.</b>
         <span id="emptyText"></span>
@@ -401,6 +428,11 @@ ol.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px }
   <div class="mapcol">
     <div id="map" role="region" data-i18n-aria="mapLabel" aria-label="Carte du trajet"></div>
     <div class="maptag" id="maptag" hidden><i></i><span data-i18n="yourRoute">Ton trajet</span></div>
+    <div class="maplegend" id="maplegend" hidden>
+      <span><i id="legG"></i><span data-i18n="legBelow">sous la médiane</span></span>
+      <span><i id="legM"></i><span data-i18n="legMid">médiane</span></span>
+      <span><i id="legR"></i><span data-i18n="legAbove">au-dessus</span></span>
+    </div>
   </div>
 </div>
 
@@ -526,6 +558,8 @@ const I18N = {
     best: "Meilleur prix", posted: "affiché {p} · rabais {r} ¢", onRoute: "Sur le trajet", offRoute: "à {d} du trajet", alongKm: "km {a} sur {b}",
     away: "à {d}", fillLine: "Plein de {l} L · ", belowMed: "Sous la médiane · {d}", aboveMed: "Au-dessus de la médiane · {d}", median: "Dans la médiane du secteur ({m} ¢)",
     gmSubRoute: "trajet avec arrêt", wazeSub: "vers la station",
+    restShow: "Afficher les {n} autres stations", restShow1: "Afficher l'autre station", restHide: "Masquer les autres stations", restMore: "Afficher {n} de plus",
+    legBelow: "sous la médiane", legMid: "médiane", legAbove: "au-dessus", difMed: "médiane",
     wazeTitle: "Waze ne prend pas d'arrêt intermédiaire par lien : il te guide jusqu'à la station seulement.",
     calcTime: "Calcul du temps…", calcDetour: "Calcul du détour…", drive: "{m} min en voiture · {km} km", lt1: "moins d'1",
     noDetour: "Aucun détour", detour: "Détour {m}", detourLt1: "de moins d'1 min", popRoute: "à {d} du trajet", popNear: "à {d}",
@@ -577,6 +611,8 @@ const I18N = {
     best: "Best price", posted: "posted {p} · discount {r}¢", onRoute: "On your route", offRoute: "{d} from route", alongKm: "km {a} of {b}",
     away: "{d} away", fillLine: "{l} L fill-up · ", belowMed: "Below the median · {d}", aboveMed: "Above the median · {d}", median: "At the area median ({m}¢)",
     gmSubRoute: "route with stop", wazeSub: "to the station",
+    restShow: "Show the {n} other stations", restShow1: "Show the other station", restHide: "Hide the other stations", restMore: "Show {n} more",
+    legBelow: "below median", legMid: "median", legAbove: "above", difMed: "median",
     wazeTitle: "Waze links can't include a stop: it guides you to the station only.",
     calcTime: "Calculating time…", calcDetour: "Calculating detour…", drive: "{m} min drive · {km} km", lt1: "under 1",
     noDetour: "No detour", detour: "Detour {m}", detourLt1: "under 1 min", popRoute: "{d} from route", popNear: "{d} away",
@@ -602,6 +638,8 @@ const $ = id => document.getElementById(id);
 const money = v => v.toLocaleString(LOC, { style: "currency", currency: "CAD" });
 const num = (v, d = 1) => v.toLocaleString(LOC, { minimumFractionDigits: d, maximumFractionDigits: d });
 const SHOW = 10, DET_N = 5, BRAND_TOP = 12;
+const REST_STEP = 50, DOT_MAX = 300;
+let lastRest = [], restOpen = false, restShown = REST_STEP, restKey = "", restDots = new Map();
 const FEED_URL = "https://regieessencequebec.ca/stations.geojson.gz";
 const FUEL_KEYS = { "Régulier": 0, "Super": 1, "Diesel": 2 };
 let stations = null, loadedAt = 0, generatedAt = null, here = null, mapA = null, markers = [];
@@ -1067,6 +1105,7 @@ function clearResults() {
   lastMode = null; lastRoutes = []; lastRoute = null; lastTop = []; markers = []; detGen++;
   $("results").replaceChildren();
   $("summary").hidden = true; $("routesWrap").hidden = true; $("maptag").hidden = true;
+  lastRest = []; restDots = new Map(); restKey = ""; $("rest").hidden = true; $("restList").replaceChildren(); $("maplegend").hidden = true;
   $("empty").hidden = false; $("emptyText").textContent = t(mode === "near" ? "emptyNear" : "emptyRoute");
   status("");
   if (mapA) { mapA.clear(); mapA.home(); }
@@ -1097,7 +1136,11 @@ function render() {
   else status("");
   lastTop = res.ranked.slice(0, SHOW);
   lastTop.forEach((s, i) => $("results").append(card(s, i, o, near)));
+  const key = near ? `n|${lastA.lat},${lastA.lon}` : `r|${lastA.lat},${lastA.lon}|${lastB.lat},${lastB.lon}`;
+  if (key !== restKey) { restKey = key; restOpen = false; restShown = REST_STEP; }
+  lastRest = res.ranked.slice(SHOW);
   draw(near, o);
+  renderRest(near);
   syncFavBtn();
   computeDetours();
 }
@@ -1130,11 +1173,8 @@ function card(s, i, o, near) {
         <span class="fillcost"></span>
         <span class="save ${sv >= 0.005 ? "pos" : sv <= -0.005 ? "neg" : ""}"></span>
       </div>
-      <div class="links">
-        <a class="go gm" target="_blank" rel="noopener">${ICON_GM}<span class="gl"><span>Google Maps</span><small class="sub"></small></span></a>
-        <a class="go wz" target="_blank" rel="noopener">${ICON_NAV}<span class="gl"><span>Waze</span><small class="sub"></small></span></a>
-      </div>
     </div>`;
+  li.querySelector(".info").append(navLinks(s, near));
   li.querySelector(".brand").textContent = s.brand || s.name;
   li.querySelector(".addr").textContent = s.address;
   if (i === 0) { const tg = li.querySelector(".tag"); tg.textContent = t("best"); tg.hidden = false; }
@@ -1150,7 +1190,18 @@ function card(s, i, o, near) {
   fc.append(t("fillLine", { l: num(o.fillL, 0) }));
   const bold = document.createElement("b"); bold.textContent = money(s.fill); fc.append(bold);
   li.querySelector(".save").textContent = sv >= 0.005 ? t("belowMed", { d: "−" + money(sv) }) : sv <= -0.005 ? t("aboveMed", { d: "+" + money(-sv) }) : t("median", { m: num(lastMedian) });
-  const gm = li.querySelector(".gm");
+  li.addEventListener("click", e => { if (e.target.closest("a")) return; select(i, true); });
+  return li;
+}
+
+/* Boutons Google Maps / Waze d'une station */
+function navLinks(s, near) {
+  const box = document.createElement("div");
+  box.className = "links";
+  box.innerHTML = `
+    <a class="go gm" target="_blank" rel="noopener">${ICON_GM}<span class="gl"><span>Google Maps</span><small class="sub"></small></span></a>
+    <a class="go wz" target="_blank" rel="noopener">${ICON_NAV}<span class="gl"><span>Waze</span><small class="sub"></small></span></a>`;
+  const gm = box.querySelector(".gm");
   if (near) {
     gm.querySelector(".sub").remove();
     gm.href = `https://www.google.com/maps/dir/?api=1&origin=${lastA.lat},${lastA.lon}&destination=${s.lat},${s.lon}&travelmode=driving`;
@@ -1158,12 +1209,72 @@ function card(s, i, o, near) {
     gm.querySelector(".sub").textContent = t("gmSubRoute");
     gm.href = `https://www.google.com/maps/dir/?api=1&origin=${lastA.lat},${lastA.lon}&destination=${lastB.lat},${lastB.lon}&waypoints=${s.lat},${s.lon}&travelmode=driving`;
   }
-  const wz = li.querySelector(".wz");
+  const wz = box.querySelector(".wz");
   wz.querySelector(".sub").textContent = t("wazeSub"); wz.title = t("wazeTitle");
   wz.href = `https://waze.com/ul?ll=${s.lat},${s.lon}&navigate=yes`;
-  li.addEventListener("click", e => { if (e.target.closest("a")) return; select(i, true); });
+  return box;
+}
+
+/* Les autres stations du secteur : liste compacte repliée, 50 à la fois */
+function priceBand(s) {
+  const d = s.eff - lastMedian;
+  return d < -0.05 ? "pos" : d > 0.05 ? "neg" : "eq";
+}
+function bandColor(b) { return b === "pos" ? css("--good") || "#3E7D52" : b === "neg" ? css("--bad") || "#B3402A" : css("--faint") || "#9C9A92"; }
+function stationPop(s, near) {
+  const pop = document.createElement("div");
+  pop.className = "gpop";
+  const b = document.createElement("b"); b.textContent = s.brand || s.name;
+  pop.append(b, document.createElement("br"), `${num(s.eff)} ¢/L · ${near ? t("popNear", { d: fmtDist(s.dist * 1000) }) : t("popRoute", { d: fmtDist(s.offM) })}`);
+  return pop;
+}
+function renderRest(near) {
+  const n = lastRest.length;
+  $("rest").hidden = !n;
+  const tg = $("restToggle"), list = $("restList"), more = $("restMore");
+  tg.textContent = restOpen ? t("restHide") : n === 1 ? t("restShow1") : t("restShow", { n: n.toLocaleString(LOC) });
+  tg.setAttribute("aria-expanded", restOpen);
+  list.hidden = !restOpen;
+  list.replaceChildren();
+  if (!n || !restOpen) { more.hidden = true; return; }
+  const shown = lastRest.slice(0, restShown);
+  for (const s of shown) list.append(restRow(s, near));
+  const left = n - shown.length;
+  more.hidden = left <= 0;
+  if (left > 0) more.textContent = t("restMore", { n: Math.min(REST_STEP, left) });
+}
+function restRow(s, near) {
+  const li = document.createElement("li");
+  const btn = document.createElement("button");
+  btn.type = "button"; btn.className = "row-main";
+  const who = document.createElement("span"); who.className = "r-who";
+  const b = document.createElement("b"); b.textContent = s.brand || s.name;
+  const sm = document.createElement("small");
+  const where = near ? t("away", { d: fmtDist(s.dist * 1000) }) : s.offM < 30 ? t("onRoute") : t("offRoute", { d: fmtDist(s.offM) });
+  sm.textContent = `${where} · ${shortName(s.address)}`;
+  who.append(b, sm);
+  const pr = document.createElement("span"); pr.className = "r-price";
+  pr.append(num(s.eff));
+  const u = document.createElement("small"); u.textContent = "¢"; pr.append(u);
+  const band = priceBand(s), d = s.eff - lastMedian;
+  const dif = document.createElement("span"); dif.className = "dif " + band;
+  dif.textContent = band === "eq" ? t("difMed") : `${d < 0 ? "−" : "+"}${num(Math.abs(d))} ¢`;
+  btn.append(who, pr, dif);
+  btn.addEventListener("click", () => {
+    const open = !li.classList.contains("open");
+    $("restList").querySelectorAll("li.open").forEach(x => { x.classList.remove("open"); x.querySelector(".links")?.remove(); });
+    btn.setAttribute("aria-expanded", open);
+    if (!open) return;
+    li.classList.add("open");
+    li.append(navLinks(s, near));
+    if (mapA) { mapA.flyTo(s.lat, s.lon, 15); restDots.get(s)?.open(); }
+  });
+  btn.setAttribute("aria-expanded", "false");
+  li.append(btn);
   return li;
 }
+$("restToggle").addEventListener("click", () => { restOpen = !restOpen; renderRest(lastMode === "near"); });
+$("restMore").addEventListener("click", () => { restShown += REST_STEP; renderRest(lastMode === "near"); });
 
 function select(i, fromList) {
   document.querySelectorAll("#results .card").forEach((c, k) => c.classList.toggle("sel", k === i));
@@ -1208,6 +1319,10 @@ function leafletAdapter() {
       const mk = L.marker([lat, lon], { icon, zIndexOffset: o.z }).addTo(group).bindPopup(o.popup);
       mk.on("click", o.onClick);
       return { setSel(on) { const el = mk.getElement(); if (el) el.classList.toggle("sel", on); }, open() { mk.openPopup(); } };
+    },
+    dot(lat, lon, color, popup) {
+      const c = L.circleMarker([lat, lon], { radius: 5, color: "#ffffff", weight: 1.5, fillColor: color, fillOpacity: 1, bubblingMouseEvents: false }).addTo(group).bindPopup(popup);
+      return { open() { c.openPopup(); } };
     },
     fit(pts) { if (pts.length) m.fitBounds(L.latLngBounds(pts), { padding: [36, 36] }); },
     flyTo(lat, lon, z) { m.flyTo([lat, lon], Math.max(m.getZoom(), z), { duration: .6 }); },
@@ -1262,6 +1377,10 @@ async function googleAdapter() {
   let items = [];
   const add = x => { items.push(x); return x; };
   const path = coords => coords.map(c => ({ lat: c[1], lng: c[0] }));
+  const popAt = (lat, lon, node, dy = -12) => () => {
+    info.setOptions({ pixelOffset: new Size(0, dy) });
+    info.setContent(node); info.setPosition({ lat, lng: lon }); info.open({ map: gm });
+  };
   return {
     kind: "google",
     clear() { items.forEach(x => x.setMap(null)); items = []; info.close(); },
@@ -1278,9 +1397,16 @@ async function googleAdapter() {
       const d = document.createElement("div"); d.className = o.cls; d.textContent = o.html;
       const ov = add(new Html(lat, lon, d, o.size, 1000 + o.z));
       ov.setMap(gm);
-      const open = () => { info.setContent(o.popup); info.setPosition({ lat, lng: lon }); info.open({ map: gm }); };
+      const open = popAt(lat, lon, o.popup);
       d.addEventListener("click", () => { open(); o.onClick(); });
       return { setSel(on) { d.classList.toggle("sel", on); }, open };
+    },
+    dot(lat, lon, color, popup) {
+      const d = document.createElement("div"); d.className = "dot"; d.style.background = color;
+      add(new Html(lat, lon, d, 12, 200)).setMap(gm);
+      const open = popAt(lat, lon, popup, -4);
+      d.addEventListener("click", e => { e.stopPropagation(); open(); });
+      return { open };
     },
     fit(pts) {
       if (!pts.length) return;
@@ -1362,13 +1488,15 @@ function draw(near, o) {
     mapA.endpoint(lastB.lat, lastB.lon, "b");
     $("maptag").hidden = false;
   }
-  markers = lastTop.map((s, i) => {
-    const pop = document.createElement("div");
-    pop.className = "gpop";
-    const b = document.createElement("b"); b.textContent = s.brand || s.name;
-    pop.append(b, document.createElement("br"), `${num(s.eff)} ¢/L · ${near ? t("popNear", { d: fmtDist(s.dist * 1000) }) : t("popRoute", { d: fmtDist(s.offM) })}`);
-    return mapA.pin(s.lat, s.lon, { html: String(i + 1), cls: "pin" + (i === 0 ? " pin-best" : ""), size: i === 0 ? 32 : 26, z: (SHOW - i) * 10, popup: pop, onClick: () => select(i, false) });
-  });
+  // Les autres stations : petits points colorés selon la médiane (les plus proches d'abord si elles sont trop nombreuses).
+  restDots = new Map();
+  const dots = lastRest.length > DOT_MAX ? [...lastRest].sort((a, b) => a.dist - b.dist).slice(0, DOT_MAX) : lastRest;
+  const col = { pos: bandColor("pos"), eq: bandColor("eq"), neg: bandColor("neg") };
+  for (const s of dots) restDots.set(s, mapA.dot(s.lat, s.lon, col[priceBand(s)], stationPop(s, near)));
+  $("maplegend").hidden = !dots.length;
+  $("legG").style.background = col.pos; $("legM").style.background = col.eq; $("legR").style.background = col.neg;
+  markers = lastTop.map((s, i) =>
+    mapA.pin(s.lat, s.lon, { html: String(i + 1), cls: "pin" + (i === 0 ? " pin-best" : ""), size: i === 0 ? 32 : 26, z: (SHOW - i) * 10, popup: stationPop(s, near), onClick: () => select(i, false) }));
   mapA.fit(pts);
   setTimeout(() => mapA && mapA.invalidate(), 60);
 }
