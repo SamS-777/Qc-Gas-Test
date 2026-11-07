@@ -204,6 +204,25 @@ h1 { font: 600 1.75rem/1.05 var(--serif); letter-spacing: -.01em; margin: 0; tex
 .posted { font-size: .72rem; color: var(--good); margin-top: 5px; font-weight: 500 }
 .links { display: grid; grid-template-columns: 1fr 1fr; gap: 8px }
 .rest { display: grid; gap: 8px; min-width: 0 }
+.hist { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); min-width: 0 }
+.hist summary { list-style: none; cursor: pointer; padding: 11px 14px; display: flex; gap: 8px; align-items: center; font-weight: 600; font-size: .9rem; min-width: 0 }
+.hist summary::-webkit-details-marker { display: none }
+.hist summary::after { content: "▾"; margin-left: auto; color: var(--faint); transition: transform .15s; flex: none }
+.hist[open] summary::after { transform: rotate(180deg) }
+.hist summary > span:first-child { white-space: nowrap; flex: none }
+.hist-who { color: var(--muted); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0 }
+.hist-body { padding: 0 14px 12px; display: grid; gap: 8px; min-width: 0 }
+.hist-bar { display: flex; align-items: center; gap: 8px; min-height: 30px }
+.hist-range { display: flex; gap: 2px; margin-left: auto; background: var(--panel); border-radius: 99px; padding: 3px }
+.hist-range button { border: 0; background: none; color: var(--muted); padding: 4px 12px; border-radius: 99px; font: 600 .78rem var(--sans); cursor: pointer }
+.hist-range button.on { background: var(--ink); color: var(--bg) }
+.hist-chart { position: relative; height: 180px; touch-action: pan-y }
+.hist-chart svg { display: block; width: 100%; height: 100% }
+.hist-chart .ax { fill: var(--faint); font: 500 11px var(--sans); font-variant-numeric: tabular-nums }
+.hist-chart .grid { stroke: var(--line); stroke-width: 1 }
+.hist-chart .msg { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); font-size: .85rem; text-align: center; padding: 0 20px }
+.hist-tip { position: absolute; top: -4px; background: var(--ink); color: var(--bg); font-size: .74rem; font-weight: 500; padding: 4px 8px; border-radius: 8px; white-space: nowrap; pointer-events: none; font-variant-numeric: tabular-nums; box-shadow: var(--shadow) }
+.hist-note { margin: 0; color: var(--faint); font-size: .74rem; line-height: 1.4 }
 .rest .more { justify-self: stretch; padding: 9px 14px; font-size: .84rem; border-radius: 12px }
 .rest-list { list-style: none; margin: 0; padding: 0; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; min-width: 0 }
 .rest-list li + li { border-top: 1px solid var(--line) }
@@ -410,6 +429,19 @@ ol.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px }
         <div class="sum-top"><h2 id="sumTitle"></h2><button type="button" class="favbtn" id="favBtn" hidden>☆ Enregistrer</button></div>
         <p id="sumMeta"></p>
       </div>
+      <details class="hist" id="hist" hidden>
+        <summary><span data-i18n="histTitle">Évolution du prix</span><span class="hist-who" id="histWho"></span></summary>
+        <div class="hist-body">
+          <div class="hist-bar">
+            <button type="button" class="more" id="histZone" hidden data-i18n="histBack">← Toute la zone</button>
+            <div class="hist-range" role="group" data-i18n-aria="histRange" aria-label="Période">
+              <button type="button" data-days="7" class="on" aria-pressed="true" data-i18n="hist7">7 j</button><button type="button" data-days="30" aria-pressed="false" data-i18n="hist30">30 j</button>
+            </div>
+          </div>
+          <div class="hist-chart" id="histChart"></div>
+          <p class="hist-note" id="histNote"></p>
+        </div>
+      </details>
       <ol class="list" id="results"></ol>
       <div class="rest" id="rest" hidden>
         <button type="button" class="more" id="restToggle" aria-expanded="false" aria-controls="restList"></button>
@@ -560,6 +592,10 @@ const I18N = {
     gmSubRoute: "trajet avec arrêt", wazeSub: "vers la station",
     restShow: "Afficher les {n} autres stations", restShow1: "Afficher l'autre station", restHide: "Masquer les autres stations", restMore: "Afficher {n} de plus",
     legBelow: "sous la médiane", legMid: "médiane", legAbove: "au-dessus", difMed: "médiane",
+    histTitle: "Évolution du prix", histZoneWho: "médiane de la zone", histBack: "← Toute la zone", histRange: "Période", hist7: "7 j", hist30: "30 j",
+    histLoading: "Chargement de l'historique…", histDown: "Historique indisponible pour l'instant.", histEmpty: "Pas encore d'historique pour cette station.",
+    histNoteZone: "Médiane des {n} stations de ta recherche, rabais déduits.", histNoteSt: "Prix de cette station.", histNoteStR: "Prix de cette station, rabais de {r} ¢ déduit.",
+    histSince: " Historique depuis le {d} : la période complète se remplira avec le temps.",
     wazeTitle: "Waze ne prend pas d'arrêt intermédiaire par lien : il te guide jusqu'à la station seulement.",
     calcTime: "Calcul du temps…", calcDetour: "Calcul du détour…", drive: "{m} min en voiture · {km} km", lt1: "moins d'1",
     noDetour: "Aucun détour", detour: "Détour {m}", detourLt1: "de moins d'1 min", popRoute: "à {d} du trajet", popNear: "à {d}",
@@ -613,6 +649,10 @@ const I18N = {
     gmSubRoute: "route with stop", wazeSub: "to the station",
     restShow: "Show the {n} other stations", restShow1: "Show the other station", restHide: "Hide the other stations", restMore: "Show {n} more",
     legBelow: "below median", legMid: "median", legAbove: "above", difMed: "median",
+    histTitle: "Price history", histZoneWho: "area median", histBack: "← Whole area", histRange: "Period", hist7: "7 d", hist30: "30 d",
+    histLoading: "Loading history…", histDown: "History unavailable right now.", histEmpty: "No history yet for this station.",
+    histNoteZone: "Median of the {n} stations in your search, rebates deducted.", histNoteSt: "This station's price.", histNoteStR: "This station's price, {r}¢ rebate deducted.",
+    histSince: " History since {d}: the full period will fill in over time.",
     wazeTitle: "Waze links can't include a stop: it guides you to the station only.",
     calcTime: "Calculating time…", calcDetour: "Calculating detour…", drive: "{m} min drive · {km} km", lt1: "under 1",
     noDetour: "No detour", detour: "Detour {m}", detourLt1: "under 1 min", popRoute: "{d} from route", popNear: "{d} away",
@@ -1105,7 +1145,7 @@ function clearResults() {
   lastMode = null; lastRoutes = []; lastRoute = null; lastTop = []; markers = []; detGen++;
   $("results").replaceChildren();
   $("summary").hidden = true; $("routesWrap").hidden = true; $("maptag").hidden = true;
-  lastRest = []; restDots = new Map(); restKey = ""; $("rest").hidden = true; $("restList").replaceChildren(); $("maplegend").hidden = true;
+  lastRest = []; lastAll = []; histKey = null; $("hist").hidden = true; restDots = new Map(); restKey = ""; $("rest").hidden = true; $("restList").replaceChildren(); $("maplegend").hidden = true;
   $("empty").hidden = false; $("emptyText").textContent = t(mode === "near" ? "emptyNear" : "emptyRoute");
   status("");
   if (mapA) { mapA.clear(); mapA.home(); }
@@ -1137,10 +1177,13 @@ function render() {
   lastTop = res.ranked.slice(0, SHOW);
   lastTop.forEach((s, i) => $("results").append(card(s, i, o, near)));
   const key = near ? `n|${lastA.lat},${lastA.lon}` : `r|${lastA.lat},${lastA.lon}|${lastB.lat},${lastB.lon}`;
-  if (key !== restKey) { restKey = key; restOpen = false; restShown = REST_STEP; }
+  if (key !== restKey) { restKey = key; restOpen = false; restShown = REST_STEP; histKey = null; }
   lastRest = res.ranked.slice(SHOW);
+  lastAll = res.ranked;
   draw(near, o);
   renderRest(near);
+  $("hist").hidden = !n;
+  histRender();
   syncFavBtn();
   computeDetours();
 }
@@ -1267,6 +1310,7 @@ function restRow(s, near) {
     if (!open) return;
     li.classList.add("open");
     li.append(navLinks(s, near));
+    histPick(s);
     if (mapA) { mapA.flyTo(s.lat, s.lon, 15); restDots.get(s)?.open(); }
   });
   btn.setAttribute("aria-expanded", "false");
@@ -1276,10 +1320,201 @@ function restRow(s, near) {
 $("restToggle").addEventListener("click", () => { restOpen = !restOpen; renderRest(lastMode === "near"); });
 $("restMore").addEventListener("click", () => { restShown += REST_STEP; renderRest(lastMode === "near"); });
 
+/* ---------- Évolution du prix (historique collecté dans la branche « historique » du dépôt) ---------- */
+const HIST_URL = "https://raw.githubusercontent.com/SamS-777/Qc-Gas-Test/historique/data/series/";
+let histDays = 7, histKey = null, histData = {}, histErr = {}, lastAll = [];
+const rol = (v, s) => ((v << s) | (v >>> (32 - s))) >>> 0;
+function sha1hex(str) {
+  const b = new TextEncoder().encode(str), l = b.length, n = ((l + 8) >> 6) + 1, w = new Uint32Array(n * 16), x = new Uint32Array(80);
+  for (let i = 0; i < l; i++) w[i >> 2] |= b[i] << (24 - (i % 4) * 8);
+  w[l >> 2] |= 0x80 << (24 - (l % 4) * 8);
+  w[n * 16 - 1] = l * 8;
+  const h = [0x67452301, 0xEFCDAB89, 0x98BADCFE, 0x10325476, 0xC3D2E1F0];
+  for (let i = 0; i < w.length; i += 16) {
+    for (let t = 0; t < 80; t++) x[t] = t < 16 ? w[i + t] : rol(x[t - 3] ^ x[t - 8] ^ x[t - 14] ^ x[t - 16], 1);
+    let [a, bb, c, d, e] = h;
+    for (let t = 0; t < 80; t++) {
+      const f = t < 20 ? (bb & c) | (~bb & d) : t < 40 || t >= 60 ? bb ^ c ^ d : (bb & c) | (bb & d) | (c & d);
+      const k = t < 20 ? 0x5A827999 : t < 40 ? 0x6ED9EBA1 : t < 60 ? 0x8F1BBCDC : 0xCA62C1D6;
+      const tmp = (rol(a, 5) + (f >>> 0) + e + k + x[t]) >>> 0;
+      e = d; d = c; c = rol(bb, 30); bb = a; a = tmp;
+    }
+    h[0] = (h[0] + a) >>> 0; h[1] = (h[1] + bb) >>> 0; h[2] = (h[2] + c) >>> 0; h[3] = (h[3] + d) >>> 0; h[4] = (h[4] + e) >>> 0;
+  }
+  return h.map(v => v.toString(16).padStart(8, "0")).join("");
+}
+// Même identifiant que la collecte : sha1(nom|adresse en minuscules), 10 premiers caractères.
+const keyMemo = new Map();
+function stationKey(s) {
+  const id = `${s.name.toLowerCase()}|${s.address.toLowerCase()}`;
+  let k = keyMemo.get(id);
+  if (!k) { k = sha1hex(id).slice(0, 10); keyMemo.set(id, k); }
+  return k;
+}
+async function histLoad(code) {
+  if (histData[code] || histErr[code] === "loading") return;
+  histErr[code] = "loading";
+  try {
+    const r = await fetch(HIST_URL + code + ".json");
+    if (!r.ok) throw new Error(r.status);
+    histData[code] = await r.json();
+    histErr[code] = null;
+  } catch { histErr[code] = "down"; setTimeout(() => { if (histErr[code] === "down") histErr[code] = null; }, 60000); }
+  histRender();
+}
+// Paliers d'une station en [heure (ms), prix réel] ; null = pas de prix.
+function histSteps(doc, key, rebate) {
+  const v = doc.s[key];
+  if (!v) return [];
+  const out = [];
+  for (let i = 0; i < v.length; i += 2) out.push([(doc.t0 + v[i]) * 60000, v[i + 1] ? v[i + 1] / 10 - rebate : null]);
+  return out;
+}
+function histStation() { return histKey ? lastAll.find(s => stationKey(s) === histKey) || null : null; }
+function histPick(s) {
+  histKey = s ? stationKey(s) : null;
+  histRender();
+}
+function histHead() {
+  const st = histStation();
+  $("histWho").textContent = "· " + (st ? `${st.brand || st.name}, ${shortName(st.address)}` : t("histZoneWho"));
+  $("histZone").hidden = !st;
+}
+function histRender() {
+  if ($("hist").hidden) return;
+  histHead();
+  if (!$("hist").open) return;
+  const box = $("histChart"), note = $("histNote");
+  const msg = m => { box.replaceChildren(); const d = document.createElement("div"); d.className = "msg"; d.textContent = m; box.append(d); };
+  const code = "RSD"[fuel()], doc = histData[code];
+  if (!doc) {
+    if (histErr[code] === "down") { msg(t("histDown")); note.textContent = ""; return; }
+    msg(t("histLoading")); note.textContent = ""; histLoad(code); return;
+  }
+  const now = Date.now(), debut = (doc.debut || doc.t0) * 60000;
+  const start = Math.max(now - histDays * 864e5, debut);
+  const st = histStation();
+  let pts;
+  if (st) {
+    const steps = histSteps(doc, histKey, st.rebate || 0);
+    let i = 0; while (i + 1 < steps.length && steps[i + 1][0] <= start) i++;
+    pts = steps.length ? [[Math.max(start, steps[i][0]), steps[i][1]], ...steps.slice(i + 1).filter(p => p[0] < now)] : [];
+    pts.push([now, st.eff]);
+    note.textContent = (st.rebate ? t("histNoteStR", { r: num(st.rebate, st.rebate % 1 ? 1 : 0) }) : t("histNoteSt"));
+  } else {
+    // Médiane de la zone sur une grille régulière (30 min sur 7 jours, 2 h sur 30 jours), puis le prix en direct.
+    const step = (histDays <= 7 ? 30 : 120) * 60000, grid = [];
+    for (let tm = start; tm < now; tm += step) grid.push(tm);
+    const cols = grid.map(() => []);
+    for (const s of lastAll) {
+      const steps = histSteps(doc, stationKey(s), s.rebate || 0);
+      let j = 0;
+      for (let g = 0; g < grid.length; g++) {
+        while (j < steps.length && steps[j][0] <= grid[g]) j++;
+        if (j && steps[j - 1][1] != null) cols[g].push(steps[j - 1][1]);
+      }
+    }
+    pts = grid.map((tm, g) => [tm, cols[g].length ? median(cols[g]) : null]);
+    pts.push([now, lastMedian]);
+    note.textContent = t("histNoteZone", { n: lastAll.length.toLocaleString(LOC) });
+  }
+  if (debut > now - histDays * 864e5) note.textContent += t("histSince", { d: new Date(debut).toLocaleString(LOC, { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" }) });
+  if (st && pts.length < 2) { msg(t("histEmpty")); return; }
+  drawHist(box, pts, start, now);
+}
+function median(a) {
+  a.sort((x, y) => x - y);
+  const n = a.length;
+  return n % 2 ? a[(n - 1) / 2] : (a[n / 2 - 1] + a[n / 2]) / 2;
+}
+const SVGNS = "http://www.w3.org/2000/svg";
+function svgEl(tag, attrs, parent) {
+  const e = document.createElementNS(SVGNS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (parent) parent.append(e);
+  return e;
+}
+function drawHist(box, pts, t0, t1) {
+  const W = box.clientWidth || 320, H = box.clientHeight || 180, L = 38, R = 12, T = 12, B = 24;
+  const vals = pts.map(p => p[1]).filter(v => v != null);
+  if (!vals.length) { box.replaceChildren(); return; }
+  let lo = Math.min(...vals), hi = Math.max(...vals);
+  const span = Math.max(hi - lo, 2);
+  const stepY = [0.5, 1, 2, 5, 10, 20, 50].find(s => span / s <= 4) || 50;
+  lo = Math.floor((lo - span * 0.15) / stepY) * stepY; hi = Math.ceil((hi + span * 0.15) / stepY) * stepY;
+  if (t1 - t0 < 36e5) t0 = t1 - 36e5;
+  const X = tm => L + (tm - t0) / (t1 - t0) * (W - L - R), Y = v => T + (hi - v) / (hi - lo) * (H - T - B);
+  const svg = svgEl("svg", { viewBox: `0 0 ${W} ${H}`, role: "img" });
+  for (let v = lo; v <= hi + 1e-9; v += stepY) {
+    svgEl("line", { x1: L, x2: W - R, y1: Y(v), y2: Y(v), class: "grid" }, svg);
+    const tx = svgEl("text", { x: L - 6, y: Y(v) + 4, "text-anchor": "end", class: "ax" }, svg);
+    tx.textContent = num(v, stepY < 1 ? 1 : 0);
+  }
+  // Graduations du temps : l'intervalle le plus fin qui laisse au moins ~56 px entre deux étiquettes.
+  const H1 = 36e5, D1 = 864e5, steps = [H1, 3 * H1, 6 * H1, 12 * H1, D1, 2 * D1, 7 * D1];
+  const iv = steps.find(s => (W - L - R) / ((t1 - t0) / s) >= 48) || 7 * D1;
+  const cur = new Date(t0);
+  if (iv < D1) cur.setMinutes(0, 0, 0); else cur.setHours(0, 0, 0, 0);
+  // Pas de calendrier (jours/heures), pour rester aligné sur minuit malgré les changements d'heure.
+  for (; cur.getTime() <= t1; iv < D1 ? cur.setHours(cur.getHours() + 1) : cur.setDate(cur.getDate() + iv / D1)) {
+    const tm = cur.getTime();
+    if (tm < t0 || (iv < D1 && cur.getHours() % (iv / H1))) continue;
+    const d = new Date(tm), x = X(tm);
+    const label = iv < D1 && d.getHours() ? d.toLocaleTimeString(LOC, { hour: "numeric" })
+      : d.toLocaleDateString(LOC, iv >= 7 * D1 || histDays > 7 ? { day: "numeric", month: "short" } : { weekday: "short", day: "numeric" });
+    const tx = svgEl("text", { x, y: H - 6, "text-anchor": "middle", class: "ax" }, svg);
+    tx.textContent = label.replace(/\.$/, "");
+    svgEl("line", { x1: x, x2: x, y1: H - B, y2: H - B + 4, class: "grid" }, svg);
+  }
+  // Ligne en paliers (le prix reste le même jusqu'au prochain changement).
+  let d = "", prev = null;
+  for (const [tm, v] of pts) {
+    if (v == null) { prev = null; continue; }
+    if (prev == null) d += `M${X(tm).toFixed(1)},${Y(v).toFixed(1)}`;
+    else d += `H${X(tm).toFixed(1)}V${Y(v).toFixed(1)}`;
+    prev = v;
+  }
+  const clay = css("--clay") || "#D97757", surf = css("--surface") || "#fff";
+  svgEl("path", { d, fill: "none", stroke: clay, "stroke-width": 2, "stroke-linejoin": "round", "stroke-linecap": "round" }, svg);
+  const last = pts[pts.length - 1];
+  svgEl("circle", { cx: X(last[0]), cy: Y(last[1]), r: 4.5, fill: clay, stroke: surf, "stroke-width": 2 }, svg);
+  // Survol / toucher : ligne verticale, point et bulle avec la date et le prix.
+  const cross = svgEl("line", { y1: T, y2: H - B, stroke: css("--muted") || "#888", "stroke-width": 1, "stroke-dasharray": "3 3", visibility: "hidden" }, svg);
+  const dot = svgEl("circle", { r: 4.5, fill: clay, stroke: surf, "stroke-width": 2, visibility: "hidden" }, svg);
+  const tip = document.createElement("div"); tip.className = "hist-tip"; tip.hidden = true;
+  const hit = svgEl("rect", { x: L, y: 0, width: W - L - R, height: H, fill: "transparent" }, svg);
+  const show = e => {
+    const r = svg.getBoundingClientRect(), x = Math.min(Math.max(e.clientX - r.left, L), W - R), tm = t0 + (x - L) / (W - L - R) * (t1 - t0);
+    let k = -1; for (let i = 0; i < pts.length && pts[i][0] <= tm; i++) k = i;
+    if (k < 0 || pts[k][1] == null) { hide(); return; }
+    const v = pts[k][1];
+    cross.setAttribute("x1", x); cross.setAttribute("x2", x); cross.setAttribute("visibility", "visible");
+    dot.setAttribute("cx", x); dot.setAttribute("cy", Y(v)); dot.setAttribute("visibility", "visible");
+    tip.textContent = `${new Date(tm).toLocaleString(LOC, { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })} · ${num(v)} ¢`;
+    tip.hidden = false;
+    const tw = tip.offsetWidth;
+    tip.style.left = Math.min(Math.max(x - tw / 2, 0), W - tw) + "px";
+  };
+  const hide = () => { cross.setAttribute("visibility", "hidden"); dot.setAttribute("visibility", "hidden"); tip.hidden = true; };
+  hit.addEventListener("pointermove", show); hit.addEventListener("pointerdown", show); hit.addEventListener("pointerleave", hide);
+  svg.setAttribute("aria-label", `${$("histWho").textContent.replace(/^· /, "")} : ${num(vals[0])} → ${num(last[1])} ¢`);
+  box.replaceChildren(svg, tip);
+}
+$("hist").addEventListener("toggle", histRender);
+$("histZone").addEventListener("click", () => histPick(null));
+document.querySelectorAll(".hist-range button").forEach(b => b.addEventListener("click", () => {
+  histDays = +b.dataset.days;
+  document.querySelectorAll(".hist-range button").forEach(x => { const on = x === b; x.classList.toggle("on", on); x.setAttribute("aria-pressed", on); });
+  histRender();
+}));
+let histResize = 0;
+window.addEventListener("resize", () => { clearTimeout(histResize); histResize = setTimeout(histRender, 150); });
+
 function select(i, fromList) {
   document.querySelectorAll("#results .card").forEach((c, k) => c.classList.toggle("sel", k === i));
   markers.forEach((m, k) => m.setSel(k === i));
   const s = lastTop[i]; if (!s) return;
+  histPick(s);
   if (fromList && mapA) { mapA.flyTo(s.lat, s.lon, 15); markers[i].open(); }
   if (!fromList) { const c = $("results").children[i]; if (c) c.scrollIntoView({ behavior: "smooth", block: "nearest" }); }
 }
@@ -1320,8 +1555,9 @@ function leafletAdapter() {
       mk.on("click", o.onClick);
       return { setSel(on) { const el = mk.getElement(); if (el) el.classList.toggle("sel", on); }, open() { mk.openPopup(); } };
     },
-    dot(lat, lon, color, popup) {
+    dot(lat, lon, color, popup, onClick) {
       const c = L.circleMarker([lat, lon], { radius: 5, color: "#ffffff", weight: 1.5, fillColor: color, fillOpacity: 1, bubblingMouseEvents: false }).addTo(group).bindPopup(popup);
+      c.on("click", onClick);
       return { open() { c.openPopup(); } };
     },
     fit(pts) { if (pts.length) m.fitBounds(L.latLngBounds(pts), { padding: [36, 36] }); },
@@ -1401,11 +1637,11 @@ async function googleAdapter() {
       d.addEventListener("click", () => { open(); o.onClick(); });
       return { setSel(on) { d.classList.toggle("sel", on); }, open };
     },
-    dot(lat, lon, color, popup) {
+    dot(lat, lon, color, popup, onClick) {
       const d = document.createElement("div"); d.className = "dot"; d.style.background = color;
       add(new Html(lat, lon, d, 12, 200)).setMap(gm);
       const open = popAt(lat, lon, popup, -4);
-      d.addEventListener("click", e => { e.stopPropagation(); open(); });
+      d.addEventListener("click", e => { e.stopPropagation(); open(); onClick(); });
       return { open };
     },
     fit(pts) {
@@ -1492,7 +1728,7 @@ function draw(near, o) {
   restDots = new Map();
   const dots = lastRest.length > DOT_MAX ? [...lastRest].sort((a, b) => a.dist - b.dist).slice(0, DOT_MAX) : lastRest;
   const col = { pos: bandColor("pos"), eq: bandColor("eq"), neg: bandColor("neg") };
-  for (const s of dots) restDots.set(s, mapA.dot(s.lat, s.lon, col[priceBand(s)], stationPop(s, near)));
+  for (const s of dots) restDots.set(s, mapA.dot(s.lat, s.lon, col[priceBand(s)], stationPop(s, near), () => histPick(s)));
   $("maplegend").hidden = !dots.length;
   $("legG").style.background = col.pos; $("legM").style.background = col.eq; $("legR").style.background = col.neg;
   markers = lastTop.map((s, i) =>
