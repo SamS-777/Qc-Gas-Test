@@ -17,13 +17,13 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
 <style>
 /* Layout : colonne de contrôle (formulaire + palmarès) à gauche, carte collante à droite ; empilé sur téléphone (carte entre formulaire et palmarès). */
 :root {
-  --bg: #FAF9F5; --panel: #F0EEE6; --surface: #FFFFFF; --ink: #141413; --muted: #6B6964; --faint: #9C9A92; --line: #E5E1D6;
+  --bg: #FAF9F5; --panel: #F0EEE6; --surface: #FFFFFF; --ink: #141413; --muted: #6B6964; --faint: #73716A; --line: #E5E1D6;
   --clay: #D97757; --clay-ink: #B5532F; --clay-soft: #F7E6DD; --on-clay: #FFFFFF;
-  --route: #2F6BDB; --route-soft: #E3ECFB; --casing: #FFFFFF; --alt: #A9A498; --good: #3E7D52; --bad: #B3402A;
+  --route: #2A62CC; --route-soft: #E3ECFB; --casing: #FFFFFF; --alt: #A9A498; --good: #3E7D52; --bad: #B3402A;
   --shadow: 0 1px 2px rgba(20,20,19,.04), 0 10px 30px rgba(20,20,19,.07);
   --tiles: saturate(.85) sepia(.08);
   --serif: "Source Serif 4", Georgia, "Times New Roman", serif;
@@ -32,14 +32,14 @@
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
-  --bg: #1F1E1D; --panel: #262624; --surface: #30302E; --ink: #F5F4EE; --muted: #B4B1A8; --faint: #8A877F; --line: #3F3D39;
+  --bg: #1F1E1D; --panel: #262624; --surface: #30302E; --ink: #F5F4EE; --muted: #B4B1A8; --faint: #A3A097; --line: #3F3D39;
   --clay: #D97757; --clay-ink: #EE9F80; --clay-soft: #47302A; --on-clay: #FFFFFF;
   --route: #6F9BFF; --route-soft: #26324A; --casing: #1F1E1D; --alt: #6E6B64; --good: #82C595; --bad: #F08D77;
   --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px rgba(0,0,0,.35);
   --tiles: invert(.9) hue-rotate(180deg) saturate(.5) brightness(.95) contrast(.9);
   color-scheme: dark } }
 :root[data-theme="dark"] {
-  --bg: #1F1E1D; --panel: #262624; --surface: #30302E; --ink: #F5F4EE; --muted: #B4B1A8; --faint: #8A877F; --line: #3F3D39;
+  --bg: #1F1E1D; --panel: #262624; --surface: #30302E; --ink: #F5F4EE; --muted: #B4B1A8; --faint: #A3A097; --line: #3F3D39;
   --clay: #D97757; --clay-ink: #EE9F80; --clay-soft: #47302A; --on-clay: #FFFFFF;
   --route: #6F9BFF; --route-soft: #26324A; --casing: #1F1E1D; --alt: #6E6B64; --good: #82C595; --bad: #F08D77;
   --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px rgba(0,0,0,.35);
@@ -443,7 +443,7 @@ ol.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px }
       <button id="go" class="cta" type="submit"><span id="goLabel">Trouver les meilleurs prix</span></button>
     </form>
 
-    <p id="status" class="status" hidden></p>
+    <p id="status" class="status" role="status" aria-live="polite" hidden></p>
 
     <section class="results" aria-live="polite">
       <div class="routes-wrap" id="routesWrap" hidden>
@@ -502,7 +502,7 @@ ol.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px }
   </div>
 </div>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="vendor/leaflet/leaflet.js"></script>
 <script>
 /* ---------- Logique pure ---------- */
 function projector(lat0) {
@@ -660,6 +660,9 @@ const I18N = {
     gmSubRoute: "trajet avec arrêt", wazeSub: "vers la station",
     restShow: "Afficher les {n} autres stations", restShow1: "Afficher l'autre station", restHide: "Masquer les autres stations", restMore: "Afficher {n} de plus",
     legBelow: "sous la médiane", legMid: "médiane", legAbove: "au-dessus", difMed: "médiane",
+    errFeedBad: "Le fichier de prix de la Régie semble incomplet ({n} stations lues). Réessaie dans quelques minutes.", errTimeout: "Le service n'a pas répondu à temps.",
+    feedStale: "Prix de la Régie non rafraîchis : affichage des prix d'il y a {m} min.", gOffState: "Google indisponible", gFallbackNote: "Google indisponible avec cette clé : carte Esri et trajets sans Google.",
+    detourAlt: "≈ 0 · par un autre chemin", mapNeeded: "La carte n'est pas disponible pour l'instant.",
     histTitle: "Évolution du prix", histZoneWho: "médiane de la zone", histBack: "← Toute la zone", histRange: "Période", hist7: "7 j", hist30: "30 j",
     histLoading: "Chargement de l'historique…", histDown: "Historique indisponible pour l'instant.", histEmpty: "Pas encore d'historique pour cette station.",
     histNoteZone: "Médiane des {n} stations de ta recherche, rabais déduits.", histNoteSt: "Prix de cette station.", histNoteStR: "Prix de cette station, rabais de {r} ¢ déduit.",
@@ -721,6 +724,9 @@ const I18N = {
     gmSubRoute: "route with stop", wazeSub: "to the station",
     restShow: "Show the {n} other stations", restShow1: "Show the other station", restHide: "Hide the other stations", restMore: "Show {n} more",
     legBelow: "below median", legMid: "median", legAbove: "above", difMed: "median",
+    errFeedBad: "The Régie price file looks incomplete ({n} stations read). Try again in a few minutes.", errTimeout: "The service did not answer in time.",
+    feedStale: "Régie prices not refreshed: showing prices from {m} min ago.", gOffState: "Google unavailable", gFallbackNote: "Google unavailable with this key: Esri map and routes without Google.",
+    detourAlt: "≈ 0 · via another way", mapNeeded: "The map isn't available right now.",
     histTitle: "Price history", histZoneWho: "area median", histBack: "← Whole area", histRange: "Period", hist7: "7 d", hist30: "30 d",
     histLoading: "Loading history…", histDown: "History unavailable right now.", histEmpty: "No history yet for this station.",
     histNoteZone: "Median of the {n} stations in your search, rebates deducted.", histNoteSt: "This station's price.", histNoteStR: "This station's price, {r}¢ rebate deducted.",
@@ -804,6 +810,17 @@ function setLang(x) {
   rerender();
 }
 
+/* Réseau : délai maximal pour chaque requête (une requête bloquée ne doit pas figer l'appli). */
+function fetchT(url, opts = {}, ms = 12000) {
+  const c = new AbortController(), id = setTimeout(() => c.abort(), ms);
+  return fetch(url, { ...opts, signal: c.signal })
+    .catch(e => { throw c.signal.aborted ? new Error(t("errTimeout")) : e; })
+    .finally(() => clearTimeout(id));
+}
+function withTimeout(promise, ms) {
+  let id;
+  return Promise.race([promise, new Promise((_, rej) => { id = setTimeout(() => rej(new Error(t("errTimeout"))), ms); })]).finally(() => clearTimeout(id));
+}
 /* Prix de la Régie */
 function parsePrice(raw) {
   const m = String(raw ?? "").match(/\d+(?:[.,]\d+)?/);
@@ -815,7 +832,8 @@ function compact(doc) {
   const out = [];
   for (const f of doc.features || []) {
     const p = f.properties || {}, c = f.geometry && f.geometry.coordinates;
-    if (!c || !c[0] || !c[1]) continue;
+    const lat = Number(c && c[1]), lon = Number(c && c[0]);
+    if (!Number.isFinite(lat) || !Number.isFinite(lon) || lat < 40 || lat > 65 || lon < -90 || lon > -55) continue;
     const st = (p.Status || "").trim();
     if (st && st !== "En opération") continue;
     const prices = [null, null, null];
@@ -824,11 +842,24 @@ function compact(doc) {
       if (i !== undefined && e.IsAvailable !== false) prices[i] = parsePrice(e.Price);
     }
     const brand = (p.brand || "").trim();
-    out.push([c[1], c[0], (p.Name || "").trim(), brand === "Aucun" ? "" : brand, (p.Address || "").trim(), ...prices]);
+    out.push([lat, lon, (p.Name || "").trim(), brand === "Aucun" ? "" : brand, (p.Address || "").trim(), ...prices]);
   }
   return out;
 }
-let freshState = "loading";
+let freshState = "loading", feedStale = false;
+// Prix de moins de 5 min : on les garde. Sinon on rafraîchit ; en cas d'échec, on continue avec les anciens prix (avec un avertissement).
+async function ensureStations() {
+  if (stations && Date.now() - loadedAt <= 5 * 60 * 1000) return;
+  try { await loadStations(); }
+  catch (e) { if (!stations) throw e; feedStale = true; }
+}
+// Avertissements durables (repli Google, prix non rafraîchis) : réaffichés après chaque rendu.
+function noteText() {
+  const parts = [];
+  if (feedStale && loadedAt) parts.push(t("feedStale", { m: Math.round((Date.now() - loadedAt) / 60000) }));
+  if (googleBad && gKey()) parts.push(t("gFallbackNote"));
+  return parts.join(" ");
+}
 function renderFresh() {
   if (freshState === "loading") { $("fresh").textContent = t("loadingPrices"); return; }
   if (freshState === "down") { $("fresh").textContent = t("pricesDown"); return; }
@@ -838,7 +869,7 @@ function renderFresh() {
 }
 async function loadStations() {
   let r;
-  try { r = await fetch(FEED_URL, { cache: "no-store" }); }
+  try { r = await fetchT(FEED_URL, { cache: "no-store" }, 25000); }
   catch { throw new Error(t("errRegie")); }
   if (!r.ok) throw new Error(t("errRegieCode", { c: r.status }));
   const buf = new Uint8Array(await r.arrayBuffer());
@@ -846,7 +877,10 @@ async function loadStations() {
     ? await new Response(new Blob([buf]).stream().pipeThrough(new DecompressionStream("gzip"))).text()
     : new TextDecoder().decode(buf);
   const doc = JSON.parse(text);
-  stations = compact(doc); loadedAt = Date.now();
+  // Validé avant de remplacer les données en mémoire : un fichier partiel ne doit pas écraser des prix valides.
+  const fresh = compact(doc);
+  if (fresh.length < 500) throw new Error(t("errFeedBad", { n: fresh.length }));
+  stations = fresh; loadedAt = Date.now(); feedStale = false;
   generatedAt = doc.metadata && doc.metadata.generated_at;
   freshState = "ok";
   $("live").classList.remove("wait");
@@ -856,8 +890,12 @@ async function loadStations() {
 
 /* Bannières et rabais */
 const brandLabel = b => b || t("noBrand");
-let off = new Set(parseJSON(store.get("brandsOff", null), store.get("costco", "0") === "1" ? [] : ["Costco"]));
-let rebates = parseJSON(store.get("rebates", "{}"), {});
+// Préférences relues avec contrôle de type : une valeur corrompue ne doit pas bloquer le démarrage.
+const offRaw = parseJSON(store.get("brandsOff", null), store.get("costco", "0") === "1" ? [] : ["Costco"]);
+let off = new Set(Array.isArray(offRaw) ? offRaw.filter(x => typeof x === "string") : ["Costco"]);
+const rebRaw = parseJSON(store.get("rebates", "{}"), {});
+let rebates = Object.fromEntries(Object.entries(rebRaw && typeof rebRaw === "object" && !Array.isArray(rebRaw) ? rebRaw : {})
+  .filter(([k, v]) => typeof k === "string" && Number.isFinite(+v) && +v >= 0 && +v < 100).map(([k, v]) => [k, +v]));
 let brandCounts = [], brandsExpanded = false;
 function buildBrands() {
   const cnt = new Map();
@@ -928,8 +966,9 @@ function photonLabel(p) {
   return [place, street, p.city || p.county || p.state].filter(Boolean).join(", ");
 }
 async function photon(q, limit) {
-  const bias = here ? `&lat=${here[0]}&lon=${here[1]}` : "&lat=45.52&lon=-73.6";
-  const j = await (await fetch(`https://photon.komoot.io/api/?lang=${lang}&limit=${limit}&bbox=-79.8,44.9,-57.1,62.6${bias}&q=` + encodeURIComponent(q))).json();
+  // Biais de recherche arrondi (~1 km) : inutile d'envoyer la position exacte au géocodeur.
+  const bias = here ? `&lat=${here[0].toFixed(2)}&lon=${here[1].toFixed(2)}` : "&lat=45.52&lon=-73.6";
+  const j = await (await fetchT(`https://photon.komoot.io/api/?lang=${lang}&limit=${limit}&bbox=-79.8,44.9,-57.1,62.6${bias}&q=` + encodeURIComponent(q))).json();
   const seen = new Set();
   const hits = (j.features || []).map(f => ({ lat: f.geometry.coordinates[1], lon: f.geometry.coordinates[0], label: photonLabel(f.properties), hn: f.properties.housenumber }))
     .filter(h => h.label && !seen.has(h.label) && seen.add(h.label));
@@ -937,7 +976,7 @@ async function photon(q, limit) {
   return n ? [...hits.filter(h => h.hn === n[1]), ...hits.filter(h => h.hn !== n[1])] : hits;
 }
 async function nominatim(q) {
-  const j = await (await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&countrycodes=ca&accept-language=${lang}&q=` + encodeURIComponent(q))).json();
+  const j = await (await fetchT(`https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&countrycodes=ca&accept-language=${lang}&q=` + encodeURIComponent(q))).json();
   return j.length ? { lat: +j[0].lat, lon: +j[0].lon, label: j[0].display_name.split(",").slice(0, 3).join(",") } : null;
 }
 async function geocode(field) {
@@ -946,7 +985,7 @@ async function geocode(field) {
   if (picked[field] && picked[field].q === q) return picked[field];
   if (isMyLoc(q) && here) return { lat: here[0], lon: here[1], label: "@me" };
   const ll = q.match(/^\s*(-?\d{1,3}\.\d+)\s*,\s*(-?\d{1,3}\.\d+)\s*$/);
-  if (ll) return { lat: +ll[1], lon: +ll[2], label: t("mapPoint") };
+  if (ll && Math.abs(+ll[1]) <= 90 && Math.abs(+ll[2]) <= 180) return { lat: +ll[1], lon: +ll[2], label: t("mapPoint") };
   let hits = [];
   try { hits = await photon(q, 6); } catch {}
   let best = hits[0] || null;
@@ -1010,7 +1049,7 @@ async function routesTomTom(a, b, key) {
   const url = `https://api.tomtom.com/routing/1/calculateRoute/${a.lat},${a.lon}:${b.lat},${b.lon}/json`
     + `?key=${encodeURIComponent(key)}&traffic=true&travelMode=car&routeType=fastest&departAt=now&maxAlternatives=2&instructionsType=text&language=${lang === "en" ? "en-US" : "fr-FR"}`;
   let r;
-  try { r = await fetch(url); } catch { throw new Error(t("ttNoAnswer")); }
+  try { r = await fetchT(url, {}, 20000); } catch { throw new Error(t("ttNoAnswer")); }
   const j = await r.json().catch(() => ({}));
   if (!r.ok) throw ttError(r, j);
   if (!j.routes || !j.routes.length) throw new Error(t("ttNoRoute"));
@@ -1025,7 +1064,7 @@ async function routesTomTom(a, b, key) {
 }
 async function routesOSRM(a, b) {
   let j;
-  try { j = await (await fetch(`https://router.project-osrm.org/route/v1/driving/${a.lon},${a.lat};${b.lon},${b.lat}?overview=full&geometries=geojson&alternatives=3&steps=true`)).json(); }
+  try { j = await (await fetchT(`https://router.project-osrm.org/route/v1/driving/${a.lon},${a.lat};${b.lon},${b.lat}?overview=full&geometries=geojson&alternatives=3&steps=true`)).json(); }
   catch { throw new Error(t("errRouteSvc")); }
   if (j.code !== "Ok" || !j.routes.length) throw new Error(t("errNoRoute"));
   const taken = [];
@@ -1072,7 +1111,7 @@ async function gCompute(req) {
   await loadGoogle();
   if (googleBad) throw new Error(t("gDenied"));
   const { Route } = await google.maps.importLibrary("routes");
-  try { return (await Route.computeRoutes(req)).routes || []; }
+  try { return (await withTimeout(Route.computeRoutes(req), 20000)).routes || []; }
   catch (e) { throw gError(e); }
 }
 async function routesGoogle(a, b) {
@@ -1137,7 +1176,7 @@ function chooseRoute(i) { sel = i; lastRoute = lastRoutes[i]; renderRoutes(); re
 
 /* Vrai détour (trajet) ou temps en voiture (près de moi), par la route, pour les 5 premières stations */
 async function travelTomTom(pts, key) {
-  const r = await fetch(`https://api.tomtom.com/routing/1/calculateRoute/${pts.map(p => `${p.lat},${p.lon}`).join(":")}/json`
+  const r = await fetchT(`https://api.tomtom.com/routing/1/calculateRoute/${pts.map(p => `${p.lat},${p.lon}`).join(":")}/json`
     + `?key=${encodeURIComponent(key)}&traffic=true&travelMode=car&routeType=fastest&departAt=now&routeRepresentation=summaryOnly`);
   const j = await r.json().catch(() => ({}));
   if (!r.ok || !j.routes) throw ttError(r, j);
@@ -1145,11 +1184,11 @@ async function travelTomTom(pts, key) {
   return { min: s.travelTimeInSeconds / 60, km: s.lengthInMeters / 1000 };
 }
 async function travelOSRM(pts) {
-  const j = await (await fetch(`https://router.project-osrm.org/route/v1/driving/${pts.map(p => `${p.lon},${p.lat}`).join(";")}?overview=false`)).json();
+  const j = await (await fetchT(`https://router.project-osrm.org/route/v1/driving/${pts.map(p => `${p.lon},${p.lat}`).join(";")}?overview=false`)).json();
   if (j.code !== "Ok") throw new Error(j.code);
   return { min: j.routes[0].duration / 60, km: j.routes[0].distance / 1000 };
 }
-const detCache = new Map();
+const detCache = new Map(), DET_TTL = 10 * 60 * 1000;
 let detGen = 0;
 async function computeDetours() {
   const gen = ++detGen;
@@ -1165,7 +1204,8 @@ async function computeDetours() {
   for (let i = 0; i < items.length; i++) {
     const s = items[i];
     const ck = [near ? "n" : "r", chain[0], lastA.lat, lastA.lon, near ? "" : `${lastB.lat},${lastB.lon}#${sel}`, s.lat, s.lon].join("|");
-    if (!detCache.has(ck)) {
+    const hit = detCache.get(ck);
+    if (!hit || Date.now() - hit.at > DET_TTL) {
       let v = null;
       const pts = near ? [lastA, s] : [lastA, s, lastB];
       for (const pv of chain) {
@@ -1173,10 +1213,11 @@ async function computeDetours() {
         catch { v = null; }
       }
       if (gen !== detGen) return;
-      detCache.set(ck, v);
+      detCache.set(ck, { v, at: Date.now() });
+      if (detCache.size > 300) detCache.delete(detCache.keys().next().value);
     }
     if (gen !== detGen) return;
-    paintDetour(i, detCache.get(ck), near);
+    paintDetour(i, detCache.get(ck).v, near);
   }
 }
 const ICON_CAR = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 16h14v-4l-2-5H7l-2 5z"/><circle cx="8" cy="16.5" r="1.6"/><circle cx="16" cy="16.5" r="1.6"/></svg>';
@@ -1187,8 +1228,9 @@ function paintDetour(i, v, near) {
   el.classList.remove("wait");
   let text;
   if (near) text = t("drive", { m: v.min < 1 ? t("lt1") : Math.round(v.min), km: num(v.km) });
+  else if (v.min < -0.5) { text = t("detourAlt"); el.classList.add("ok"); } // l'arrêt fait passer par un chemin plus rapide que l'alternative choisie
   else if (v.min < 0.5 && v.km < 0.3) { text = t("noDetour"); el.classList.add("ok"); }
-  else text = t("detour", { m: v.min < 0.5 ? t("detourLt1") : `+${Math.round(v.min)} min` }) + (v.km >= 0.05 ? ` · +${num(v.km)} km` : "");
+  else text = t("detour", { m: v.min < 0.5 ? t("detourLt1") : `+${Math.round(v.min)} min` }) + (v.km >= 0.05 ? ` · +${num(v.km)} km` : v.km <= -0.05 ? ` · −${num(-v.km)} km` : "");
   el.innerHTML = ICON_CAR;
   el.append(text);
 }
@@ -1203,7 +1245,7 @@ function radiusKm() {
   return Number.isFinite(v) && v > 0 ? Math.min(300, Math.max(0.5, v)) : 3;
 }
 function fuel() { return +document.querySelector('input[name="fuel"]:checked').value; }
-function opts() { return { fuel: fuel(), fillL: Math.max(1, +$("fillL").value || 40), corridorKm: corridorM() / 1000, radiusKm: radiusKm(), off, rebates }; }
+function opts() { return { fuel: fuel(), fillL: Math.min(200, Math.max(1, +$("fillL").value || 40)), corridorKm: corridorM() / 1000, radiusKm: radiusKm(), off, rebates }; }
 function fmtDist(m) { return m < 1000 ? `${Math.max(10, Math.round(m / 10) * 10)} m` : `${num(m / 1000)} km`; }
 function fmtDur(min) { const h = Math.floor(min / 60), m = Math.round(min % 60); return h ? `${h} h ${String(m).padStart(2, "0")}` : `${m} min`; }
 
@@ -1214,7 +1256,7 @@ function setMode(m) {
   store.set("mode", mode);
   $("form").classList.toggle("nearby", mode === "near");
   $(mode === "near" ? "modeNear" : "modeRoute").checked = true;
-  $("goLabel").textContent = goText();
+  cancelSearch();
   clearResults();
 }
 function clearResults() {
@@ -1254,7 +1296,7 @@ function render() {
   if (noBrand) status(t("warnNoBrand"), "warn");
   else if (!n && near && lastPoly) status(t("warnZone"), "warn");
   else if (!n) status(near ? t("warnNear", { r: num(o.radiusKm, 1) }) : t("warnRoute", { d: fmtDist(corridorM()) }), "warn");
-  else status("");
+  else { const nt = noteText(); status(nt, nt ? "warn" : ""); }
   lastTop = res.ranked.slice(0, SHOW);
   lastTop.forEach((s, i) => $("results").append(card(s, i, o, near)));
   const key = near ? (lastPoly ? `z|${lastPoly.flat().join(",")}` : `n|${lastA.lat},${lastA.lon}`) : `r|${lastA.lat},${lastA.lon}|${lastB.lat},${lastB.lon}`;
@@ -1409,7 +1451,8 @@ function pickTrack() {
   mapA.ghost(lat, lon, radiusKm() * 1000);
 }
 function pickEnter() {
-  if (mode !== "near" || !mapA) return;
+  if (mode !== "near") return;
+  if (!mapA) { status(t("mapNeeded"), "warn"); return; }
   drawExit();
   picking = true;
   $("pickUi").hidden = false;
@@ -1430,7 +1473,7 @@ function pickExit() {
 }
 async function reverseLabel(lat, lon) {
   try {
-    const j = await (await fetch(`https://photon.komoot.io/reverse?lang=${lang}&lat=${lat}&lon=${lon}&limit=5`)).json();
+    const j = await (await fetchT(`https://photon.komoot.io/reverse?lang=${lang}&lat=${lat}&lon=${lon}&limit=5`, {}, 8000)).json();
     // Une adresse civique d'abord (plutôt qu'un commerce ou une église voisine), sinon le lieu le plus proche.
     const fs = j.features || [], f = fs.find(x => x.properties.housenumber && x.properties.street) || fs[0];
     if (!f) return "";
@@ -1478,7 +1521,8 @@ function drawSync() {
   $("drawUndo").disabled = !n;
 }
 function drawEnter() {
-  if (mode !== "near" || !mapA) return;
+  if (mode !== "near") return;
+  if (!mapA) { status(t("mapNeeded"), "warn"); return; }
   pickExit();
   drawing = true; drawPts = [];
   $("drawUi").hidden = false;
@@ -1498,16 +1542,19 @@ function drawExit() {
 }
 async function zoneName(lat, lon) {
   try {
-    const j = await (await fetch(`https://photon.komoot.io/reverse?lang=${lang}&lat=${lat}&lon=${lon}&limit=1`)).json();
+    const j = await (await fetchT(`https://photon.komoot.io/reverse?lang=${lang}&lat=${lat}&lon=${lon}&limit=1`, {}, 8000)).json();
     const p = ((j.features || [])[0] || {}).properties || {};
     return p.district || p.locality || p.street || p.city || "";
   } catch { return ""; }
 }
 async function runZone(poly, name) {
   drawExit();
+  const gen = ++searchGen;
+  busy(false);
   try {
     status("");
-    if (!stations || Date.now() - loadedAt > 5 * 60 * 1000) await loadStations();
+    await ensureStations();
+    if (gen !== searchGen || mode !== "near") return;
     const c = polyCenter(poly);
     lastPoly = poly.map(p => [+p[0], +p[1]]);
     lastPolyName = name || "";
@@ -1515,8 +1562,9 @@ async function runZone(poly, name) {
     lastB = null; lastRoutes = []; lastRoute = null; lastMode = "near";
     $("routesWrap").hidden = true;
     render();
-    if (!name) zoneName(c.lat, c.lon).then(nm => { if (lastPoly && !lastPolyName) { lastPolyName = nm; syncFavBtn(); } });
-  } catch (err) { status(err.message || String(err), "error"); }
+    const mine = lastPoly;
+    if (!name) zoneName(c.lat, c.lon).then(nm => { if (lastPoly === mine && !lastPolyName) { lastPolyName = nm; syncFavBtn(); } });
+  } catch (err) { if (gen === searchGen) status(err.message || String(err), "error"); }
 }
 // Toucher court sur la carte = un coin de plus. Géré ici (et non par la carte) pour que chaque toucher compte,
 // même rapproché ou posé sur une icône de la carte.
@@ -1600,15 +1648,29 @@ function stationKey(s) {
   if (!k) { k = sha1hex(id).slice(0, 10); keyMemo.set(id, k); }
   return k;
 }
+const HIST_TTL = 10 * 60 * 1000;
+let histTry = 0;
+function histValid(d) {
+  return d && Number.isFinite(d.t0) && d.s && typeof d.s === "object" &&
+    Object.values(d.s).every(v => Array.isArray(v) && v.length % 2 === 0 && v.every(Number.isFinite));
+}
+// Rechargé après 10 min (l'appli peut rester ouverte longtemps) ; l'ancienne version reste affichée en attendant.
 async function histLoad(code) {
-  if (histData[code] || histErr[code] === "loading") return;
+  const cur = histData[code];
+  if ((cur && Date.now() - cur.at < HIST_TTL) || histErr[code] === "loading" || histErr[code] === "down") return;
   histErr[code] = "loading";
+  const my = ++histTry;
   try {
-    const r = await fetch(HIST_URL + code + ".json");
+    const r = await fetchT(HIST_URL + code + ".json", {}, 15000);
     if (!r.ok) throw new Error(r.status);
-    histData[code] = await r.json();
+    const d = await r.json();
+    if (!histValid(d)) throw new Error("format");
+    histData[code] = { doc: d, at: Date.now() };
     histErr[code] = null;
-  } catch { histErr[code] = "down"; setTimeout(() => { if (histErr[code] === "down") histErr[code] = null; }, 60000); }
+  } catch {
+    histErr[code] = "down";
+    setTimeout(() => { if (histErr[code] === "down" && histTry === my) histErr[code] = null; }, 60000);
+  }
   histRender();
 }
 // Paliers d'une station en [heure (ms), prix réel] ; null = pas de prix.
@@ -1635,7 +1697,8 @@ function histRender() {
   if (!$("hist").open) return;
   const box = $("histChart"), note = $("histNote");
   const msg = m => { box.replaceChildren(); const d = document.createElement("div"); d.className = "msg"; d.textContent = m; box.append(d); };
-  const code = "RSD"[fuel()], doc = histData[code];
+  const code = "RSD"[fuel()], doc = histData[code] && histData[code].doc;
+  if (!doc || Date.now() - histData[code].at >= HIST_TTL) histLoad(code);
   if (!doc) {
     if (histErr[code] === "down") { msg(t("histDown")); note.textContent = ""; return; }
     msg(t("histLoading")); note.textContent = ""; histLoad(code); return;
@@ -1812,7 +1875,7 @@ function leafletAdapter() {
     polyline(coords, o) {
       const pl = L.polyline(coords.map(c => [c[1], c[0]]), { color: o.color, weight: o.weight, opacity: o.opacity ?? 1, lineCap: "round", interactive: !!o.onClick }).addTo(group);
       if (o.onClick) pl.on("click", o.onClick);
-      if (o.tip) pl.bindTooltip(o.tip, { sticky: true });
+      if (o.tip) { const tip = document.createElement("span"); tip.textContent = o.tip; pl.bindTooltip(tip, { sticky: true }); }
     },
     circle(lat, lon, r, color) { L.circle([lat, lon], { radius: r, color, weight: 1.5, fillColor: color, fillOpacity: .06, interactive: false }).addTo(group); },
     endpoint(lat, lon, cls) { L.marker([lat, lon], { icon: L.divIcon({ className: "endpoint " + cls, iconSize: [18, 18], iconAnchor: [9, 9] }), keyboard: false, interactive: false }).addTo(group); },
@@ -1989,6 +2052,7 @@ async function initMap() {
 function onGoogleFail(msg) {
   mapInit++;
   if (!mapA || mapA.kind !== "esri") useEsri();
+  syncKey();
   status(msg, "warn");
   rerender();
 }
@@ -2035,7 +2099,12 @@ function draw(near, o) {
 }
 
 /* Favoris (« @me » = ma position au moment de l'enregistrement, affichée dans la langue choisie) */
+const okPt = p => p && Number.isFinite(p.lat) && Number.isFinite(p.lon) && Math.abs(p.lat) <= 90 && Math.abs(p.lon) <= 180;
+const okFav = f => f && (f.mode === "near" || f.mode === "route") && (Array.isArray(f.poly)
+  ? f.poly.length >= 3 && f.poly.every(q => Array.isArray(q) && okPt({ lat: +q[0], lon: +q[1] }))
+  : okPt(f.from) && (f.mode === "near" || okPt(f.to)));
 let favs = parseJSON(store.get("favs", "[]"), []);
+favs = Array.isArray(favs) ? favs.filter(okFav) : [];
 for (const f of favs) for (const p of [f.from, f.to]) if (p && ["Position enregistrée", "Saved location"].includes(p.label)) p.label = "@saved";
 const favKey = f => f.poly ? "z|" + f.poly.map(p => p.map(x => (+x).toFixed(4)).join(",")).join(";")
   : [f.mode, f.from.lat.toFixed(4), f.from.lon.toFixed(4), f.to ? `${f.to.lat.toFixed(4)},${f.to.lon.toFixed(4)}` : "", f.r || ""].join("|");
@@ -2090,26 +2159,39 @@ function useFav(f) {
 }
 
 /* Événements */
+// Chaque recherche reçoit un numéro. Changer de mode ou lancer une autre recherche rend les précédentes obsolètes :
+// après chaque attente réseau, une recherche obsolète s'arrête sans rien modifier.
+var searchGen = 0;
+function busy(on) {
+  const btn = $("go");
+  btn.disabled = on;
+  $("goLabel").textContent = on ? t("searching") : goText();
+  const sp = btn.querySelector(".spin");
+  if (on && !sp) btn.insertAdjacentHTML("afterbegin", '<span class="spin" aria-hidden="true"></span>');
+  if (!on && sp) sp.remove();
+}
+function cancelSearch() { searchGen++; busy(false); }
 $("form").addEventListener("submit", async e => {
   e.preventDefault();
-  const btn = $("go");
-  if (btn.disabled) return;
-  btn.disabled = true;
-  $("goLabel").textContent = t("searching");
-  btn.insertAdjacentHTML("afterbegin", '<span class="spin" aria-hidden="true"></span>');
+  const gen = ++searchGen, m = mode, stale = () => gen !== searchGen;
+  busy(true);
   try {
     status("");
-    if (!stations || Date.now() - loadedAt > 5 * 60 * 1000) await loadStations();
-    if (mode === "near") {
+    await ensureStations();
+    if (stale()) return;
+    if (m === "near") {
       const a = await geocode("from");
+      if (stale()) return;
       lastA = a; lastB = null; lastRoutes = []; lastRoute = null; lastMode = "near"; lastPoly = null;
       $("routesWrap").hidden = true;
       store.set("from", $("from").value);
       render();
     } else {
       const [a, b] = await Promise.all([geocode("from"), geocode("to")]);
-      lastA = a; lastB = b;
-      lastRoutes = await getRoutes(a, b);
+      if (stale()) return;
+      const routes = await getRoutes(a, b);
+      if (stale()) return;
+      lastA = a; lastB = b; lastRoutes = routes; lastPoly = null;
       sel = defaultRoute(lastRoutes); lastRoute = lastRoutes[sel]; lastMode = "route";
       store.set("from", $("from").value); store.set("to", $("to").value);
       renderRoutes();
@@ -2117,11 +2199,9 @@ $("form").addEventListener("submit", async e => {
       if (routeNote) status(routeNote, "warn");
     }
   } catch (err) {
-    status(err.message || String(err), "error");
+    if (!stale()) status(err.message || String(err), "error");
   } finally {
-    btn.disabled = false;
-    $("goLabel").textContent = goText();
-    const sp = btn.querySelector(".spin"); if (sp) sp.remove();
+    if (!stale()) busy(false);
   }
 });
 
@@ -2157,8 +2237,8 @@ $("swap").addEventListener("click", () => {
 
 /* Démarrage */
 function syncKey() {
-  const g = !!gKey(), tt = !!$("ttkey").value.trim();
-  $("trafficState").textContent = g ? "Google" : tt ? "TomTom" : t("offState");
+  const g = !!gKey() && !googleBad, tt = !!$("ttkey").value.trim();
+  $("trafficState").textContent = g ? "Google" : gKey() ? t("gOffState") + (tt ? " · TomTom" : "") : tt ? "TomTom" : t("offState");
   $("trafficState").classList.toggle("on", g || tt);
 }
 attachSuggest("from"); attachSuggest("to");
@@ -2170,8 +2250,8 @@ $("radius").value = store.get("radiusKm", "3");
 $("fillL").value = store.get("fillL", "40");
 $("ttkey").value = store.get("ttkey", "");
 $("gkey").value = store.get("gkey", "");
-$("ttkey").addEventListener("input", () => { store.set("ttkey", $("ttkey").value.trim()); syncKey(); });
-$("gkey").addEventListener("input", () => { store.set("gkey", gKey()); syncKey(); });
+$("ttkey").addEventListener("input", () => { store.set("ttkey", $("ttkey").value.trim()); detCache.clear(); syncKey(); });
+$("gkey").addEventListener("input", () => { store.set("gkey", gKey()); detCache.clear(); syncKey(); });
 // Une clé Google ne peut pas être changée une fois la carte Google chargée : on recharge l'appli.
 $("gkey").addEventListener("change", () => {
   const k = gKey();
@@ -2185,7 +2265,7 @@ mode = store.get("mode", "route") === "near" ? "near" : "route";
 applyLang();
 setMode(mode);
 renderFavs();
-initMap();
+initMap().catch(() => status(t("mapNeeded"), "warn"));
 loadStations().catch(err => { freshState = "down"; renderFresh(); status(err.message, "error"); });
 
 /* Application installable : le service worker n'existe qu'une fois l'appli en ligne (https). */

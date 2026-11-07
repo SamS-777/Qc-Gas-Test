@@ -1,71 +1,91 @@
 /* Service worker d'Essence sur mon trajet.
-   - L'appli (page, icônes, bibliothèque de carte, polices) est gardée en cache : démarrage instantané, même hors connexion.
+   - L'appli (page, icônes, bibliothèque de carte) est gardée en cache : démarrage instantané, même hors connexion.
    - La page est d'abord demandée au réseau : une nouvelle version mise en ligne arrive dès la prochaine ouverture.
-   - Les prix, trajets, adresses et tuiles de carte ne sont jamais mis en cache : ils restent toujours en direct. */
-const VERSION = "essence-v18";
+   - Les prix, trajets, adresses, tuiles de carte et l'historique ne sont jamais mis en cache : ils restent en direct.
+   - Les caches portent le préfixe « essence- » : le domaine github.io est partagé avec d'autres projets,
+     on ne touche jamais à leurs caches. */
+const PREFIX = "essence-";
+const VERSION = PREFIX + "v19";
+// Indispensables : l'installation échoue (et l'ancienne version reste active) s'ils ne sont pas téléchargés.
 const SHELL = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
+  "./vendor/leaflet/leaflet.css",
+  "./vendor/leaflet/leaflet.js",
+];
+// Utiles mais non bloquants.
+const EXTRA = [
   "./icons/icon-192.png",
   "./icons/icon-512.png",
   "./icons/maskable-192.png",
   "./icons/maskable-512.png",
   "./icons/apple-touch-icon.png",
   "./icons/favicon-32.png",
-  "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css",
-  "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js",
+  "./vendor/leaflet/images/layers.png",
+  "./vendor/leaflet/images/layers-2x.png",
 ];
-const STATIC_HOSTS = ["unpkg.com", "fonts.googleapis.com", "fonts.gstatic.com"];
+const STATIC_HOSTS = ["fonts.googleapis.com", "fonts.gstatic.com"];
 
 self.addEventListener("install", event => {
   event.waitUntil((async () => {
     const cache = await caches.open(VERSION);
-    // Une ressource qui échoue (ex. réseau capricieux) ne doit pas bloquer l'installation.
-    await Promise.all(SHELL.map(url => cache.add(url).catch(() => {})));
+    await cache.addAll(SHELL);
+    await Promise.all(EXTRA.map(url => cache.add(url).catch(() => {})));
     await self.skipWaiting();
   })());
 });
 
 self.addEventListener("activate", event => {
   event.waitUntil((async () => {
-    for (const key of await caches.keys()) if (key !== VERSION) await caches.delete(key);
+    for (const key of await caches.keys()) if (key.startsWith(PREFIX) && key !== VERSION) await caches.delete(key);
     await self.clients.claim();
   })());
 });
+
+const cacheable = res => res && (res.ok || res.type === "opaque");
 
 self.addEventListener("fetch", event => {
   const req = event.request;
   if (req.method !== "GET") return;
   const url = new URL(req.url);
 
-  // La page : réseau d'abord, cache en secours.
+  // La page : réseau d'abord ; seule une vraie page HTML valide remplace la copie en cache.
   if (req.mode === "navigate") {
     event.respondWith((async () => {
       try {
         const fresh = await fetch(req);
-        const cache = await caches.open(VERSION);
-        cache.put("./index.html", fresh.clone());
+        if (fresh.ok && (fresh.headers.get("content-type") || "").includes("text/html")) {
+          const cache = await caches.open(VERSION);
+          await cache.put("./index.html", fresh.clone());
+        }
         return fresh;
       } catch {
-        return (await caches.match("./index.html")) || (await caches.match("./")) || Response.error();
+        const cache = await caches.open(VERSION);
+        return (await cache.match("./index.html")) || (await cache.match("./")) || Response.error();
       }
     })());
     return;
   }
 
-  // Fichiers de l'appli et ressources statiques : cache d'abord, puis mise à jour en arrière-plan.
+  // Fichiers de l'appli et polices : cache d'abord, puis mise à jour en arrière-plan (menée à terme grâce à waitUntil).
   const sameOrigin = url.origin === self.location.origin;
   if (sameOrigin || STATIC_HOSTS.includes(url.hostname)) {
-    event.respondWith((async () => {
-      const cache = await caches.open(VERSION);
-      const hit = await cache.match(req);
-      const refresh = fetch(req).then(res => {
-        if (res && (res.ok || res.type === "opaque")) cache.put(req, res.clone());
+    const refresh = (async () => {
+      try {
+        const res = await fetch(req);
+        if (sameOrigin ? res.ok : cacheable(res)) {
+          const cache = await caches.open(VERSION);
+          await cache.put(req, res.clone());
+        }
         return res;
-      }).catch(() => null);
+      } catch { return null; }
+    })();
+    event.waitUntil(refresh);
+    event.respondWith((async () => {
+      const hit = await (await caches.open(VERSION)).match(req);
       return hit || (await refresh) || Response.error();
     })());
   }
-  // Tout le reste (Régie, TomTom, OSRM, Photon, tuiles Esri) passe directement au réseau.
+  // Tout le reste (Régie, Google, TomTom, OSRM, Photon, tuiles, historique) passe directement au réseau.
 });

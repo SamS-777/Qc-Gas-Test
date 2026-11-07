@@ -10,6 +10,8 @@ Application web installable qui montre les stations-service les moins chères su
 | `manifest.webmanifest` | Nom, icônes et couleurs pour l'installation sur téléphone |
 | `sw.js` | Démarrage instantané et ouverture hors connexion (les prix restent toujours en direct) |
 | `icons/` | Icônes de l'application |
+| `vendor/leaflet/` | Bibliothèque de carte Leaflet 1.9.4, hébergée dans le dépôt (plus de dépendance à unpkg) |
+| `scripts/collect.py`, `.github/workflows/historique.yml` | Collecte de l'historique des prix (voir plus bas) |
 
 ## Mise en ligne avec GitHub Pages (gratuit, environ 10 minutes)
 
@@ -55,7 +57,7 @@ Attention : avec la liste blanche active, la version fichier ouverte sur ton PC 
 
 Dans le dépôt : *Add file* → *Upload files* → glisse le nouveau `index.html` → *Commit changes*. La nouvelle version apparaît à la prochaine ouverture de l'appli, s'il y a du réseau.
 
-Si `sw.js` change aussi, téléverse-le de la même façon.
+Si `sw.js` change aussi, téléverse-le de la même façon. Le dossier `vendor/` ne change que si on met Leaflet à jour.
 
 ## Historique des prix
 
@@ -76,6 +78,9 @@ Une tâche automatique (*Actions* → *Historique des prix*) lit le fichier de l
 ## Sources de données
 
 - Prix : Régie de l'énergie du Québec (regieessencequebec.ca)
-- Trajets : TomTom (circulation en direct, avec ta clé) ou OSRM
-- Adresses : Photon / OpenStreetMap
-- Carte : Esri
+- Trajets : Google (avec ta clé), sinon TomTom (avec ta clé), sinon OSRM sans circulation
+- Adresses : Photon / OpenStreetMap (Nominatim en secours)
+- Carte : Google (avec ta clé) ou Esri
+- Historique : branche `historique` du dépôt (voir plus haut)
+
+Description technique complète : `APP_OVERVIEW.md`.
