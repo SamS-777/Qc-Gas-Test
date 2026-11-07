@@ -1168,7 +1168,7 @@ function render() {
   const n = res.ranked.length;
   const med = n ? t("metaMedian", { m: num(res.median) }) : "";
   lastMedian = res.median;
-  $("mapHere").hidden = true;
+  $("mapHere").hidden = true; userMoved = false;
   $("results").replaceChildren();
   $("empty").hidden = true;
   $("summary").hidden = false;
@@ -1331,8 +1331,10 @@ $("restToggle").addEventListener("click", () => { restOpen = !restOpen; renderRe
 $("restMore").addEventListener("click", () => { restShown += REST_STEP; renderRest(lastMode === "near"); });
 
 /* « Près de moi » : choisir le centre du cercle sur la carte (bouton « Chercher ici » ou appui long) */
+// Vrai seulement après un geste de l'utilisateur sur la carte (pas après un recadrage fait par l'appli).
+let userMoved = false;
 function mapMoved() {
-  if (mode !== "near" || !mapA) return;
+  if (mode !== "near" || !mapA || !userMoved) return;
   const [lat, lon] = mapA.center();
   // Inutile si la carte est restée centrée sur le point déjà cherché.
   const same = lastMode === "near" && lastA && haversineKm(lat, lon, lastA.lat, lastA.lon) < Math.max(0.15, radiusKm() * 0.1);
@@ -1375,6 +1377,7 @@ $("mapHere").addEventListener("click", () => { if (mapA) pickPoint(...mapA.cente
     if (navigator.vibrate) navigator.vibrate(15);
     pickPoint(ll[0], ll[1]);
   };
+  for (const ev of ["pointerdown", "wheel"]) col.addEventListener(ev, e => { if (e.target.closest("#map")) userMoved = true; }, { capture: true, passive: true });
   col.addEventListener("pointerdown", e => {
     if (mode !== "near" || e.button > 0 || !e.isPrimary || !e.target.closest("#map")) return;
     start = [e.clientX, e.clientY];
@@ -1612,7 +1615,7 @@ function leafletAdapter() {
     }).addTo(m);
   });
   let group = L.layerGroup().addTo(m);
-  m.on("dragend", mapMoved);
+  m.on("moveend", mapMoved);
   return {
     kind: "esri",
     center() { const c = m.getCenter(); return [c.lat, c.lng]; },
@@ -1688,7 +1691,7 @@ async function googleAdapter() {
   }
   let items = [];
   const add = x => { items.push(x); return x; };
-  gm.addListener("dragend", mapMoved);
+  gm.addListener("idle", mapMoved);
   // Overlay vide qui donne accès à la projection (pixel de la carte → latitude/longitude).
   const proj = new (class extends OverlayView { onAdd() {} draw() {} onRemove() {} })();
   proj.setMap(gm);
