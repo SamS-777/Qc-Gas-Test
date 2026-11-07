@@ -264,7 +264,8 @@ h1 { font: 600 1.75rem/1.05 var(--serif); letter-spacing: -.01em; margin: 0; tex
 .endpoint.b { background: var(--route); border: 3px solid #fff }
 .maptag { position: absolute; z-index: 500; right: 12px; top: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 99px; padding: 5px 12px; font-size: .8rem; font-weight: 500; box-shadow: var(--shadow); display: flex; gap: 8px; align-items: center }
 .maptag i { width: 18px; height: 4px; border-radius: 2px; background: var(--route) }
-.pickbtn { justify-self: start; display: flex; align-items: center; gap: 7px; border: 1px dashed color-mix(in srgb, var(--clay) 60%, var(--line)); background: var(--surface); color: var(--clay-ink); border-radius: 99px; padding: 7px 14px; font: 600 .84rem var(--sans); cursor: pointer }
+.pickrow { display: grid; grid-template-columns: 1fr 1fr; gap: 8px }
+.pickbtn { display: flex; align-items: center; justify-content: center; gap: 6px; min-width: 0; border: 1px dashed color-mix(in srgb, var(--clay) 60%, var(--line)); background: var(--surface); color: var(--clay-ink); border-radius: 99px; padding: 7px 8px; font: 600 .8rem var(--sans); cursor: pointer; white-space: nowrap }
 .pickbtn svg { width: 16px; height: 16px; flex: none }
 .pickbtn:hover, .pickbtn.on { background: var(--clay-soft); border-style: solid; border-color: var(--clay) }
 .pickui { position: absolute; inset: 0; z-index: 650; pointer-events: none }
@@ -276,6 +277,12 @@ h1 { font: 600 1.75rem/1.05 var(--serif); letter-spacing: -.01em; margin: 0; tex
 .pickpin::after { content: ""; position: absolute; left: 50%; bottom: -3px; width: 6px; height: 6px; margin-left: -3px; border-radius: 50%; background: var(--ink); border: 1.5px solid var(--surface) }
 .pickgo { pointer-events: auto; position: absolute; left: 50%; bottom: 40px; transform: translateX(-50%); border: 0; border-radius: 99px; background: var(--clay); color: var(--on-clay); padding: 12px 26px; font: 700 .95rem var(--sans); box-shadow: var(--shadow); cursor: pointer; white-space: nowrap }
 .pickgo:hover { filter: brightness(1.06) }
+.drawbtns { pointer-events: auto; position: absolute; left: 50%; bottom: 40px; transform: translateX(-50%); display: flex; gap: 8px; white-space: nowrap }
+.drawbtns .pickgo { position: static; transform: none }
+.drawbtns button:disabled { opacity: .45; cursor: default; filter: none }
+.drawundo { border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 99px; padding: 12px 16px; font: 600 .9rem var(--sans); box-shadow: var(--shadow); cursor: pointer }
+.vtx { border-radius: 50%; background: #fff; border: 2.5px solid var(--clay); box-sizing: border-box; pointer-events: none }
+.mapcol.drawing #map, .mapcol.drawing .leaflet-container { cursor: crosshair }
 .mapcol.picking .maplegend, .mapcol.picking .maptag { display: none }
 .maplegend { position: absolute; z-index: 500; left: 10px; bottom: 30px; background: var(--surface); border: 1px solid var(--line); border-radius: 99px; padding: 4px 11px; font-size: .72rem; font-weight: 500; color: var(--muted); box-shadow: var(--shadow); display: flex; gap: 10px; align-items: center; white-space: nowrap }
 .maplegend span { display: flex; align-items: center; gap: 5px }
@@ -380,7 +387,10 @@ ol.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px }
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4v16M3 8l4-4 4 4M17 20V4M13 16l4 4 4-4"/></svg>
         </button>
       </div>
-      <button type="button" class="pickbtn only-near" id="pickBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s7-6.5 7-12a7 7 0 0 0-14 0c0 5.5 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg><span data-i18n="pickOnMap">Choisir le centre sur la carte</span></button>
+      <div class="pickrow only-near">
+        <button type="button" class="pickbtn" id="pickBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s7-6.5 7-12a7 7 0 0 0-14 0c0 5.5 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg><span data-i18n="pickOnMap">Choisir le centre sur la carte</span></button>
+        <button type="button" class="pickbtn" id="drawBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 18 9 5l6 9 5-6v10z"/><circle cx="4" cy="18" r="1.6"/><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="14" r="1.6"/><circle cx="20" cy="8" r="1.6"/></svg><span data-i18n="drawZone">Dessiner une zone</span></button>
+      </div>
 
       <fieldset class="seg">
         <legend class="lbl" data-i18n="fuel">Carburant</legend>
@@ -478,6 +488,10 @@ ol.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px }
       <div class="pickpin"><svg viewBox="0 0 24 24" fill="currentColor" stroke="var(--surface)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s7-6.5 7-12a7 7 0 0 0-14 0c0 5.5 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg></div>
       <button type="button" class="pickgo" id="pickGo"><span data-i18n="searchHere">Chercher ici</span></button>
     </div>
+    <div class="pickui" id="drawUi" hidden>
+      <div class="pickbar"><span id="drawMsg"></span><button type="button" class="pickx" id="drawCancel" data-i18n-aria="pickCancel" aria-label="Annuler">✕</button></div>
+      <div class="drawbtns"><button type="button" class="drawundo" id="drawUndo" data-i18n="drawUndo">↶ Retirer le point</button><button type="button" class="pickgo" id="drawDone" data-i18n="drawDone">Terminer</button></div>
+    </div>
     <div class="maptag" id="maptag" hidden><i></i><span data-i18n="yourRoute">Ton trajet</span></div>
     <div class="maplegend" id="maplegend" hidden>
       <span><i id="legG"></i><span data-i18n="legBelow">sous la médiane</span></span>
@@ -547,6 +561,36 @@ function rankOnRoute(stations, route, o) {
   }
   return finish(out, o);
 }
+// Zone dessinée : point dans le polygone (lancer de rayon, assez précis à l'échelle d'une ville).
+function inPoly(lat, lon, poly) {
+  let inside = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const [ai, oi] = poly[i], [aj, oj] = poly[j];
+    if ((oi > lon) !== (oj > lon) && lat < (aj - ai) * (lon - oi) / (oj - oi) + ai) inside = !inside;
+  }
+  return inside;
+}
+function polyCenter(poly) {
+  let a = 0, cy = 0, cx = 0;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const f = poly[j][1] * poly[i][0] - poly[i][1] * poly[j][0];
+    a += f; cx += (poly[j][1] + poly[i][1]) * f; cy += (poly[j][0] + poly[i][0]) * f;
+  }
+  if (Math.abs(a) < 1e-12) return { lat: poly.reduce((s, p) => s + p[0], 0) / poly.length, lon: poly.reduce((s, p) => s + p[1], 0) / poly.length };
+  return { lat: cy / (3 * a), lon: cx / (3 * a) };
+}
+function rankPoly(stations, poly, c, o) {
+  const lats = poly.map(p => p[0]), lons = poly.map(p => p[1]);
+  const [a0, a1, o0, o1] = [Math.min(...lats), Math.max(...lats), Math.min(...lons), Math.max(...lons)];
+  const out = [];
+  for (const s of stations) {
+    if (s[0] < a0 || s[0] > a1 || s[1] < o0 || s[1] > o1 || !inPoly(s[0], s[1], poly)) continue;
+    const e = effective(s, o);
+    if (!e) continue;
+    out.push(item(s, e, { dist: haversineKm(c.lat, c.lon, s[0], s[1]) }));
+  }
+  return finish(out, o);
+}
 function rankNearby(stations, c, o) {
   const out = [], dLat = o.radiusKm / 110;
   for (const s of stations) {
@@ -599,7 +643,10 @@ const I18N = {
     emptyTitle: "Où faire le plein, sans chercher.",
     emptyRoute: "Entre ton départ et ta destination : les stations sur ton chemin apparaissent ici, de la moins chère à la plus chère, avec le vrai détour pour les 5 premières. À toi de juger si ça vaut le coup.",
     emptyNear: "Entre une adresse, touche le bouton de localisation ou choisis le centre sur la carte : les stations dans ton rayon apparaissent ici, de la moins chère à la plus chère, avec le temps pour t'y rendre.",
-    searchHere: "Chercher ici", pickOnMap: "Choisir le centre sur la carte", pickBanner: "Déplace la carte pour placer le centre", pickCancel: "Annuler", mapPoint: "ce point", mapPicked: "📍 Point choisi sur la carte",
+    searchHere: "Chercher ici", pickOnMap: "Choisir le centre", drawZone: "Dessiner une zone", drawUndo: "↶ Retirer le point", drawDone: "Terminer",
+    drawMsg0: "Touche la carte pour placer les coins de ta zone", drawMsgN: "{n} point{s} · encore {k} minimum", drawMsgOk: "{n} points · touche Terminer",
+    nStationsZone: "{n} station{s} dans ta zone", noneZone: "Aucune station dans ta zone", metaZone: "Zone dessinée", metaZoneMe: "Zone dessinée · distances depuis ta position",
+    zoneCenter: "à {d} du centre", warnZone: "Aucune station dans cette zone pour ce carburant et ces bannières.", zoneFav: "Zone · {p}", zoneUnnamed: "zone dessinée", pickBanner: "Déplace la carte pour placer le centre", pickCancel: "Annuler", mapPoint: "ce point", mapPicked: "📍 Point choisi sur la carte",
     note: "Prix déclarés à la Régie de l'énergie du Québec (mis à jour aux 5 minutes). Distances à vol d'oiseau, sauf le détour et le temps en voiture, calculés par la route pour les 5 premières stations. Trajet : Google ou TomTom (circulation en direct), sinon OSRM · Adresses : Photon / OpenStreetMap · Carte : Google ou Esri.",
     mapLabel: "Carte du trajet", yourRoute: "Ton trajet",
     nStationsRoute: "{n} station{s} sur ton chemin", noneRoute: "Aucune station sur ton chemin",
@@ -657,7 +704,10 @@ const I18N = {
     emptyTitle: "Where to fill up, without searching.",
     emptyRoute: "Enter your start and destination: stations along your way appear here, cheapest first, with the real detour for the top 5. You decide whether it's worth it.",
     emptyNear: "Enter an address, tap the location button or pick the center on the map: stations within your radius appear here, cheapest first, with the time to get there.",
-    searchHere: "Search here", pickOnMap: "Pick the center on the map", pickBanner: "Move the map to place the center", pickCancel: "Cancel", mapPoint: "this point", mapPicked: "📍 Point picked on the map",
+    searchHere: "Search here", pickOnMap: "Pick the center", drawZone: "Draw an area", drawUndo: "↶ Remove point", drawDone: "Done",
+    drawMsg0: "Tap the map to place the corners of your area", drawMsgN: "{n} point{s} · at least {k} more", drawMsgOk: "{n} points · tap Done",
+    nStationsZone: "{n} station{s} in your area", noneZone: "No stations in your area", metaZone: "Drawn area", metaZoneMe: "Drawn area · distances from your location",
+    zoneCenter: "{d} from center", warnZone: "No stations in this area for this fuel and these brands.", zoneFav: "Area · {p}", zoneUnnamed: "drawn area", pickBanner: "Move the map to place the center", pickCancel: "Cancel", mapPoint: "this point", mapPicked: "📍 Point picked on the map",
     note: "Prices reported to Québec's Régie de l'énergie (updated every 5 minutes). Straight-line distances, except the detour and drive time, which are calculated by road for the top 5 stations. Routes: Google or TomTom (live traffic), otherwise OSRM · Addresses: Photon / OpenStreetMap · Map: Google or Esri.",
     mapLabel: "Route map", yourRoute: "Your route",
     nStationsRoute: "{n} station{s} on your way", noneRoute: "No stations on your way",
@@ -700,6 +750,7 @@ const money = v => v.toLocaleString(LOC, { style: "currency", currency: "CAD" })
 const num = (v, d = 1) => v.toLocaleString(LOC, { minimumFractionDigits: d, maximumFractionDigits: d });
 const SHOW = 10, DET_N = 5, BRAND_TOP = 12;
 const REST_STEP = 50, DOT_MAX = 300;
+var lastPoly = null, lastPolyName = "", drawing = false, drawPts = [];
 let lastRest = [], restOpen = false, restShown = REST_STEP, restKey = "", restDots = new Map();
 const FEED_URL = "https://regieessencequebec.ca/stations.geojson.gz";
 const FUEL_KEYS = { "Régulier": 0, "Super": 1, "Diesel": 2 };
@@ -1101,6 +1152,7 @@ const detCache = new Map();
 let detGen = 0;
 async function computeDetours() {
   const gen = ++detGen;
+  if (zoneNoOrigin()) return; // temps en voiture depuis le centre d'une zone dessinée : sans intérêt
   const near = lastMode === "near", key = $("ttkey").value.trim();
   // Trajet : le détour se compare au trajet choisi, donc même fournisseur que lui (sinon on n'affiche rien).
   // Près de moi : Google, puis TomTom, puis OSRM.
@@ -1168,7 +1220,7 @@ function clearResults() {
   lastMode = null; lastRoutes = []; lastRoute = null; lastTop = []; markers = []; detGen++;
   $("results").replaceChildren();
   $("summary").hidden = true; $("routesWrap").hidden = true; $("maptag").hidden = true;
-  pickExit();
+  pickExit(); drawExit(); lastPoly = null;
   lastRest = []; lastAll = []; histKey = null; $("hist").hidden = true; restDots = new Map(); restKey = ""; $("rest").hidden = true; $("restList").replaceChildren(); $("maplegend").hidden = true;
   $("empty").hidden = false; $("emptyText").textContent = t(mode === "near" ? "emptyNear" : "emptyRoute");
   status("");
@@ -1179,14 +1231,17 @@ function rerender() { if (stations && lastMode && lastMode === mode) render(); }
 /* Rendu */
 function render() {
   const o = opts(), near = lastMode === "near";
-  const res = near ? rankNearby(stations, lastA, o) : rankOnRoute(stations, lastRoute.coords, o);
+  const res = near ? (lastPoly ? rankPoly(stations, lastPoly, lastA, o) : rankNearby(stations, lastA, o)) : rankOnRoute(stations, lastRoute.coords, o);
   const n = res.ranked.length;
   const med = n ? t("metaMedian", { m: num(res.median) }) : "";
   lastMedian = res.median;
   $("results").replaceChildren();
   $("empty").hidden = true;
   $("summary").hidden = false;
-  if (near) {
+  if (near && lastPoly) {
+    $("sumTitle").textContent = n ? t("nStationsZone", { n, s: plural(n) }) : t("noneZone");
+    $("sumMeta").textContent = t(zoneFromMe() ? "metaZoneMe" : "metaZone") + med;
+  } else if (near) {
     const who = lastA.label === "@me" ? t("you") : shortName(placeLabel(lastA));
     $("sumTitle").textContent = n ? t("nStationsNear", { n, s: plural(n), p: who }) : t("noneNear");
     $("sumMeta").textContent = t("metaNear", { r: num(o.radiusKm, o.radiusKm % 1 ? 1 : 0) }) + med;
@@ -1196,11 +1251,12 @@ function render() {
   }
   const noBrand = brandCounts.length && brandCounts.every(([b]) => off.has(b));
   if (noBrand) status(t("warnNoBrand"), "warn");
+  else if (!n && near && lastPoly) status(t("warnZone"), "warn");
   else if (!n) status(near ? t("warnNear", { r: num(o.radiusKm, 1) }) : t("warnRoute", { d: fmtDist(corridorM()) }), "warn");
   else status("");
   lastTop = res.ranked.slice(0, SHOW);
   lastTop.forEach((s, i) => $("results").append(card(s, i, o, near)));
-  const key = near ? `n|${lastA.lat},${lastA.lon}` : `r|${lastA.lat},${lastA.lon}|${lastB.lat},${lastB.lon}`;
+  const key = near ? (lastPoly ? `z|${lastPoly.flat().join(",")}` : `n|${lastA.lat},${lastA.lon}`) : `r|${lastA.lat},${lastA.lon}|${lastB.lat},${lastB.lon}`;
   if (key !== restKey) { restKey = key; restOpen = false; restShown = REST_STEP; histKey = null; }
   lastRest = res.ranked.slice(SHOW);
   lastAll = res.ranked;
@@ -1247,12 +1303,12 @@ function card(s, i, o, near) {
   if (i === 0) { const tg = li.querySelector(".tag"); tg.textContent = t("best"); tg.hidden = false; }
   if (s.rebate) { const p = li.querySelector(".posted"); p.textContent = t("posted", { p: num(s.price), r: num(s.rebate, s.rebate % 1 ? 1 : 0) }); p.hidden = false; }
   const meta = li.querySelector(".meta");
-  if (near) meta.append(pill(ICON_KM, t("away", { d: fmtDist(s.dist * 1000) })));
+  if (near) meta.append(pill(ICON_KM, awayText(s)));
   else {
     meta.append(pill(ICON_ROUTE, onRoute ? t("onRoute") : t("offRoute", { d: fmtDist(s.offM) }), onRoute ? "on" : ""));
     meta.append(pill(ICON_KM, t("alongKm", { a: num(s.alongKm, s.alongKm < 10 ? 1 : 0), b: num(lastRoute.km, 0) })));
   }
-  if (i < DET_N) { const d = pill(ICON_CAR, t(near ? "calcTime" : "calcDetour"), "det wait"); d.dataset.det = i; meta.append(d); }
+  if (i < DET_N && !zoneNoOrigin()) { const d = pill(ICON_CAR, t(near ? "calcTime" : "calcDetour"), "det wait"); d.dataset.det = i; meta.append(d); }
   const fc = li.querySelector(".fillcost");
   fc.append(t("fillLine", { l: num(o.fillL, 0) }));
   const bold = document.createElement("b"); bold.textContent = money(s.fill); fc.append(bold);
@@ -1271,7 +1327,7 @@ function navLinks(s, near) {
   const gm = box.querySelector(".gm");
   if (near) {
     gm.querySelector(".sub").remove();
-    gm.href = `https://www.google.com/maps/dir/?api=1&origin=${lastA.lat},${lastA.lon}&destination=${s.lat},${s.lon}&travelmode=driving`;
+    gm.href = `https://www.google.com/maps/dir/?api=1${zoneNoOrigin() ? "" : `&origin=${lastA.lat},${lastA.lon}`}&destination=${s.lat},${s.lon}&travelmode=driving`;
   } else {
     gm.querySelector(".sub").textContent = t("gmSubRoute");
     gm.href = `https://www.google.com/maps/dir/?api=1&origin=${lastA.lat},${lastA.lon}&destination=${lastB.lat},${lastB.lon}&waypoints=${s.lat},${s.lon}&travelmode=driving`;
@@ -1292,7 +1348,7 @@ function stationPop(s, near) {
   const pop = document.createElement("div");
   pop.className = "gpop";
   const b = document.createElement("b"); b.textContent = s.brand || s.name;
-  pop.append(b, document.createElement("br"), `${num(s.eff)} ¢/L · ${near ? t("popNear", { d: fmtDist(s.dist * 1000) }) : t("popRoute", { d: fmtDist(s.offM) })}`);
+  pop.append(b, document.createElement("br"), `${num(s.eff)} ¢/L · ${near ? (zoneNoOrigin() ? awayText(s) : t("popNear", { d: fmtDist(s.dist * 1000) })) : t("popRoute", { d: fmtDist(s.offM) })}`);
   return pop;
 }
 function renderRest(near) {
@@ -1317,7 +1373,7 @@ function restRow(s, near) {
   const who = document.createElement("span"); who.className = "r-who";
   const b = document.createElement("b"); b.textContent = s.brand || s.name;
   const sm = document.createElement("small");
-  const where = near ? t("away", { d: fmtDist(s.dist * 1000) }) : s.offM < 30 ? t("onRoute") : t("offRoute", { d: fmtDist(s.offM) });
+  const where = near ? awayText(s) : s.offM < 30 ? t("onRoute") : t("offRoute", { d: fmtDist(s.offM) });
   sm.textContent = `${where} · ${shortName(s.address)}`;
   who.append(b, sm);
   const pr = document.createElement("span"); pr.className = "r-price";
@@ -1353,6 +1409,7 @@ function pickTrack() {
 }
 function pickEnter() {
   if (mode !== "near" || !mapA) return;
+  drawExit();
   picking = true;
   $("pickUi").hidden = false;
   $("pickBtn").classList.add("on");
@@ -1401,7 +1458,70 @@ function pickPoint(lat, lon) {
 $("pickBtn").addEventListener("click", () => (picking ? pickExit() : pickEnter()));
 $("pickGo").addEventListener("click", () => { if (mapA) pickPoint(...mapA.center()); });
 $("pickCancel").addEventListener("click", pickExit);
-document.addEventListener("keydown", e => { if (e.key === "Escape" && picking) pickExit(); });
+
+/* « Près de moi » : zone dessinée (polygone) */
+// Origine des distances : ta position si elle est connue, sinon le centre de la zone (sans temps en voiture).
+const zoneFromMe = () => !!lastPoly && lastA && lastA.label === "@me";
+const zoneNoOrigin = () => lastMode === "near" && !!lastPoly && !zoneFromMe();
+function awayText(s) { return t(zoneNoOrigin() ? "zoneCenter" : "away", { d: fmtDist(s.dist * 1000) }); }
+function mapClick(lat, lon) {
+  if (!drawing || drawPts.length >= 40) return;
+  drawPts.push([lat, lon]);
+  drawSync();
+}
+function drawSync() {
+  const n = drawPts.length;
+  if (mapA) mapA.sketch(drawPts);
+  $("drawMsg").textContent = !n ? t("drawMsg0") : n < 3 ? t("drawMsgN", { n, s: plural(n), k: 3 - n }) : t("drawMsgOk", { n });
+  $("drawDone").disabled = n < 3;
+  $("drawUndo").disabled = !n;
+}
+function drawEnter() {
+  if (mode !== "near" || !mapA) return;
+  pickExit();
+  drawing = true; drawPts = [];
+  $("drawUi").hidden = false;
+  $("drawBtn").classList.add("on");
+  document.querySelector(".mapcol").classList.add("picking", "drawing");
+  document.querySelector(".mapcol").scrollIntoView({ behavior: "smooth", block: "nearest" });
+  mapA.drawing(true);
+  drawSync();
+}
+function drawExit() {
+  if (!drawing) return;
+  drawing = false; drawPts = [];
+  $("drawUi").hidden = true;
+  $("drawBtn").classList.remove("on");
+  document.querySelector(".mapcol").classList.remove("picking", "drawing");
+  if (mapA) { mapA.sketch(null); mapA.drawing(false); }
+}
+async function zoneName(lat, lon) {
+  try {
+    const j = await (await fetch(`https://photon.komoot.io/reverse?lang=${lang}&lat=${lat}&lon=${lon}&limit=1`)).json();
+    const p = ((j.features || [])[0] || {}).properties || {};
+    return p.district || p.locality || p.street || p.city || "";
+  } catch { return ""; }
+}
+async function runZone(poly, name) {
+  drawExit();
+  try {
+    status("");
+    if (!stations || Date.now() - loadedAt > 5 * 60 * 1000) await loadStations();
+    const c = polyCenter(poly);
+    lastPoly = poly.map(p => [+p[0], +p[1]]);
+    lastPolyName = name || "";
+    lastA = here ? { lat: here[0], lon: here[1], label: "@me" } : { lat: c.lat, lon: c.lon, label: "@zone" };
+    lastB = null; lastRoutes = []; lastRoute = null; lastMode = "near";
+    $("routesWrap").hidden = true;
+    render();
+    if (!name) zoneName(c.lat, c.lon).then(nm => { if (lastPoly && !lastPolyName) { lastPolyName = nm; syncFavBtn(); } });
+  } catch (err) { status(err.message || String(err), "error"); }
+}
+$("drawBtn").addEventListener("click", () => (drawing ? drawExit() : drawEnter()));
+$("drawUndo").addEventListener("click", () => { drawPts.pop(); drawSync(); });
+$("drawDone").addEventListener("click", () => { if (drawPts.length >= 3) runZone(drawPts.slice()); });
+$("drawCancel").addEventListener("click", drawExit);
+document.addEventListener("keydown", e => { if (e.key !== "Escape") return; if (picking) pickExit(); if (drawing) drawExit(); });
 (() => {
   // Appui long (doigt ou souris), et clic droit sur ordinateur. Écouté en capture : la carte Google ne bloque pas.
   const col = document.querySelector(".mapcol");
@@ -1415,7 +1535,7 @@ document.addEventListener("keydown", e => { if (e.key === "Escape" && picking) p
     pickPoint(ll[0], ll[1]);
   };
   col.addEventListener("pointerdown", e => {
-    if (mode !== "near" || e.button > 0 || !e.isPrimary || !e.target.closest("#map")) return;
+    if (mode !== "near" || drawing || e.button > 0 || !e.isPrimary || !e.target.closest("#map")) return;
     start = [e.clientX, e.clientY];
     clearTimeout(timer);
     timer = setTimeout(() => { const p = start; cancel(); if (p) { suppressClick = Date.now(); fire(p[0], p[1]); } }, 550);
@@ -1425,6 +1545,7 @@ document.addEventListener("keydown", e => { if (e.key === "Escape" && picking) p
   col.addEventListener("contextmenu", e => {
     if (mode !== "near" || !e.target.closest("#map")) return;
     e.preventDefault();
+    if (drawing) return;
     if (Date.now() - suppressClick < 800) return; // déjà traité par l'appui long
     cancel();
     fire(e.clientX, e.clientY);
@@ -1652,9 +1773,19 @@ function leafletAdapter() {
   });
   let group = L.layerGroup().addTo(m);
   m.on("move", pickTrack);
-  let ghostC = null;
+  m.on("click", e => mapClick(e.latlng.lat, e.latlng.lng));
+  let ghostC = null, sk = L.layerGroup().addTo(m);
   return {
     kind: "esri",
+    area(poly, color) { L.polygon(poly, { color, weight: 2, fillColor: color, fillOpacity: .07, interactive: false }).addTo(group); },
+    sketch(pts) {
+      sk.clearLayers();
+      if (!pts || !pts.length) return;
+      const color = css("--clay") || "#D97757";
+      if (pts.length > 1) (pts.length > 2 ? L.polygon : L.polyline)(pts, { color, weight: 2.5, dashArray: "6 6", fillColor: color, fillOpacity: .1, interactive: false }).addTo(sk);
+      for (const p of pts) L.circleMarker(p, { radius: 6, color, weight: 2.5, fillColor: "#ffffff", fillOpacity: 1, interactive: false }).addTo(sk);
+    },
+    drawing(on) { on ? m.doubleClickZoom.disable() : m.doubleClickZoom.enable(); },
     ghost(lat, lon, r) {
       if (lat == null) { if (ghostC) ghostC.remove(); ghostC = null; return; }
       if (!ghostC) ghostC = L.circle([lat, lon], { radius: r, color: css("--clay") || "#D97757", weight: 2, dashArray: "6 6", fillOpacity: .08, interactive: false }).addTo(m);
@@ -1706,7 +1837,7 @@ const GOOGLE_DARK = [
 const GOOGLE_LIGHT = [{ featureType: "poi.business", stylers: [{ visibility: "off" }] }, { featureType: "transit", stylers: [{ visibility: "off" }] }];
 async function googleAdapter() {
   await loadGoogle();
-  const { Map, Polyline, Circle, InfoWindow, OverlayView } = await google.maps.importLibrary("maps");
+  const { Map, Polyline, Polygon, Circle, InfoWindow, OverlayView } = await google.maps.importLibrary("maps");
   const { LatLng, LatLngBounds, Size, Point } = await google.maps.importLibrary("core");
   const el = $("map");
   el.replaceChildren();
@@ -1734,7 +1865,8 @@ async function googleAdapter() {
   let items = [];
   const add = x => { items.push(x); return x; };
   gm.addListener("center_changed", pickTrack);
-  let ghostC = null;
+  gm.addListener("click", e => { if (e.latLng) mapClick(e.latLng.lat(), e.latLng.lng()); });
+  let ghostC = null, skItems = [];
   // Overlay vide qui donne accès à la projection (pixel de la carte → latitude/longitude).
   const proj = new (class extends OverlayView { onAdd() {} draw() {} onRemove() {} })();
   proj.setMap(gm);
@@ -1745,6 +1877,19 @@ async function googleAdapter() {
   };
   return {
     kind: "google",
+    area(poly, color) { add(new Polygon({ map: gm, paths: poly.map(([lat, lon]) => ({ lat, lng: lon })), strokeColor: color, strokeWeight: 2, fillColor: color, fillOpacity: .07, clickable: false, zIndex: 2 })); },
+    sketch(pts) {
+      skItems.forEach(x => x.setMap(null)); skItems = [];
+      if (!pts || !pts.length) return;
+      const color = css("--clay") || "#D97757", path = pts.map(([lat, lon]) => ({ lat, lng: lon }));
+      if (pts.length > 2) skItems.push(new Polygon({ map: gm, paths: path, strokeColor: color, strokeWeight: 2.5, fillColor: color, fillOpacity: .1, clickable: false, zIndex: 6 }));
+      else if (pts.length > 1) skItems.push(new Polyline({ map: gm, path, strokeColor: color, strokeWeight: 2.5, clickable: false, zIndex: 6 }));
+      for (const [lat, lon] of pts) {
+        const d = document.createElement("div"); d.className = "vtx";
+        const v = new Html(lat, lon, d, 14, 1500); v.setMap(gm); skItems.push(v);
+      }
+    },
+    drawing(on) { gm.setOptions({ disableDoubleClickZoom: on }); },
     ghost(lat, lon, r) {
       if (lat == null) { if (ghostC) ghostC.setMap(null); ghostC = null; return; }
       if (!ghostC) ghostC = new Circle({ map: gm, center: { lat, lng: lon }, radius: r, strokeColor: css("--clay") || "#D97757", strokeWeight: 2, fillColor: css("--clay") || "#D97757", fillOpacity: .08, clickable: false, zIndex: 5 });
@@ -1838,7 +1983,12 @@ function draw(near, o) {
   if (!mapA) return;
   mapA.clear();
   const pts = [];
-  if (near) {
+  if (near && lastPoly) {
+    mapA.area(lastPoly, css("--clay") || "#D97757");
+    pts.push(...lastPoly);
+    if (zoneFromMe()) { mapA.endpoint(lastA.lat, lastA.lon, "a"); pts.push([lastA.lat, lastA.lon]); }
+    $("maptag").hidden = true;
+  } else if (near) {
     const r = o.radiusKm * 1000, dLat = r / 111320, dLon = r / (111320 * Math.cos(lastA.lat * Math.PI / 180));
     mapA.circle(lastA.lat, lastA.lon, r, css("--clay") || "#D97757");
     pts.push([lastA.lat - dLat, lastA.lon - dLon], [lastA.lat + dLat, lastA.lon + dLon]);
@@ -1873,14 +2023,17 @@ function draw(near, o) {
 /* Favoris (« @me » = ma position au moment de l'enregistrement, affichée dans la langue choisie) */
 let favs = parseJSON(store.get("favs", "[]"), []);
 for (const f of favs) for (const p of [f.from, f.to]) if (p && ["Position enregistrée", "Saved location"].includes(p.label)) p.label = "@saved";
-const favKey = f => [f.mode, f.from.lat.toFixed(4), f.from.lon.toFixed(4), f.to ? `${f.to.lat.toFixed(4)},${f.to.lon.toFixed(4)}` : ""].join("|");
+const favKey = f => f.poly ? "z|" + f.poly.map(p => p.map(x => (+x).toFixed(4)).join(",")).join(";")
+  : [f.mode, f.from.lat.toFixed(4), f.from.lon.toFixed(4), f.to ? `${f.to.lat.toFixed(4)},${f.to.lon.toFixed(4)}` : "", f.r || ""].join("|");
 function currentFav() {
   if (!lastMode || !lastA) return null;
+  if (lastMode === "near" && lastPoly) return { mode: "near", poly: lastPoly.map(p => [+p[0].toFixed(5), +p[1].toFixed(5)]), name: lastPolyName };
   const pt = p => ({ label: p.label === "@me" ? "@saved" : p.label, lat: p.lat, lon: p.lon });
-  return { mode: lastMode, from: pt(lastA), to: lastMode === "route" ? pt(lastB) : null };
+  return lastMode === "route" ? { mode: "route", from: pt(lastA), to: pt(lastB) } : { mode: "near", from: pt(lastA), to: null, r: radiusKm() };
 }
 function favName(f) {
-  return f.mode === "near" ? t("around", { p: shortName(placeLabel(f.from)) }) : `${shortName(placeLabel(f.from))} → ${shortName(placeLabel(f.to))}`;
+  if (f.poly) return t("zoneFav", { p: f.name || t("zoneUnnamed") });
+  return f.mode === "near" ? t("around", { p: shortName(placeLabel(f.from)) }) + (f.r ? ` · ${num(f.r, f.r % 1 ? 1 : 0)} km` : "") : `${shortName(placeLabel(f.from))} → ${shortName(placeLabel(f.to))}`;
 }
 function renderFavs() {
   $("favs").hidden = !favs.length;
@@ -1888,7 +2041,7 @@ function renderFavs() {
     const w = document.createElement("span"); w.className = "fav";
     const b = document.createElement("button"); b.type = "button"; b.className = "fav-go";
     b.textContent = favName(f);
-    b.title = f.mode === "near" ? t("around", { p: placeLabel(f.from) }) : `${placeLabel(f.from)} → ${placeLabel(f.to)}`;
+    b.title = f.poly ? favName(f) : f.mode === "near" ? t("around", { p: placeLabel(f.from) }) : `${placeLabel(f.from)} → ${placeLabel(f.to)}`;
     b.addEventListener("click", () => useFav(f));
     const x = document.createElement("button"); x.type = "button"; x.className = "fav-x";
     x.textContent = "×"; x.setAttribute("aria-label", t("removeFav", { n: favName(f) }));
@@ -1911,6 +2064,8 @@ function syncFavBtn() {
 }
 function useFav(f) {
   if (f.mode !== mode) setMode(f.mode);
+  if (f.poly) { runZone(f.poly, f.name); return; }
+  if (f.r) { $("radius").value = f.r; store.set("radiusKm", radiusKm()); }
   const fill = (field, p) => {
     const label = placeLabel(p);
     $(field).value = label; picked[field] = { ...p, q: label }; $(field + "Hint").textContent = "";
@@ -1933,7 +2088,7 @@ $("form").addEventListener("submit", async e => {
     if (!stations || Date.now() - loadedAt > 5 * 60 * 1000) await loadStations();
     if (mode === "near") {
       const a = await geocode("from");
-      lastA = a; lastB = null; lastRoutes = []; lastRoute = null; lastMode = "near";
+      lastA = a; lastB = null; lastRoutes = []; lastRoute = null; lastMode = "near"; lastPoly = null;
       $("routesWrap").hidden = true;
       store.set("from", $("from").value);
       render();
