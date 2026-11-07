@@ -264,9 +264,19 @@ h1 { font: 600 1.75rem/1.05 var(--serif); letter-spacing: -.01em; margin: 0; tex
 .endpoint.b { background: var(--route); border: 3px solid #fff }
 .maptag { position: absolute; z-index: 500; right: 12px; top: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 99px; padding: 5px 12px; font-size: .8rem; font-weight: 500; box-shadow: var(--shadow); display: flex; gap: 8px; align-items: center }
 .maptag i { width: 18px; height: 4px; border-radius: 2px; background: var(--route) }
-.maphere { position: absolute; z-index: 600; left: 50%; top: 12px; transform: translateX(-50%); display: flex; align-items: center; gap: 7px; background: var(--ink); color: var(--bg); border: 0; border-radius: 99px; padding: 8px 15px; font: 600 .84rem var(--sans); box-shadow: var(--shadow); cursor: pointer; white-space: nowrap }
-.maphere svg { width: 15px; height: 15px }
-.maphere:hover { background: var(--clay); color: var(--on-clay) }
+.pickbtn { justify-self: start; display: flex; align-items: center; gap: 7px; border: 1px dashed color-mix(in srgb, var(--clay) 60%, var(--line)); background: var(--surface); color: var(--clay-ink); border-radius: 99px; padding: 7px 14px; font: 600 .84rem var(--sans); cursor: pointer }
+.pickbtn svg { width: 16px; height: 16px; flex: none }
+.pickbtn:hover, .pickbtn.on { background: var(--clay-soft); border-style: solid; border-color: var(--clay) }
+.pickui { position: absolute; inset: 0; z-index: 650; pointer-events: none }
+.pickbar { pointer-events: auto; position: absolute; top: 12px; left: 56px; right: 12px; margin: 0 auto; width: fit-content; display: flex; align-items: center; gap: 10px; background: var(--ink); color: var(--bg); border-radius: 99px; padding: 7px 8px 7px 16px; font: 600 .84rem var(--sans); box-shadow: var(--shadow); white-space: nowrap; max-width: calc(100% - 68px) }
+.pickbar span { overflow: hidden; text-overflow: ellipsis }
+.pickx { border: 0; background: color-mix(in srgb, var(--bg) 18%, transparent); color: inherit; width: 26px; height: 26px; border-radius: 50%; cursor: pointer; font-size: .8rem; flex: none }
+.pickpin { position: absolute; left: 50%; top: 50%; width: 38px; height: 38px; transform: translate(-50%, -100%); color: var(--clay); filter: drop-shadow(0 3px 4px rgba(0,0,0,.35)) }
+.pickpin svg { width: 100%; height: 100% }
+.pickpin::after { content: ""; position: absolute; left: 50%; bottom: -3px; width: 6px; height: 6px; margin-left: -3px; border-radius: 50%; background: var(--ink); border: 1.5px solid var(--surface) }
+.pickgo { pointer-events: auto; position: absolute; left: 50%; bottom: 40px; transform: translateX(-50%); border: 0; border-radius: 99px; background: var(--clay); color: var(--on-clay); padding: 12px 26px; font: 700 .95rem var(--sans); box-shadow: var(--shadow); cursor: pointer; white-space: nowrap }
+.pickgo:hover { filter: brightness(1.06) }
+.mapcol.picking .maplegend, .mapcol.picking .maptag { display: none }
 .maplegend { position: absolute; z-index: 500; left: 10px; bottom: 30px; background: var(--surface); border: 1px solid var(--line); border-radius: 99px; padding: 4px 11px; font-size: .72rem; font-weight: 500; color: var(--muted); box-shadow: var(--shadow); display: flex; gap: 10px; align-items: center; white-space: nowrap }
 .maplegend span { display: flex; align-items: center; gap: 5px }
 .maplegend i { width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid #fff; box-shadow: 0 0 0 .5px rgba(0,0,0,.35) }
@@ -370,6 +380,7 @@ ol.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px }
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4v16M3 8l4-4 4 4M17 20V4M13 16l4 4 4-4"/></svg>
         </button>
       </div>
+      <button type="button" class="pickbtn only-near" id="pickBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s7-6.5 7-12a7 7 0 0 0-14 0c0 5.5 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg><span data-i18n="pickOnMap">Choisir le centre sur la carte</span></button>
 
       <fieldset class="seg">
         <legend class="lbl" data-i18n="fuel">Carburant</legend>
@@ -462,7 +473,11 @@ ol.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px }
 
   <div class="mapcol">
     <div id="map" role="region" data-i18n-aria="mapLabel" aria-label="Carte du trajet"></div>
-    <button type="button" class="maphere" id="mapHere" hidden data-i18n-title="searchHereTitle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><span data-i18n="searchHere">Chercher ici</span></button>
+    <div class="pickui" id="pickUi" hidden>
+      <div class="pickbar"><span data-i18n="pickBanner">Déplace la carte pour placer le centre</span><button type="button" class="pickx" id="pickCancel" data-i18n-aria="pickCancel" aria-label="Annuler">✕</button></div>
+      <div class="pickpin"><svg viewBox="0 0 24 24" fill="currentColor" stroke="var(--surface)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s7-6.5 7-12a7 7 0 0 0-14 0c0 5.5 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg></div>
+      <button type="button" class="pickgo" id="pickGo"><span data-i18n="searchHere">Chercher ici</span></button>
+    </div>
     <div class="maptag" id="maptag" hidden><i></i><span data-i18n="yourRoute">Ton trajet</span></div>
     <div class="maplegend" id="maplegend" hidden>
       <span><i id="legG"></i><span data-i18n="legBelow">sous la médiane</span></span>
@@ -583,8 +598,8 @@ const I18N = {
     around: "Autour de {p}", removeFav: "Retirer le favori {n}",
     emptyTitle: "Où faire le plein, sans chercher.",
     emptyRoute: "Entre ton départ et ta destination : les stations sur ton chemin apparaissent ici, de la moins chère à la plus chère, avec le vrai détour pour les 5 premières. À toi de juger si ça vaut le coup.",
-    emptyNear: "Entre une adresse, touche le bouton de localisation ou fais un appui long sur la carte : les stations dans ton rayon apparaissent ici, de la moins chère à la plus chère, avec le temps pour t'y rendre.",
-    searchHere: "Chercher ici", searchHereTitle: "Chercher autour du centre de la carte (ou appui long sur la carte pour choisir un point précis)", mapPoint: "ce point", mapPicked: "📍 Point choisi sur la carte",
+    emptyNear: "Entre une adresse, touche le bouton de localisation ou choisis le centre sur la carte : les stations dans ton rayon apparaissent ici, de la moins chère à la plus chère, avec le temps pour t'y rendre.",
+    searchHere: "Chercher ici", pickOnMap: "Choisir le centre sur la carte", pickBanner: "Déplace la carte pour placer le centre", pickCancel: "Annuler", mapPoint: "ce point", mapPicked: "📍 Point choisi sur la carte",
     note: "Prix déclarés à la Régie de l'énergie du Québec (mis à jour aux 5 minutes). Distances à vol d'oiseau, sauf le détour et le temps en voiture, calculés par la route pour les 5 premières stations. Trajet : Google ou TomTom (circulation en direct), sinon OSRM · Adresses : Photon / OpenStreetMap · Carte : Google ou Esri.",
     mapLabel: "Carte du trajet", yourRoute: "Ton trajet",
     nStationsRoute: "{n} station{s} sur ton chemin", noneRoute: "Aucune station sur ton chemin",
@@ -641,8 +656,8 @@ const I18N = {
     around: "Around {p}", removeFav: "Remove favourite {n}",
     emptyTitle: "Where to fill up, without searching.",
     emptyRoute: "Enter your start and destination: stations along your way appear here, cheapest first, with the real detour for the top 5. You decide whether it's worth it.",
-    emptyNear: "Enter an address, tap the location button or long-press the map: stations within your radius appear here, cheapest first, with the time to get there.",
-    searchHere: "Search here", searchHereTitle: "Search around the map center (or long-press the map to pick an exact point)", mapPoint: "this point", mapPicked: "📍 Point picked on the map",
+    emptyNear: "Enter an address, tap the location button or pick the center on the map: stations within your radius appear here, cheapest first, with the time to get there.",
+    searchHere: "Search here", pickOnMap: "Pick the center on the map", pickBanner: "Move the map to place the center", pickCancel: "Cancel", mapPoint: "this point", mapPicked: "📍 Point picked on the map",
     note: "Prices reported to Québec's Régie de l'énergie (updated every 5 minutes). Straight-line distances, except the detour and drive time, which are calculated by road for the top 5 stations. Routes: Google or TomTom (live traffic), otherwise OSRM · Addresses: Photon / OpenStreetMap · Map: Google or Esri.",
     mapLabel: "Route map", yourRoute: "Your route",
     nStationsRoute: "{n} station{s} on your way", noneRoute: "No stations on your way",
@@ -1153,7 +1168,7 @@ function clearResults() {
   lastMode = null; lastRoutes = []; lastRoute = null; lastTop = []; markers = []; detGen++;
   $("results").replaceChildren();
   $("summary").hidden = true; $("routesWrap").hidden = true; $("maptag").hidden = true;
-  $("mapHere").hidden = true;
+  pickExit();
   lastRest = []; lastAll = []; histKey = null; $("hist").hidden = true; restDots = new Map(); restKey = ""; $("rest").hidden = true; $("restList").replaceChildren(); $("maplegend").hidden = true;
   $("empty").hidden = false; $("emptyText").textContent = t(mode === "near" ? "emptyNear" : "emptyRoute");
   status("");
@@ -1168,7 +1183,6 @@ function render() {
   const n = res.ranked.length;
   const med = n ? t("metaMedian", { m: num(res.median) }) : "";
   lastMedian = res.median;
-  $("mapHere").hidden = true; userMoved = false;
   $("results").replaceChildren();
   $("empty").hidden = true;
   $("summary").hidden = false;
@@ -1331,14 +1345,30 @@ $("restToggle").addEventListener("click", () => { restOpen = !restOpen; renderRe
 $("restMore").addEventListener("click", () => { restShown += REST_STEP; renderRest(lastMode === "near"); });
 
 /* « Près de moi » : choisir le centre du cercle sur la carte (bouton « Chercher ici » ou appui long) */
-// Vrai seulement après un geste de l'utilisateur sur la carte (pas après un recadrage fait par l'appli).
-let userMoved = false;
-function mapMoved() {
-  if (mode !== "near" || !mapA || !userMoved) return;
+var picking = false;
+function pickTrack() {
+  if (!picking || !mapA) return;
   const [lat, lon] = mapA.center();
-  // Inutile si la carte est restée centrée sur le point déjà cherché.
-  const same = lastMode === "near" && lastA && haversineKm(lat, lon, lastA.lat, lastA.lon) < Math.max(0.15, radiusKm() * 0.1);
-  $("mapHere").hidden = same;
+  mapA.ghost(lat, lon, radiusKm() * 1000);
+}
+function pickEnter() {
+  if (mode !== "near" || !mapA) return;
+  picking = true;
+  $("pickUi").hidden = false;
+  $("pickBtn").classList.add("on");
+  document.querySelector(".mapcol").classList.add("picking");
+  document.querySelector(".mapcol").scrollIntoView({ behavior: "smooth", block: "nearest" });
+  // Départ : le point déjà cherché, sinon la vue actuelle.
+  if (lastMode === "near" && lastA) mapA.flyTo(lastA.lat, lastA.lon, 0);
+  pickTrack();
+}
+function pickExit() {
+  if (!picking) return;
+  picking = false;
+  $("pickUi").hidden = true;
+  $("pickBtn").classList.remove("on");
+  document.querySelector(".mapcol").classList.remove("picking");
+  if (mapA) mapA.ghost(null);
 }
 async function reverseLabel(lat, lon) {
   try {
@@ -1349,7 +1379,7 @@ async function reverseLabel(lat, lon) {
 }
 function pickPoint(lat, lon) {
   if (mode !== "near") return;
-  $("mapHere").hidden = true;
+  pickExit();
   const q = `${lat.toFixed(5)}, ${lon.toFixed(5)}`, pt = { lat, lon, label: t("mapPoint"), q };
   picked.from = pt;
   $("from").value = q;
@@ -1364,7 +1394,10 @@ function pickPoint(lat, lon) {
     if (lastA && lastA.lat === lat && lastA.lon === lon) { lastA.label = label; rerender(); }
   });
 }
-$("mapHere").addEventListener("click", () => { if (mapA) pickPoint(...mapA.center()); });
+$("pickBtn").addEventListener("click", () => (picking ? pickExit() : pickEnter()));
+$("pickGo").addEventListener("click", () => { if (mapA) pickPoint(...mapA.center()); });
+$("pickCancel").addEventListener("click", pickExit);
+document.addEventListener("keydown", e => { if (e.key === "Escape" && picking) pickExit(); });
 (() => {
   // Appui long (doigt ou souris), et clic droit sur ordinateur. Écouté en capture : la carte Google ne bloque pas.
   const col = document.querySelector(".mapcol");
@@ -1377,7 +1410,6 @@ $("mapHere").addEventListener("click", () => { if (mapA) pickPoint(...mapA.cente
     if (navigator.vibrate) navigator.vibrate(15);
     pickPoint(ll[0], ll[1]);
   };
-  for (const ev of ["pointerdown", "wheel"]) col.addEventListener(ev, e => { if (e.target.closest("#map")) userMoved = true; }, { capture: true, passive: true });
   col.addEventListener("pointerdown", e => {
     if (mode !== "near" || e.button > 0 || !e.isPrimary || !e.target.closest("#map")) return;
     start = [e.clientX, e.clientY];
@@ -1615,9 +1647,15 @@ function leafletAdapter() {
     }).addTo(m);
   });
   let group = L.layerGroup().addTo(m);
-  m.on("moveend", mapMoved);
+  m.on("move", pickTrack);
+  let ghostC = null;
   return {
     kind: "esri",
+    ghost(lat, lon, r) {
+      if (lat == null) { if (ghostC) ghostC.remove(); ghostC = null; return; }
+      if (!ghostC) ghostC = L.circle([lat, lon], { radius: r, color: css("--clay") || "#D97757", weight: 2, dashArray: "6 6", fillOpacity: .08, interactive: false }).addTo(m);
+      else { ghostC.setLatLng([lat, lon]); ghostC.setRadius(r); }
+    },
     center() { const c = m.getCenter(); return [c.lat, c.lng]; },
     latLngAt(x, y) { const c = m.containerPointToLatLng([x, y]); return [c.lat, c.lng]; },
     clear() { group.remove(); group = L.layerGroup().addTo(m); },
@@ -1691,7 +1729,8 @@ async function googleAdapter() {
   }
   let items = [];
   const add = x => { items.push(x); return x; };
-  gm.addListener("idle", mapMoved);
+  gm.addListener("center_changed", pickTrack);
+  let ghostC = null;
   // Overlay vide qui donne accès à la projection (pixel de la carte → latitude/longitude).
   const proj = new (class extends OverlayView { onAdd() {} draw() {} onRemove() {} })();
   proj.setMap(gm);
@@ -1702,6 +1741,11 @@ async function googleAdapter() {
   };
   return {
     kind: "google",
+    ghost(lat, lon, r) {
+      if (lat == null) { if (ghostC) ghostC.setMap(null); ghostC = null; return; }
+      if (!ghostC) ghostC = new Circle({ map: gm, center: { lat, lng: lon }, radius: r, strokeColor: css("--clay") || "#D97757", strokeWeight: 2, fillColor: css("--clay") || "#D97757", fillOpacity: .08, clickable: false, zIndex: 5 });
+      else { ghostC.setCenter({ lat, lng: lon }); ghostC.setRadius(r); }
+    },
     center() { const c = gm.getCenter(); return [c.lat(), c.lng()]; },
     latLngAt(x, y) { const pr = proj.getProjection(); if (!pr) return null; const c = pr.fromContainerPixelToLatLng(new Point(x, y)); return c ? [c.lat(), c.lng()] : null; },
     clear() { items.forEach(x => x.setMap(null)); items = []; info.close(); },
