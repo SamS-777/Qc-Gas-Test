@@ -1372,9 +1372,13 @@ function pickExit() {
 }
 async function reverseLabel(lat, lon) {
   try {
-    const j = await (await fetch(`https://photon.komoot.io/reverse?lang=${lang}&lat=${lat}&lon=${lon}`)).json();
-    const f = (j.features || [])[0];
-    return f ? photonLabel(f.properties) : "";
+    const j = await (await fetch(`https://photon.komoot.io/reverse?lang=${lang}&lat=${lat}&lon=${lon}&limit=5`)).json();
+    // Une adresse civique d'abord (plutôt qu'un commerce ou une église voisine), sinon le lieu le plus proche.
+    const fs = j.features || [], f = fs.find(x => x.properties.housenumber && x.properties.street) || fs[0];
+    if (!f) return "";
+    const p = { ...f.properties };
+    if (p.housenumber) delete p.name;
+    return photonLabel(p);
   } catch { return ""; }
 }
 function pickPoint(lat, lon) {
