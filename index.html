@@ -264,6 +264,9 @@ h1 { font: 600 1.75rem/1.05 var(--serif); letter-spacing: -.01em; margin: 0; tex
 .endpoint.b { background: var(--route); border: 3px solid #fff }
 .maptag { position: absolute; z-index: 500; right: 12px; top: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 99px; padding: 5px 12px; font-size: .8rem; font-weight: 500; box-shadow: var(--shadow); display: flex; gap: 8px; align-items: center }
 .maptag i { width: 18px; height: 4px; border-radius: 2px; background: var(--route) }
+.maphere { position: absolute; z-index: 600; left: 50%; top: 12px; transform: translateX(-50%); display: flex; align-items: center; gap: 7px; background: var(--ink); color: var(--bg); border: 0; border-radius: 99px; padding: 8px 15px; font: 600 .84rem var(--sans); box-shadow: var(--shadow); cursor: pointer; white-space: nowrap }
+.maphere svg { width: 15px; height: 15px }
+.maphere:hover { background: var(--clay); color: var(--on-clay) }
 .maplegend { position: absolute; z-index: 500; left: 10px; bottom: 30px; background: var(--surface); border: 1px solid var(--line); border-radius: 99px; padding: 4px 11px; font-size: .72rem; font-weight: 500; color: var(--muted); box-shadow: var(--shadow); display: flex; gap: 10px; align-items: center; white-space: nowrap }
 .maplegend span { display: flex; align-items: center; gap: 5px }
 .maplegend i { width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid #fff; box-shadow: 0 0 0 .5px rgba(0,0,0,.35) }
@@ -459,6 +462,7 @@ ol.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px }
 
   <div class="mapcol">
     <div id="map" role="region" data-i18n-aria="mapLabel" aria-label="Carte du trajet"></div>
+    <button type="button" class="maphere" id="mapHere" hidden data-i18n-title="searchHereTitle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><span data-i18n="searchHere">Chercher ici</span></button>
     <div class="maptag" id="maptag" hidden><i></i><span data-i18n="yourRoute">Ton trajet</span></div>
     <div class="maplegend" id="maplegend" hidden>
       <span><i id="legG"></i><span data-i18n="legBelow">sous la médiane</span></span>
@@ -579,7 +583,8 @@ const I18N = {
     around: "Autour de {p}", removeFav: "Retirer le favori {n}",
     emptyTitle: "Où faire le plein, sans chercher.",
     emptyRoute: "Entre ton départ et ta destination : les stations sur ton chemin apparaissent ici, de la moins chère à la plus chère, avec le vrai détour pour les 5 premières. À toi de juger si ça vaut le coup.",
-    emptyNear: "Entre une adresse ou touche le bouton de localisation : les stations dans ton rayon apparaissent ici, de la moins chère à la plus chère, avec le temps pour t'y rendre.",
+    emptyNear: "Entre une adresse, touche le bouton de localisation ou fais un appui long sur la carte : les stations dans ton rayon apparaissent ici, de la moins chère à la plus chère, avec le temps pour t'y rendre.",
+    searchHere: "Chercher ici", searchHereTitle: "Chercher autour du centre de la carte (ou appui long sur la carte pour choisir un point précis)", mapPoint: "ce point", mapPicked: "📍 Point choisi sur la carte",
     note: "Prix déclarés à la Régie de l'énergie du Québec (mis à jour aux 5 minutes). Distances à vol d'oiseau, sauf le détour et le temps en voiture, calculés par la route pour les 5 premières stations. Trajet : Google ou TomTom (circulation en direct), sinon OSRM · Adresses : Photon / OpenStreetMap · Carte : Google ou Esri.",
     mapLabel: "Carte du trajet", yourRoute: "Ton trajet",
     nStationsRoute: "{n} station{s} sur ton chemin", noneRoute: "Aucune station sur ton chemin",
@@ -636,7 +641,8 @@ const I18N = {
     around: "Around {p}", removeFav: "Remove favourite {n}",
     emptyTitle: "Where to fill up, without searching.",
     emptyRoute: "Enter your start and destination: stations along your way appear here, cheapest first, with the real detour for the top 5. You decide whether it's worth it.",
-    emptyNear: "Enter an address or tap the location button: stations within your radius appear here, cheapest first, with the time to get there.",
+    emptyNear: "Enter an address, tap the location button or long-press the map: stations within your radius appear here, cheapest first, with the time to get there.",
+    searchHere: "Search here", searchHereTitle: "Search around the map center (or long-press the map to pick an exact point)", mapPoint: "this point", mapPicked: "📍 Point picked on the map",
     note: "Prices reported to Québec's Régie de l'énergie (updated every 5 minutes). Straight-line distances, except the detour and drive time, which are calculated by road for the top 5 stations. Routes: Google or TomTom (live traffic), otherwise OSRM · Addresses: Photon / OpenStreetMap · Map: Google or Esri.",
     mapLabel: "Route map", yourRoute: "Your route",
     nStationsRoute: "{n} station{s} on your way", noneRoute: "No stations on your way",
@@ -872,6 +878,8 @@ async function geocode(field) {
   if (!q) throw new Error(t(field === "from" ? "errFrom" : "errTo"));
   if (picked[field] && picked[field].q === q) return picked[field];
   if (isMyLoc(q) && here) return { lat: here[0], lon: here[1], label: "@me" };
+  const ll = q.match(/^\s*(-?\d{1,3}\.\d+)\s*,\s*(-?\d{1,3}\.\d+)\s*$/);
+  if (ll) return { lat: +ll[1], lon: +ll[2], label: t("mapPoint") };
   let hits = [];
   try { hits = await photon(q, 6); } catch {}
   let best = hits[0] || null;
@@ -1145,6 +1153,7 @@ function clearResults() {
   lastMode = null; lastRoutes = []; lastRoute = null; lastTop = []; markers = []; detGen++;
   $("results").replaceChildren();
   $("summary").hidden = true; $("routesWrap").hidden = true; $("maptag").hidden = true;
+  $("mapHere").hidden = true;
   lastRest = []; lastAll = []; histKey = null; $("hist").hidden = true; restDots = new Map(); restKey = ""; $("rest").hidden = true; $("restList").replaceChildren(); $("maplegend").hidden = true;
   $("empty").hidden = false; $("emptyText").textContent = t(mode === "near" ? "emptyNear" : "emptyRoute");
   status("");
@@ -1159,6 +1168,7 @@ function render() {
   const n = res.ranked.length;
   const med = n ? t("metaMedian", { m: num(res.median) }) : "";
   lastMedian = res.median;
+  $("mapHere").hidden = true;
   $("results").replaceChildren();
   $("empty").hidden = true;
   $("summary").hidden = false;
@@ -1319,6 +1329,69 @@ function restRow(s, near) {
 }
 $("restToggle").addEventListener("click", () => { restOpen = !restOpen; renderRest(lastMode === "near"); });
 $("restMore").addEventListener("click", () => { restShown += REST_STEP; renderRest(lastMode === "near"); });
+
+/* « Près de moi » : choisir le centre du cercle sur la carte (bouton « Chercher ici » ou appui long) */
+function mapMoved() {
+  if (mode !== "near" || !mapA) return;
+  const [lat, lon] = mapA.center();
+  // Inutile si la carte est restée centrée sur le point déjà cherché.
+  const same = lastMode === "near" && lastA && haversineKm(lat, lon, lastA.lat, lastA.lon) < Math.max(0.15, radiusKm() * 0.1);
+  $("mapHere").hidden = same;
+}
+async function reverseLabel(lat, lon) {
+  try {
+    const j = await (await fetch(`https://photon.komoot.io/reverse?lang=${lang}&lat=${lat}&lon=${lon}`)).json();
+    const f = (j.features || [])[0];
+    return f ? photonLabel(f.properties) : "";
+  } catch { return ""; }
+}
+function pickPoint(lat, lon) {
+  if (mode !== "near") return;
+  $("mapHere").hidden = true;
+  const q = `${lat.toFixed(5)}, ${lon.toFixed(5)}`, pt = { lat, lon, label: t("mapPoint"), q };
+  picked.from = pt;
+  $("from").value = q;
+  $("fromHint").textContent = t("mapPicked");
+  $("form").requestSubmit();
+  // Adresse la plus proche, pour un libellé lisible (les coordonnées exactes restent celles du point choisi).
+  reverseLabel(lat, lon).then(label => {
+    if (!label || picked.from !== pt) return;
+    pt.label = label; pt.q = label;
+    $("from").value = label;
+    store.set("from", label);
+    if (lastA && lastA.lat === lat && lastA.lon === lon) { lastA.label = label; rerender(); }
+  });
+}
+$("mapHere").addEventListener("click", () => { if (mapA) pickPoint(...mapA.center()); });
+(() => {
+  // Appui long (doigt ou souris), et clic droit sur ordinateur. Écouté en capture : la carte Google ne bloque pas.
+  const col = document.querySelector(".mapcol");
+  let timer = 0, start = null;
+  const cancel = () => { clearTimeout(timer); timer = 0; start = null; };
+  const fire = (x, y) => {
+    if (mode !== "near" || !mapA) return;
+    const r = $("map").getBoundingClientRect(), ll = mapA.latLngAt(x - r.left, y - r.top);
+    if (!ll) return;
+    if (navigator.vibrate) navigator.vibrate(15);
+    pickPoint(ll[0], ll[1]);
+  };
+  col.addEventListener("pointerdown", e => {
+    if (mode !== "near" || e.button > 0 || !e.isPrimary || !e.target.closest("#map")) return;
+    start = [e.clientX, e.clientY];
+    clearTimeout(timer);
+    timer = setTimeout(() => { const p = start; cancel(); if (p) { suppressClick = Date.now(); fire(p[0], p[1]); } }, 550);
+  }, true);
+  col.addEventListener("pointermove", e => { if (start && Math.hypot(e.clientX - start[0], e.clientY - start[1]) > 10) cancel(); }, true);
+  for (const ev of ["pointerup", "pointercancel", "pointerleave"]) col.addEventListener(ev, cancel, true);
+  col.addEventListener("contextmenu", e => {
+    if (mode !== "near" || !e.target.closest("#map")) return;
+    e.preventDefault();
+    if (Date.now() - suppressClick < 800) return; // déjà traité par l'appui long
+    cancel();
+    fire(e.clientX, e.clientY);
+  }, true);
+})();
+var suppressClick = 0;
 
 /* ---------- Évolution du prix (historique collecté dans la branche « historique » du dépôt) ---------- */
 const HIST_URL = "https://raw.githubusercontent.com/SamS-777/Qc-Gas-Test/historique/data/series/";
@@ -1539,8 +1612,11 @@ function leafletAdapter() {
     }).addTo(m);
   });
   let group = L.layerGroup().addTo(m);
+  m.on("dragend", mapMoved);
   return {
     kind: "esri",
+    center() { const c = m.getCenter(); return [c.lat, c.lng]; },
+    latLngAt(x, y) { const c = m.containerPointToLatLng([x, y]); return [c.lat, c.lng]; },
     clear() { group.remove(); group = L.layerGroup().addTo(m); },
     polyline(coords, o) {
       const pl = L.polyline(coords.map(c => [c[1], c[0]]), { color: o.color, weight: o.weight, opacity: o.opacity ?? 1, lineCap: "round", interactive: !!o.onClick }).addTo(group);
@@ -1586,7 +1662,7 @@ const GOOGLE_LIGHT = [{ featureType: "poi.business", stylers: [{ visibility: "of
 async function googleAdapter() {
   await loadGoogle();
   const { Map, Polyline, Circle, InfoWindow, OverlayView } = await google.maps.importLibrary("maps");
-  const { LatLng, LatLngBounds, Size } = await google.maps.importLibrary("core");
+  const { LatLng, LatLngBounds, Size, Point } = await google.maps.importLibrary("core");
   const el = $("map");
   el.replaceChildren();
   const gm = new Map(el, {
@@ -1612,6 +1688,10 @@ async function googleAdapter() {
   }
   let items = [];
   const add = x => { items.push(x); return x; };
+  gm.addListener("dragend", mapMoved);
+  // Overlay vide qui donne accès à la projection (pixel de la carte → latitude/longitude).
+  const proj = new (class extends OverlayView { onAdd() {} draw() {} onRemove() {} })();
+  proj.setMap(gm);
   const path = coords => coords.map(c => ({ lat: c[1], lng: c[0] }));
   const popAt = (lat, lon, node, dy = -12) => () => {
     info.setOptions({ pixelOffset: new Size(0, dy) });
@@ -1619,6 +1699,8 @@ async function googleAdapter() {
   };
   return {
     kind: "google",
+    center() { const c = gm.getCenter(); return [c.lat(), c.lng()]; },
+    latLngAt(x, y) { const pr = proj.getProjection(); if (!pr) return null; const c = pr.fromContainerPixelToLatLng(new Point(x, y)); return c ? [c.lat(), c.lng()] : null; },
     clear() { items.forEach(x => x.setMap(null)); items = []; info.close(); },
     polyline(coords, o) {
       const pl = add(new Polyline({ map: gm, path: path(coords), strokeColor: o.color, strokeWeight: o.weight, strokeOpacity: o.opacity ?? 1, clickable: !!o.onClick, zIndex: o.z || 1 }));
