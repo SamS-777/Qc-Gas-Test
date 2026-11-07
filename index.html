@@ -595,7 +595,7 @@ const I18N = {
     histTitle: "Évolution du prix", histZoneWho: "médiane de la zone", histBack: "← Toute la zone", histRange: "Période", hist7: "7 j", hist30: "30 j",
     histLoading: "Chargement de l'historique…", histDown: "Historique indisponible pour l'instant.", histEmpty: "Pas encore d'historique pour cette station.",
     histNoteZone: "Médiane des {n} stations de ta recherche, rabais déduits.", histNoteSt: "Prix de cette station.", histNoteStR: "Prix de cette station, rabais de {r} ¢ déduit.",
-    histSince: " Historique depuis le {d} : la période complète se remplira avec le temps.", histLag: " Courbe en retard de 30 à 60 min, sauf le dernier point (prix en direct).",
+    histLag: " Courbe en retard de 30 à 60 min, sauf le dernier point (prix en direct).",
     wazeTitle: "Waze ne prend pas d'arrêt intermédiaire par lien : il te guide jusqu'à la station seulement.",
     calcTime: "Calcul du temps…", calcDetour: "Calcul du détour…", drive: "{m} min en voiture · {km} km", lt1: "moins d'1",
     noDetour: "Aucun détour", detour: "Détour {m}", detourLt1: "de moins d'1 min", popRoute: "à {d} du trajet", popNear: "à {d}",
@@ -652,7 +652,7 @@ const I18N = {
     histTitle: "Price history", histZoneWho: "area median", histBack: "← Whole area", histRange: "Period", hist7: "7 d", hist30: "30 d",
     histLoading: "Loading history…", histDown: "History unavailable right now.", histEmpty: "No history yet for this station.",
     histNoteZone: "Median of the {n} stations in your search, rebates deducted.", histNoteSt: "This station's price.", histNoteStR: "This station's price, {r}¢ rebate deducted.",
-    histSince: " History since {d}: the full period will fill in over time.", histLag: " The curve lags 30–60 min, except the last point (live price).",
+    histLag: " The curve lags 30–60 min, except the last point (live price).",
     wazeTitle: "Waze links can't include a stop: it guides you to the station only.",
     calcTime: "Calculating time…", calcDetour: "Calculating detour…", drive: "{m} min drive · {km} km", lt1: "under 1",
     noDetour: "No detour", detour: "Detour {m}", detourLt1: "under 1 min", popRoute: "{d} from route", popNear: "{d} away",
@@ -1418,7 +1418,6 @@ function histRender() {
     pts.push([now, lastMedian]);
     note.textContent = t("histNoteZone", { n: lastAll.length.toLocaleString(LOC) });
   }
-  if (debut > now - histDays * 864e5) note.textContent += t("histSince", { d: new Date(debut).toLocaleString(LOC, { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" }) });
   note.textContent += t("histLag");
   if (st && pts.length < 2) { msg(t("histEmpty")); return; }
   drawHist(box, pts, start, now);
