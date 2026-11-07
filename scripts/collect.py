@@ -137,13 +137,20 @@ def region_stats(cur):
     return out
 
 
+ISO_RE = re.compile(r"^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})(\.\d+)?(Z|[+-]\d{2}:\d{2})?$")
+FUTURE_TOLERANCE_MIN = 10
+
+
 def parse_time(s):
-    """Horodatage ISO complet (Z ou décalage) → UTC. Sans fuseau : considéré comme UTC."""
-    try:
-        d = datetime.fromisoformat(s.strip().replace("Z", "+00:00"))
-    except ValueError:  # format inattendu (ex. trop de décimales sur un vieux Python) : secondes seulement, en UTC
-        d = datetime.strptime(s.strip()[:19], "%Y-%m-%dT%H:%M:%S")
-    return (d if d.tzinfo else d.replace(tzinfo=timezone.utc)).astimezone(timezone.utc)
+    """Horodatage ISO strict → UTC. Accepte Z, un décalage valide ou rien (= UTC) et toute longueur de fraction
+    (ramenée à 6 chiffres). Toute autre forme est refusée (ValueError) : on n'enregistre rien plutôt que de deviner."""
+    m = ISO_RE.match(str(s).strip())
+    if not m:
+        raise ValueError(f"horodatage invalide : {s!r}")
+    base, frac, tz = m.groups()
+    tz = "+00:00" if tz in (None, "Z") else tz
+    d = datetime.fromisoformat(base + (frac[:7].ljust(7, "0") if frac else "") + tz)  # décalage impossible → ValueError
+    return d.astimezone(timezone.utc)
 
 
 def epoch_min(stamp):
@@ -223,7 +230,12 @@ def main(data_dir, local=None):
         print(f"Fichier de la Régie inchangé ({gen}) : rien à enregistrer.")
         return 0
 
-    when = parse_time(gen) if gen else datetime.now(timezone.utc)
+    try:
+        when = parse_time(gen) if gen else datetime.now(timezone.utc)
+    except ValueError as e:
+        raise SystemExit(f"Fichier de la Régie refusé : {e}. Rien n'est enregistré.")
+    if (when - datetime.now(timezone.utc)).total_seconds() > FUTURE_TOLERANCE_MIN * 60:
+        raise SystemExit(f"Fichier de la Régie daté dans le futur ({gen}) : refusé, rien n'est enregistré.")
     prev = parse_time(meta["generated_at"]) if meta.get("generated_at") else None
     if prev and when < prev:
         print(f"Fichier de la Régie plus ancien que le dernier enregistré ({gen} < {meta['generated_at']}) : ignoré.")
