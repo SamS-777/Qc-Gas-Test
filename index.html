@@ -209,7 +209,7 @@ h1 { font: 600 1.75rem/1.05 var(--serif); letter-spacing: -.01em; margin: 0; tex
 .rest-list li + li { border-top: 1px solid var(--line) }
 .rest-list li.open { background: var(--panel) }
 .rest-list .links { padding: 0 12px 12px }
-.row-main { width: 100%; display: grid; grid-template-columns: minmax(0, 1fr) auto 62px; gap: 10px; align-items: center; padding: 9px 12px; background: none; border: 0; color: inherit; font: inherit; text-align: left; cursor: pointer }
+.row-main { width: 100%; display: grid; grid-template-columns: minmax(0, 1fr) auto 74px; gap: 10px; align-items: center; padding: 9px 12px; background: none; border: 0; color: inherit; font: inherit; text-align: left; cursor: pointer }
 .row-main:hover { background: var(--panel) }
 .r-who { min-width: 0 }
 .r-who b, .r-who small { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
@@ -1258,7 +1258,7 @@ function restRow(s, near) {
   const u = document.createElement("small"); u.textContent = "¢"; pr.append(u);
   const band = priceBand(s), d = s.eff - lastMedian;
   const dif = document.createElement("span"); dif.className = "dif " + band;
-  dif.textContent = band === "eq" ? t("difMed") : `${d < 0 ? "−" : "+"}${num(Math.abs(d))} ¢`;
+  dif.textContent = band === "eq" ? t("difMed") : `${d < 0 ? "−" : "+"}${num(Math.abs(d))} ¢/L`;
   btn.append(who, pr, dif);
   btn.addEventListener("click", () => {
     const open = !li.classList.contains("open");
