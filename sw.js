@@ -5,7 +5,7 @@
    - Les caches portent le préfixe « essence- » : le domaine github.io est partagé avec d'autres projets,
      on ne touche jamais à leurs caches. */
 const PREFIX = "essence-";
-const VERSION = PREFIX + "v19";
+const VERSION = PREFIX + "v20";
 // Indispensables : l'installation échoue (et l'ancienne version reste active) s'ils ne sont pas téléchargés.
 const SHELL = [
   "./",

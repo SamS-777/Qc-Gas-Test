@@ -1,7 +1,44 @@
-# Réponse à la revue — Essence sur mon trajet
+# Réponse aux revues — Essence sur mon trajet
+
+Ce fichier contient deux réponses : **la réponse à la contre-revue de v19 (v20, en premier)**, puis la réponse initiale à la première revue (v19, plus bas, inchangée sauf P3-9).
+
+---
+
+## Réponse à la contre-revue v19 → version v20
+
+- **Contre-revue :** « Contre-revue — Essence sur mon trajet, version corrigée v19 », 2026-11-07 (1 P1, 7 P2, 4 P3).
+- **Version corrigée :** service worker `essence-v20`, en ligne.
+- **Position :** les 12 constats sont acceptés. Deux d'entre eux sont des défauts introduits par la passe v19 (P2-5 et P2-6 de la contre-revue). Le refus initial de P3-9 (« Super 91 ») est **retiré** : sa justification reposait sur une définition de la Régie que je n'ai pas pu retrouver dans une source.
+- **Vérification :** chaque reproduction de la contre-revue a été rejouée dans un navigateur (Playwright, réponses simulées et un serveur local qui envoie les en-têtes puis bloque le corps), ou en ligne de commande pour le collecteur. Toutes les suites précédentes repassent sans erreur JS.
+
+| # contre-revue | Statut | Ce qui a changé | Vérification |
+|---|---|---|---|
+| P1-1 Flux complet mais plus ancien accepté | ✅ | `parseGen()` lit `metadata.generated_at` (ISO strict, toute longueur de fraction, `Z` ou décalage). Avant de remplacer les données : si des prix sont déjà en mémoire, un fichier sans heure, daté de plus d'1 h dans le futur ou **plus ancien** que celui en mémoire est refusé, et l'ancien est conservé. La fraîcheur affichée repose sur `generatedMs`, plus sur l'heure de téléchargement. Avertissements : « non rafraîchis (N min) » si l'actualisation échoue ou si l'âge dépasse 30 min ; « prix datés de *date heure* » au-delà de 2 h ; « heure inconnue » si le premier fichier n'a pas d'heure valide. Le bandeau montre la date quand ce n'est pas aujourd'hui. | Fichier récent chargé, puis fichier complet daté de la veille au rafraîchissement : rejeté, `generatedMs` inchangé, avertissement affiché. Premier fichier daté de 2099 : accepté faute d'alternative, avec « Heure des prix de la Régie inconnue ». |
+| P2-1 Délai limité aux en-têtes | ✅ | `fetchT()` lit et décode le corps **dans** le même `try/finally` que le minuteur. Retour `{ok, status, data}`, avec un mode `json`, `json?` (TomTom : `{}` si le JSON est invalide) ou `buffer` (Régie). Tous les appels ont été adaptés. | Serveur local qui envoie `200` puis un corps jamais terminé : erreur « n'a pas répondu à temps » après 1,5 s, en mode JSON comme en mode buffer. |
+| P2-2 Chargements en double, sans délai de reprise | ✅ | Un seul téléchargement partagé (`stationLoad`) entre le démarrage et les recherches ; le démarrage passe par `ensureStations()`. Prochain essai 5 min après un succès, 1 min après un échec ; entre-temps, les recherches utilisent les prix en mémoire sans réattendre. `freshState = "down"` seulement s'il n'y a **aucune** donnée. | Recherche lancée pendant le premier téléchargement (ralenti de 1,2 s) : 1 seule requête. Rafraîchissement en échec puis 3 recherches rapprochées : 1 seule tentative, état non « down », résultats affichés. |
+| P2-3 Échecs Google autres que `gm_authFailure` | ✅ | `markGoogle(kind)` centralise les échecs. `denied` met `googleBad` (définitif jusqu'au changement de clé). `quota` (10 min) et `down` (2 min, pour un script injoignable, une erreur ou un délai) mettent `googleDownUntil`. `googleOn()` tient compte des deux. `script.onerror` remet `gmapsPromise` à `null` et retire la balise, pour permettre un nouvel essai. `gError()` classe chaque erreur de `computeRoutes`. Le `catch` d'`initMap()` marque la panne et synchronise l'indicateur. Avertissements distincts : refus de clé, ou panne temporaire. | Script Google bloqué, clé présente : carte Esri, indicateur « Google indisponible », `googleDownUntil` à +120 s, avertissement présent. Scénarios simulés « clé refusée » et « quota » repassés. |
+| P2-4 Mutations hors génération (`geocode`, `routeNote`) | ✅ | `geocode()` n'a plus d'effet de bord : il retourne `{…, q, found}`, et l'appelant appelle `commitPick()` seulement si sa recherche est courante **et** si le texte du champ n'a pas changé. `getRoutes()` retourne `{routes, note}` ; plus de variable globale `routeNote`. La note de repli s'ajoute aux avertissements durables dans `noteText()` au lieu de les remplacer. | Géocodage ralenti, champ modifié pendant l'attente : ni indice ni `picked` réécrits. Scénario quota : la note de repli et l'avertissement sur les prix s'affichent ensemble. |
+| P2-5 Rabais restauré jusqu'à 99 ¢ | ✅ | Constante unique `MAX_REBATE = 50`, partagée par l'attribut de saisie, le gestionnaire et le chargement. Les valeurs hors limite sont rejetées et la forme normalisée est réécrite dans le stockage. | `{"Shell":99,"Esso":5,"Ultramar":50.5}` au démarrage → `{"Esso":5}` en mémoire et dans le stockage. |
+| P2-6 Jeton de reprise global aux trois carburants | ✅ | Un jeton par carburant (`histTry[code]`). La reprise relance aussi le rendu. | R en échec, passage à S (chargé), attente de 61 s, retour à R : nouvelle requête R envoyée (2 au total). |
+| P2-7 Horodatages invalides ou futurs acceptés par le collecteur | ✅ | Le fallback qui tronquait a été supprimé. Une expression régulière stricte valide le format, la fraction est ramenée à 6 chiffres (compatible Python 3.9), puis `fromisoformat` rejette un décalage impossible. Une forme invalide ou une date à plus de 10 min dans le futur ⇒ refus, code de sortie 1 (la tâche GitHub échoue visiblement), **avant toute écriture**. | Valeur réelle à 7 décimales acceptée ; `-04:00` converti ; `+25:00`, `NOT-ISO` et `2099-…` refusés sans écriture ; fichier antérieur ignoré ; `meta.json` intact. |
+| P3-1 Cache de détours étiqueté par le fournisseur demandé | ✅ | La valeur est enregistrée avec le fournisseur **effectif** (`pv`). Réutilisation : 10 min si `pv` est le fournisseur prioritaire actuel, 2 min pour un repli, et seulement si `pv` fait encore partie de la chaîne. Les échecs ne sont plus mis en cache. La clé inclut le fournisseur du trajet choisi. | Revue de code et suites de détours. |
+| P3-2 Détours séquentiels, budget jusqu'à 220 s | ✅ | Disjoncteur par lot : un fournisseur qui échoue ou expire n'est plus sollicité pour les stations suivantes. Pire cas ≈ un délai par fournisseur (Google 20 s, TomTom 12 s, OSRM 12 s), soit environ 44 s au lieu de 220 s. Une panne Google est aussi mémorisée par `markGoogle` pour les recherches suivantes. La séquentialité est conservée par respect des services publics. Commentaire ajouté : `withTimeout` cesse d'attendre Google mais n'annule pas l'opération. | OSRM bloqué 30 s sur les calculs de temps : les 5 badges sont résolus en 12 s (au lieu de 60 s). |
+| P3-3 Documentation de `meta.json` | ✅ | README corrigé : le fichier indique le dernier passage ayant traité un **nouveau** fichier de la Régie ; pour savoir si la collecte tourne, il faut regarder l'onglet *Actions*. | — |
+| P3-4 « Super 91 » | ✅ (refus retiré) | Libellé « Super » (FR) / « Premium » (EN), avec l'infobulle « Indice d'octane non précisé par la Régie ». La documentation a été alignée. | — |
+
+### Fichiers modifiés en v20
+- **`index.html`** : tous les points ci-dessus, sauf P2-7 et P3-3.
+- **`sw.js`** : version `essence-v20` uniquement.
+- **`scripts/collect.py`** : P2-7.
+- **`README.md`** : P3-3.
+- **`APP_OVERVIEW.md`** : sections mises à jour, plages de lignes de v20.
+
+---
+
+# Réponse initiale à la première revue (v19)
 
 - **Revue d'origine :** « Revue exhaustive — Essence sur mon trajet », 2026-11-07.
-- **Version corrigée :** celle de ce paquet (service worker `essence-v19`). Elle est en ligne sur https://sams-777.github.io/Qc-Gas-Test/.
+- **Version corrigée :** service worker `essence-v19` (remplacée depuis par v20, voir plus haut). Le site est https://sams-777.github.io/Qc-Gas-Test/.
 - **Statuts utilisés :**
   - ✅ **Corrigé**
   - 🟡 **Partiel / requalifié** : corrigé autrement que proposé, ou gravité revue
@@ -69,7 +106,7 @@ Chaque correction a été vérifiée par un test navigateur ciblé (Playwright, 
 | P3-6 Diagnostics PWA invisibles | ⏳ | — |
 | P3-7 Google Maps en canal `weekly` | ❌ (pour l'instant) | La classe `Route` de la bibliothèque `routes` n'est peut-être pas disponible sur le canal trimestriel ; ça n'a pas été vérifié. Changer de canal risque de casser les trajets. À réévaluer avec des tests automatisés. |
 | P3-8 Manifeste en français seulement | ❌ | Public francophone, l'anglais est secondaire. |
-| P3-9 « Super 91 » trop précis | ❌ | La Régie définit elle-même l'essence super comme le 91 dans ses données : le libellé reflète la source. |
+| P3-9 « Super 91 » trop précis | ❌ → ✅ en v20 | ~~Refus initial.~~ La justification (une définition de la Régie) n'a pas pu être sourcée : refus retiré, voir la réponse v20 (P3-4). |
 | P3-10 Fuseau et horloge de l'appareil | ⏳ | Le public cible est au Québec. Faible impact. |
 | P3-11 Croissance de la branche `historique` | ⏳ | Valide. Compactage périodique de la branche prévu (lot B). |
 | P3-12 Action GitHub non épinglée par SHA | ❌ | Action officielle `actions/checkout@v4`. Valeur faible pour ce projet. |

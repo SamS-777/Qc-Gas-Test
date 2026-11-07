@@ -68,7 +68,7 @@ Une tâche automatique (*Actions* → *Historique des prix*) lit le fichier de l
 | `data/changes/AAAA-MM.csv` | Chaque changement : heure (UTC), station, carburant (R/S/D), prix en ¢/L (vide = plus disponible) |
 | `data/state.jsonl` | Dernier prix connu, nom, bannière, adresse, région et position de chaque station |
 | `data/summary/regions.json` | Par jour, région et carburant : min, 1er quartile, médiane, 3e quartile, max, nombre de stations |
-| `data/meta.json` | Dernier passage (pour vérifier que la collecte tourne) |
+| `data/meta.json` | Dernier passage ayant traité un **nouveau** fichier de la Régie (un passage sans nouveau fichier ne le modifie pas). Pour savoir si la collecte tourne, regarder l'onglet *Actions* |
 
 - **Pour arrêter :** *Actions* → *Historique des prix* → **⋯** → *Disable workflow*.
 - **Pour relancer à la main :** même endroit → *Run workflow*.

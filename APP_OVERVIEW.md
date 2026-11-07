@@ -5,7 +5,7 @@
 - **Live site:** https://sams-777.github.io/Qc-Gas-Test/ (GitHub Pages, repo `SamS-777/Qc-Gas-Test`, branch `main`)
 - **Users:** the owner and a few friends. Personal project, no backend, no accounts, no analytics.
 - **UI language:** French by default, English toggle. Code comments are in French.
-- **Status:** working in production. A first external review (Codex, 2026-11-07) has been answered. See `REVIEW_RESPONSE.md` for the point-by-point response and what changed.
+- **Status:** working in production. Two external review rounds (Codex, 2026-11-07: review, then a counter-review of v19) have been answered. See `REVIEW_RESPONSE.md` for the point-by-point responses and what changed.
 
 ---
 
@@ -13,7 +13,7 @@
 
 | Path | Role | Size |
 |---|---|---|
-| `index.html` | The whole app: HTML, CSS and JS inline, no build step | ~2,280 lines |
+| `index.html` | The whole app: HTML, CSS and JS inline, no build step | ~2,340 lines |
 | `sw.js` | Service worker (app-shell cache, network-first page) | ~90 lines |
 | `vendor/leaflet/` | Leaflet 1.9.4 (JS, CSS, control images, licence), self-hosted. Byte-identical to the npm registry tarball | — |
 | `manifest.webmanifest` | PWA manifest | — |
@@ -76,7 +76,7 @@ External runtime dependencies (no npm, no bundler):
 ### 2.7 Other
 - **Theme:** Auto, Clair or Sombre, with a matching Google map style.
 - **Language:** FR or EN.
-- **Fuel:** Régulier, Super 91 or Diesel. The Régie publishes only one "Super" grade, so there is no 91/94 split.
+- **Fuel:** Régulier, Super or Diesel. The Régie publishes a single "Super" grade with no octane rating, so the UI says "Super" (tooltip: octane not specified by the Régie).
 - **Fill size** in litres, used for the $ figures.
 - **Installable PWA** that also works offline for the app shell. Prices are never cached.
 
@@ -95,7 +95,7 @@ External runtime dependencies (no npm, no bundler):
 | Esri World Street Map tiles (Leaflet) | Map when there is no Google key; OSM France tiles as a second fallback | none | — |
 | raw.githubusercontent.com (branch `historique`) | Price history series | none | "Historique indisponible" message, retried after 60 s |
 
-Routing provider order: **Google → TomTom → OSRM**. In route mode, detours always use the same provider as the selected route, so detour = (route via station) − (selected route).
+Routing provider order: **Google → TomTom → OSRM**. Google has two failure states: `googleBad` (key/API/site refused, permanent until the key changes) and `googleDownUntil` (script unreachable, timeout or quota: Google is skipped for 2 to 10 min, then retried). Both update the provider badge and a persistent warning. In route mode, detours always use the same provider as the selected route, so detour = (route via station) − (selected route).
 
 ---
 
@@ -103,25 +103,25 @@ Routing provider order: **Google → TomTom → OSRM**. In route mode, detours a
 
 A single file. A few markers so the reviewer doesn't have to read it top to bottom:
 
-| Lines (approx.) | Section |
+| Lines (v20) | Section |
 |---|---|
 | 1–505 | `<head>`, CSS design tokens (light/dark, `--clay`, `--good`, `--bad`, …) and component CSS. Markup: header, form, results, map column |
 | 507–608 | **Pure logic:** `projector`, `nearestOnRoute`, `haversineKm`, `effective`, `item`, `finish` (sort + median + fill), `rankOnRoute`, `inPoly`, `polyCenter`, `rankPoly`, `rankNearby` |
 | 609–615 | `store` — `localStorage` wrapper with prefix `et_`, try/catch on every access |
-| 616–760 | `I18N` (fr, en) and `t(key, vars)` with `{placeholder}` interpolation |
-| 813–823 | `fetchT(url, opts, ms)` (fetch with timeout) and `withTimeout(promise, ms)` (used for Google `computeRoutes`) |
-| 824–890 | Feed loading. `loadStations` fetches, detects gzip manually, decompresses with `DecompressionStream`, then runs `compact()` into arrays `[lat, lon, name, brand, address, R, S, D]` with range-checked coordinates. Fewer than 500 stations is rejected **before** replacing data in memory. `ensureStations()` falls back to the previous data with a warning if a refresh fails. `noteText()` produces persistent warnings (stale prices, Google fallback). |
-| 891–960 | Brand filter and rebates. Stored preferences are type-checked. |
-| 961–1036 | Geocoding (Photon, Nominatim) and the autocomplete widget. The location bias sent to Photon is rounded to about 1 km. |
-| 1037–1237 | Routing: TomTom, OSRM, Google (`loadGoogle`, `gCompute`, `routesGoogle`, `travelGoogle`) and the `getRoutes` fallback chain. `computeDetours` runs sequentially, with a 10-min TTL cache capped at 300 entries and cleared on key change, plus a generation counter `detGen`. |
-| 1238–1362 | Settings getters, `setMode` (which cancels any search in flight), `clearResults`, `rerender`, `render` |
-| 1363–1445 | Navigation links, other-stations list and dots helpers |
-| 1446–1619 | Map point picking (placement mode, long-press), polygon drawing mode, `runZone` |
-| 1620–1824 | Price-history chart. A pure-JS SHA-1 builds the station key. `histLoad` validates the JSON, keeps a 10-min TTL and retries per attempt. `histRender` and `drawHist` (SVG) draw it. |
-| 1825–2100 | Map adapters (`leafletAdapter`, `googleAdapter`, same interface), `initMap` / `useEsri` / `onGoogleFail`, `draw()` |
-| 2101–2160 | Favourites (validated on load) |
-| 2161–2237 | Events. The search generation (`searchGen`, `busy`, `cancelSearch`) lets a newer search or a mode change make older ones stale; after each `await`, a stale search returns without touching state. |
-| 2238–end | Startup and service-worker registration |
+| 616–814 | `I18N` (fr, en) and `t(key, vars)` with `{placeholder}` interpolation |
+| 815–838 | `fetchT(url, opts, ms, as)` — the timeout covers the **whole** response (headers and body); it returns `{ok, status, data}` with the body already parsed (`json`, `json?` or `buffer`). `withTimeout(promise, ms)` stops waiting for Google `computeRoutes` but cannot cancel it. |
+| 839–932 | Feed loading. `loadStations` fetches, detects gzip manually, decompresses with `DecompressionStream` and runs `compact()` into arrays `[lat, lon, name, brand, address, R, S, D]` with range-checked coordinates. It rejects fewer than 500 stations, and a feed older than the one in memory (`parseGen` reads `metadata.generated_at`), **before** replacing data. `ensureStations()` runs a single shared download (`stationLoad`), schedules the next attempt 5 min after a success or 1 min after a failure, and keeps the previous data on failure. `noteText()` composes the persistent warnings: route fallback, stale/old/undated prices (judged on `generated_at`, not download time), and Google refused/down. |
+| 933–1004 | Brand filter and rebates. Stored preferences are type-checked. |
+| 1005–1083 | Geocoding (Photon, Nominatim) and the autocomplete widget. The location bias sent to Photon is rounded to about 1 km. |
+| 1084–1301 | Routing: TomTom, OSRM, Google (`loadGoogle`, `gCompute`, `routesGoogle`, `travelGoogle`, `markGoogle`) and `getRoutes`, which returns `{routes, note}` (no shared global). `computeDetours` is sequential with a per-batch circuit breaker: a provider that fails is skipped for the remaining stations. The cache records the provider that actually answered (10 min for the primary, 2 min for a fallback, failures not cached), is capped at 300 entries and is cleared on key change. |
+| 1302–1426 | Settings getters, `setMode` (which cancels any search in flight), `clearResults`, `rerender`, `render` |
+| 1427–1509 | Navigation links, other-stations list and dots helpers |
+| 1510–1683 | Map point picking (placement mode, long-press), polygon drawing mode, `runZone` |
+| 1684–1888 | Price-history chart. A pure-JS SHA-1 builds the station key. `histLoad` validates the JSON, keeps a 10-min TTL and retries per attempt. `histRender` and `drawHist` (SVG) draw it. |
+| 1889–2166 | Map adapters (`leafletAdapter`, `googleAdapter`, same interface), `initMap` / `useEsri` / `onGoogleFail`, `draw()` |
+| 2167–2226 | Favourites (validated on load) |
+| 2227–2304 | Events. The search generation (`searchGen`, `busy`, `cancelSearch`) lets a newer search or a mode change make older ones stale; after each `await`, a stale search returns without touching state. `geocode()` has no side effects; the caller commits the result (`commitPick`) only if its search is current and the field text is unchanged. |
+| 2305–2344 | Startup and service-worker registration |
 
 Key global state:
 - **Data:** `stations` (compact array), `lastMode`, `lastA`, `lastB`, `lastRoutes`, `lastRoute`, `sel`.
@@ -140,7 +140,7 @@ Key global state:
 - `costco` — legacy, migration only.
 
 ### Service worker (`sw.js`)
-- **Cache name:** `VERSION = "essence-v19"`, bumped manually on each release. Activation deletes only caches starting with `essence-`, because the `github.io` origin is shared with the owner's other projects.
+- **Cache name:** `VERSION = "essence-v20"`, bumped manually on each release. Activation deletes only caches starting with `essence-`, because the `github.io` origin is shared with the owner's other projects.
 - **Install:** the minimal shell (`./`, `index.html`, manifest, Leaflet JS/CSS) must download or the install fails, so the old version stays active. Icons and images are optional.
 - **Navigation:** network-first. Only a valid HTML response replaces the cached `index.html`, and `cache.put` is awaited. The cached page is the offline fallback.
 - **Same-origin files and Google Fonts:** cache-first, with a background refresh kept alive by `event.waitUntil`. Same-origin files are cached only if `ok`.
@@ -171,7 +171,7 @@ Key global state:
 
 ## 6. Known limitations and deliberate trade-offs
 
-1. **Single ~2,280-line HTML file, no build, no automated tests in the repo.** Testing was done with throwaway Playwright scripts outside the repo:
+1. **Single ~2,340-line HTML file, no build, no automated tests in the repo.** Testing was done with throwaway Playwright scripts outside the repo:
    - mocked Régie, Photon, TomTom and OSRM responses;
    - a fake `google.maps` stub;
    - phone and desktop viewports, light and dark;

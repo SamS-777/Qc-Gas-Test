@@ -397,7 +397,7 @@ ol.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px }
         <legend class="lbl" data-i18n="fuel">Carburant</legend>
         <div class="seg-row">
           <input type="radio" name="fuel" id="fuel0" value="0" checked><label for="fuel0" data-i18n="fuelReg">Régulier</label>
-          <input type="radio" name="fuel" id="fuel1" value="1"><label for="fuel1" data-i18n="fuelSup">Super 91</label>
+          <input type="radio" name="fuel" id="fuel1" value="1"><label for="fuel1" data-i18n="fuelSup" data-i18n-title="fuelSupNote" title="Indice d'octane non précisé par la Régie">Super</label>
           <input type="radio" name="fuel" id="fuel2" value="2"><label for="fuel2" data-i18n="fuelDie">Diesel</label>
         </div>
       </fieldset>
@@ -621,7 +621,7 @@ const I18N = {
     modeLabel: "Mode de recherche", modeRoute: "Sur mon trajet", modeNear: "Près de moi", favorites: "Favoris",
     from: "Départ", to: "Destination", addrPh: "Adresse ou lieu", useLoc: "Utiliser ma position", swap: "Inverser départ et destination",
     myLoc: "Ma position", savedLoc: "Position enregistrée",
-    fuel: "Carburant", fuelReg: "Régulier", fuelSup: "Super 91", fuelDie: "Diesel",
+    fuel: "Carburant", fuelReg: "Régulier", fuelSup: "Super", fuelSupNote: "Indice d'octane non précisé par la Régie", fuelDie: "Diesel",
     corridor: "Écart max du trajet", radius: "Rayon", fill: "Plein",
     brands: "Bannières et rabais", allOn: "Tout cocher", allOff: "Tout décocher", brandHead: "Bannière · stations", rebateHead: "Ton rabais",
     loadingBrands: "Chargement des bannières…", noBrand: "Sans bannière", rebateAria: "Rabais {b}, en cents par litre",
@@ -661,7 +661,8 @@ const I18N = {
     restShow: "Afficher les {n} autres stations", restShow1: "Afficher l'autre station", restHide: "Masquer les autres stations", restMore: "Afficher {n} de plus",
     legBelow: "sous la médiane", legMid: "médiane", legAbove: "au-dessus", difMed: "médiane",
     errFeedBad: "Le fichier de prix de la Régie semble incomplet ({n} stations lues). Réessaie dans quelques minutes.", errTimeout: "Le service n'a pas répondu à temps.",
-    feedStale: "Prix de la Régie non rafraîchis : affichage des prix d'il y a {m} min.", gOffState: "Google indisponible", gFallbackNote: "Google indisponible avec cette clé : carte Esri et trajets sans Google.",
+    feedStale: "Prix de la Régie non rafraîchis : affichage des prix d'il y a {m} min.", feedOld: "Attention : prix de la Régie datés de {d}.",
+    feedNoTime: "Heure des prix de la Régie inconnue.", errFeedOld: "Le fichier de la Régie reçu est plus ancien que celui déjà chargé.", gOffState: "Google indisponible", gFallbackNote: "Google indisponible avec cette clé : carte Esri et trajets sans Google.", gDownNote: "Google ne répond pas pour l'instant : trajets calculés sans Google, nouvel essai dans quelques minutes.",
     detourAlt: "≈ 0 · par un autre chemin", mapNeeded: "La carte n'est pas disponible pour l'instant.",
     histTitle: "Évolution du prix", histZoneWho: "médiane de la zone", histBack: "← Toute la zone", histRange: "Période", hist7: "7 j", hist30: "30 j",
     histLoading: "Chargement de l'historique…", histDown: "Historique indisponible pour l'instant.", histEmpty: "Pas encore d'historique pour cette station.",
@@ -685,7 +686,7 @@ const I18N = {
     modeLabel: "Search mode", modeRoute: "On my route", modeNear: "Near me", favorites: "Favourites",
     from: "From", to: "To", addrPh: "Address or place", useLoc: "Use my location", swap: "Swap start and destination",
     myLoc: "My location", savedLoc: "Saved location",
-    fuel: "Fuel", fuelReg: "Regular", fuelSup: "Premium 91", fuelDie: "Diesel",
+    fuel: "Fuel", fuelReg: "Regular", fuelSup: "Premium", fuelSupNote: "Octane rating not specified by the Régie", fuelDie: "Diesel",
     corridor: "Max distance from route", radius: "Radius", fill: "Fill-up",
     brands: "Brands & discounts", allOn: "Select all", allOff: "Clear all", brandHead: "Brand · stations", rebateHead: "Your discount",
     loadingBrands: "Loading brands…", noBrand: "No brand", rebateAria: "{b} discount, in cents per litre",
@@ -725,7 +726,8 @@ const I18N = {
     restShow: "Show the {n} other stations", restShow1: "Show the other station", restHide: "Hide the other stations", restMore: "Show {n} more",
     legBelow: "below median", legMid: "median", legAbove: "above", difMed: "median",
     errFeedBad: "The Régie price file looks incomplete ({n} stations read). Try again in a few minutes.", errTimeout: "The service did not answer in time.",
-    feedStale: "Régie prices not refreshed: showing prices from {m} min ago.", gOffState: "Google unavailable", gFallbackNote: "Google unavailable with this key: Esri map and routes without Google.",
+    feedStale: "Régie prices not refreshed: showing prices from {m} min ago.", feedOld: "Warning: Régie prices dated {d}.",
+    feedNoTime: "Time of the Régie prices unknown.", errFeedOld: "The Régie file received is older than the one already loaded.", gOffState: "Google unavailable", gFallbackNote: "Google unavailable with this key: Esri map and routes without Google.", gDownNote: "Google isn't responding right now: routes calculated without Google, retrying in a few minutes.",
     detourAlt: "≈ 0 · via another way", mapNeeded: "The map isn't available right now.",
     histTitle: "Price history", histZoneWho: "area median", histBack: "← Whole area", histRange: "Period", hist7: "7 d", hist30: "30 d",
     histLoading: "Loading history…", histDown: "History unavailable right now.", histEmpty: "No history yet for this station.",
@@ -761,7 +763,7 @@ var lastPoly = null, lastPolyName = "", drawing = false, drawPts = [];
 let lastRest = [], restOpen = false, restShown = REST_STEP, restKey = "", restDots = new Map();
 const FEED_URL = "https://regieessencequebec.ca/stations.geojson.gz";
 const FUEL_KEYS = { "Régulier": 0, "Super": 1, "Diesel": 2 };
-let stations = null, loadedAt = 0, generatedAt = null, here = null, mapA = null, markers = [];
+let stations = null, loadedAt = 0, generatedAt = null, generatedMs = 0, here = null, mapA = null, markers = [];
 let lastRoute = null, lastA = null, lastB = null, lastTop = [], lastMode = null;
 let mode = "route", lastMedian = 0;
 
@@ -811,12 +813,25 @@ function setLang(x) {
 }
 
 /* Réseau : délai maximal pour chaque requête (une requête bloquée ne doit pas figer l'appli). */
-function fetchT(url, opts = {}, ms = 12000) {
+// Le délai couvre la réponse COMPLÈTE (en-têtes et corps) : le minuteur n'est levé qu'après la lecture du corps.
+// as = "json" (erreur si JSON invalide), "json?" ({} si JSON invalide) ou "buffer". Retour : { ok, status, data }.
+async function fetchT(url, opts = {}, ms = 12000, as = "json") {
   const c = new AbortController(), id = setTimeout(() => c.abort(), ms);
-  return fetch(url, { ...opts, signal: c.signal })
-    .catch(e => { throw c.signal.aborted ? new Error(t("errTimeout")) : e; })
-    .finally(() => clearTimeout(id));
+  try {
+    const r = await fetch(url, { ...opts, signal: c.signal });
+    let data;
+    if (as === "buffer") data = new Uint8Array(await r.arrayBuffer());
+    else {
+      const txt = await r.text();
+      try { data = JSON.parse(txt); }
+      catch (e) { if (as === "json?") data = {}; else throw e; }
+    }
+    return { ok: r.ok, status: r.status, data };
+  } catch (e) {
+    throw c.signal.aborted ? new Error(t("errTimeout")) : e;
+  } finally { clearTimeout(id); }
 }
+// N'annule pas l'opération sous-jacente (Google ne le permet pas) : on cesse seulement de l'attendre.
 function withTimeout(promise, ms) {
   let id;
   return Promise.race([promise, new Promise((_, rej) => { id = setTimeout(() => rej(new Error(t("errTimeout"))), ms); })]).finally(() => clearTimeout(id));
@@ -846,33 +861,55 @@ function compact(doc) {
   }
   return out;
 }
-let freshState = "loading", feedStale = false;
-// Prix de moins de 5 min : on les garde. Sinon on rafraîchit ; en cas d'échec, on continue avec les anciens prix (avec un avertissement).
-async function ensureStations() {
-  if (stations && Date.now() - loadedAt <= 5 * 60 * 1000) return;
-  try { await loadStations(); }
-  catch (e) { if (!stations) throw e; feedStale = true; }
+let freshState = "loading", feedStale = false, stationLoad = null, nextFeedTry = 0;
+// Un seul téléchargement à la fois, partagé entre le démarrage et les recherches.
+// Après un succès : prochain essai dans 5 min. Après un échec : dans 1 min (les recherches entre-temps utilisent les prix en mémoire).
+function ensureStations() {
+  if (stations && Date.now() < nextFeedTry) return Promise.resolve();
+  if (!stationLoad) {
+    stationLoad = loadStations()
+      .then(() => { nextFeedTry = Date.now() + 5 * 60 * 1000; })
+      .catch(e => {
+        nextFeedTry = Date.now() + 60 * 1000;
+        if (!stations) { freshState = "down"; renderFresh(); throw e; }
+        feedStale = true;
+      })
+      .finally(() => { stationLoad = null; });
+  }
+  return stationLoad;
 }
 // Avertissements durables (repli Google, prix non rafraîchis) : réaffichés après chaque rendu.
 function noteText() {
   const parts = [];
-  if (feedStale && loadedAt) parts.push(t("feedStale", { m: Math.round((Date.now() - loadedAt) / 60000) }));
-  if (googleBad && gKey()) parts.push(t("gFallbackNote"));
+  if (lastMode === "route" && routeNoteNow) parts.push(routeNoteNow);
+  const age = generatedMs ? Math.round((Date.now() - generatedMs) / 60000) : null;
+  if (age == null && stations) parts.push(t("feedNoTime"));
+  else if (feedStale || age > 30) parts.push(age < 120 ? t("feedStale", { m: age }) : t("feedOld", { d: fmtWhen(generatedMs) }));
+  if (gKey() && googleBad) parts.push(t("gFallbackNote"));
+  else if (gKey() && !googleOn()) parts.push(t("gDownNote"));
   return parts.join(" ");
+}
+function fmtWhen(ms) {
+  const d = new Date(ms), today = new Date().toDateString() === d.toDateString();
+  return (today ? "" : d.toLocaleDateString(LOC, { day: "numeric", month: "short" }) + " ") + d.toLocaleTimeString(LOC, { hour: "2-digit", minute: "2-digit" });
 }
 function renderFresh() {
   if (freshState === "loading") { $("fresh").textContent = t("loadingPrices"); return; }
   if (freshState === "down") { $("fresh").textContent = t("pricesDown"); return; }
-  const tm = generatedAt ? new Date(generatedAt) : null;
   $("fresh").textContent = t("freshLine", { n: stations.length.toLocaleString(LOC) })
-    + (tm ? t("freshAt", { t: tm.toLocaleTimeString(LOC, { hour: "2-digit", minute: "2-digit" }) }) : "");
+    + (generatedMs ? t("freshAt", { t: fmtWhen(generatedMs) }) : "");
+}
+// Heure de production du fichier de la Régie (ISO, fractions de seconde quelconques, Z ou décalage). NaN si absente ou invalide.
+function parseGen(v) {
+  const m = String(v || "").trim().match(/^(\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d)(\.\d+)?(Z|[+-]\d\d:\d\d)$/);
+  return m ? Date.parse(m[1] + (m[2] ? m[2].slice(0, 4) : "") + m[3]) : NaN;
 }
 async function loadStations() {
   let r;
-  try { r = await fetchT(FEED_URL, { cache: "no-store" }, 25000); }
+  try { r = await fetchT(FEED_URL, { cache: "no-store" }, 25000, "buffer"); }
   catch { throw new Error(t("errRegie")); }
   if (!r.ok) throw new Error(t("errRegieCode", { c: r.status }));
-  const buf = new Uint8Array(await r.arrayBuffer());
+  const buf = r.data;
   const text = buf[0] === 0x1f && buf[1] === 0x8b
     ? await new Response(new Blob([buf]).stream().pipeThrough(new DecompressionStream("gzip"))).text()
     : new TextDecoder().decode(buf);
@@ -880,8 +917,13 @@ async function loadStations() {
   // Validé avant de remplacer les données en mémoire : un fichier partiel ne doit pas écraser des prix valides.
   const fresh = compact(doc);
   if (fresh.length < 500) throw new Error(t("errFeedBad", { n: fresh.length }));
+  // La fraîcheur se juge sur l'heure de production du fichier, pas sur l'heure du téléchargement.
+  const gen = parseGen(doc.metadata && doc.metadata.generated_at);
+  const suspect = !Number.isFinite(gen) || gen > Date.now() + 60 * 60 * 1000; // absente, invalide ou dans le futur
+  if (stations && (suspect || gen < generatedMs)) throw new Error(t("errFeedOld")); // jamais de retour en arrière
   stations = fresh; loadedAt = Date.now(); feedStale = false;
-  generatedAt = doc.metadata && doc.metadata.generated_at;
+  generatedAt = suspect ? null : doc.metadata.generated_at;
+  generatedMs = suspect ? 0 : gen;
   freshState = "ok";
   $("live").classList.remove("wait");
   renderFresh();
@@ -893,9 +935,11 @@ const brandLabel = b => b || t("noBrand");
 // Préférences relues avec contrôle de type : une valeur corrompue ne doit pas bloquer le démarrage.
 const offRaw = parseJSON(store.get("brandsOff", null), store.get("costco", "0") === "1" ? [] : ["Costco"]);
 let off = new Set(Array.isArray(offRaw) ? offRaw.filter(x => typeof x === "string") : ["Costco"]);
+const MAX_REBATE = 50; // ¢/L, même limite pour la saisie, le chargement et le stockage
 const rebRaw = parseJSON(store.get("rebates", "{}"), {});
 let rebates = Object.fromEntries(Object.entries(rebRaw && typeof rebRaw === "object" && !Array.isArray(rebRaw) ? rebRaw : {})
-  .filter(([k, v]) => typeof k === "string" && Number.isFinite(+v) && +v >= 0 && +v < 100).map(([k, v]) => [k, +v]));
+  .filter(([k, v]) => typeof k === "string" && Number.isFinite(+v) && +v > 0 && +v <= MAX_REBATE).map(([k, v]) => [k, +v]));
+store.set("rebates", JSON.stringify(rebates)); // forme normalisée
 let brandCounts = [], brandsExpanded = false;
 function buildBrands() {
   const cnt = new Map();
@@ -912,11 +956,11 @@ function buildBrands() {
     lab.append(cb, name, c);
     const u = document.createElement("div"); u.className = "unit mini";
     const r = document.createElement("input");
-    Object.assign(r, { type: "number", inputMode: "decimal", min: "0", max: "50", step: "0.1", placeholder: "0" });
+    Object.assign(r, { type: "number", inputMode: "decimal", min: "0", max: String(MAX_REBATE), step: "0.1", placeholder: "0" });
     r.setAttribute("aria-label", t("rebateAria", { b: brandLabel(b) }));
     if (rebates[b]) r.value = rebates[b];
     r.addEventListener("change", () => {
-      const v = Math.min(50, Math.max(0, parseFloat(String(r.value).replace(",", ".")) || 0));
+      const v = Math.min(MAX_REBATE, Math.max(0, parseFloat(String(r.value).replace(",", ".")) || 0));
       if (v) rebates[b] = v; else delete rebates[b];
       r.value = v || "";
       saveBrands();
@@ -968,7 +1012,7 @@ function photonLabel(p) {
 async function photon(q, limit) {
   // Biais de recherche arrondi (~1 km) : inutile d'envoyer la position exacte au géocodeur.
   const bias = here ? `&lat=${here[0].toFixed(2)}&lon=${here[1].toFixed(2)}` : "&lat=45.52&lon=-73.6";
-  const j = await (await fetchT(`https://photon.komoot.io/api/?lang=${lang}&limit=${limit}&bbox=-79.8,44.9,-57.1,62.6${bias}&q=` + encodeURIComponent(q))).json();
+  const j = (await fetchT(`https://photon.komoot.io/api/?lang=${lang}&limit=${limit}&bbox=-79.8,44.9,-57.1,62.6${bias}&q=` + encodeURIComponent(q))).data;
   const seen = new Set();
   const hits = (j.features || []).map(f => ({ lat: f.geometry.coordinates[1], lon: f.geometry.coordinates[0], label: photonLabel(f.properties), hn: f.properties.housenumber }))
     .filter(h => h.label && !seen.has(h.label) && seen.add(h.label));
@@ -976,8 +1020,8 @@ async function photon(q, limit) {
   return n ? [...hits.filter(h => h.hn === n[1]), ...hits.filter(h => h.hn !== n[1])] : hits;
 }
 async function nominatim(q) {
-  const j = await (await fetchT(`https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&countrycodes=ca&accept-language=${lang}&q=` + encodeURIComponent(q))).json();
-  return j.length ? { lat: +j[0].lat, lon: +j[0].lon, label: j[0].display_name.split(",").slice(0, 3).join(",") } : null;
+  const j = (await fetchT(`https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&countrycodes=ca&accept-language=${lang}&q=` + encodeURIComponent(q))).data;
+  return Array.isArray(j) && j.length ? { lat: +j[0].lat, lon: +j[0].lon, label: j[0].display_name.split(",").slice(0, 3).join(",") } : null;
 }
 async function geocode(field) {
   const q = $(field).value.trim();
@@ -991,9 +1035,12 @@ async function geocode(field) {
   let best = hits[0] || null;
   if (!best) { try { best = await nominatim(q); } catch {} }
   if (!best) throw new Error(t("errAddr", { q }));
-  picked[field] = { ...best, q };
-  $(field + "Hint").textContent = "→ " + best.label;
-  return best;
+  return { ...best, q, found: true }; // l'appelant l'enregistre seulement si sa recherche est toujours la bonne
+}
+function commitPick(field, p) {
+  if (!p || !p.found || $(field).value.trim() !== p.q) return; // le champ a changé entre-temps : on n'écrase rien
+  picked[field] = { lat: p.lat, lon: p.lon, label: p.label, q: p.q };
+  $(field + "Hint").textContent = "→ " + p.label;
 }
 function attachSuggest(field) {
   const input = $(field), box = $(field + "List");
@@ -1049,8 +1096,8 @@ async function routesTomTom(a, b, key) {
   const url = `https://api.tomtom.com/routing/1/calculateRoute/${a.lat},${a.lon}:${b.lat},${b.lon}/json`
     + `?key=${encodeURIComponent(key)}&traffic=true&travelMode=car&routeType=fastest&departAt=now&maxAlternatives=2&instructionsType=text&language=${lang === "en" ? "en-US" : "fr-FR"}`;
   let r;
-  try { r = await fetchT(url, {}, 20000); } catch { throw new Error(t("ttNoAnswer")); }
-  const j = await r.json().catch(() => ({}));
+  try { r = await fetchT(url, {}, 20000, "json?"); } catch { throw new Error(t("ttNoAnswer")); }
+  const j = r.data;
   if (!r.ok) throw ttError(r, j);
   if (!j.routes || !j.routes.length) throw new Error(t("ttNoRoute"));
   const taken = [];
@@ -1064,9 +1111,9 @@ async function routesTomTom(a, b, key) {
 }
 async function routesOSRM(a, b) {
   let j;
-  try { j = await (await fetchT(`https://router.project-osrm.org/route/v1/driving/${a.lon},${a.lat};${b.lon},${b.lat}?overview=full&geometries=geojson&alternatives=3&steps=true`)).json(); }
+  try { j = (await fetchT(`https://router.project-osrm.org/route/v1/driving/${a.lon},${a.lat};${b.lon},${b.lat}?overview=full&geometries=geojson&alternatives=3&steps=true`, {}, 15000)).data; }
   catch { throw new Error(t("errRouteSvc")); }
-  if (j.code !== "Ok" || !j.routes.length) throw new Error(t("errNoRoute"));
+  if (!j || j.code !== "Ok" || !j.routes || !j.routes.length) throw new Error(t("errNoRoute"));
   const taken = [];
   return j.routes.map(rt => {
     const segs = rt.legs.flatMap(l => l.steps.map(s => ({ name: s.name || s.ref || "", m: s.distance })));
@@ -1082,37 +1129,46 @@ function defaultRoute(routes) {
   return best;
 }
 /* Google : bibliothèque « routes » de Maps JavaScript (facturée comme l'API Routes, niveau Pro avec la circulation). */
-let gmapsPromise = null, googleBad = false;
+// googleBad : refus définitif (clé, API, site) jusqu'au changement de clé. googleDownUntil : panne passagère (script, réseau, quota).
+let gmapsPromise = null, googleBad = false, googleDownUntil = 0;
 const gKey = () => $("gkey").value.trim();
-const googleOn = () => !!gKey() && !googleBad;
+const googleOn = () => !!gKey() && !googleBad && Date.now() >= googleDownUntil;
+function markGoogle(kind) {
+  if (kind === "denied") googleBad = true;
+  else googleDownUntil = Date.now() + (kind === "quota" ? 10 : 2) * 60 * 1000;
+  if (typeof syncKey === "function") syncKey();
+}
 function loadGoogle() {
   if (window.google && google.maps && google.maps.importLibrary) return Promise.resolve();
   if (gmapsPromise) return gmapsPromise;
   gmapsPromise = new Promise((resolve, reject) => {
     window.__gmReady = () => resolve();
     // Google appelle cette fonction si la clé est invalide, l'API non activée ou le site non autorisé.
-    window.gm_authFailure = () => { googleBad = true; onGoogleFail(t("gAuthFail")); };
+    window.gm_authFailure = () => { markGoogle("denied"); onGoogleFail(t("gAuthFail")); };
     const s = document.createElement("script");
     s.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(gKey())}&v=weekly&loading=async&callback=__gmReady&language=${lang}&region=CA`;
     s.async = true;
-    s.onerror = () => reject(new Error(t("gLoadFail")));
+    // Script injoignable : panne passagère, nouvel essai possible plus tard avec une nouvelle balise.
+    s.onerror = () => { gmapsPromise = null; s.remove(); markGoogle("down"); reject(new Error(t("gLoadFail"))); };
     document.head.append(s);
   });
   return gmapsPromise;
 }
 function gError(e) {
   const m = String((e && (e.code || e.message)) || e);
-  if (/RESOURCE_EXHAUSTED|quota|OVER_QUERY_LIMIT|429/i.test(m)) return new Error(t("gQuota"));
-  if (/PERMISSION_DENIED|REQUEST_DENIED|API_KEY|not authorized|not activated|disabled|403/i.test(m)) return new Error(t("gDenied"));
+  if (/RESOURCE_EXHAUSTED|quota|OVER_QUERY_LIMIT|429/i.test(m)) { markGoogle("quota"); return new Error(t("gQuota")); }
+  if (/PERMISSION_DENIED|REQUEST_DENIED|API_KEY|not authorized|not activated|disabled|403/i.test(m)) { markGoogle("denied"); return new Error(t("gDenied")); }
+  markGoogle("down");
   return new Error(t("gErr", { w: m.slice(0, 120) }));
 }
 const llOf = p => (typeof p.lat === "function" ? [p.lng(), p.lat()] : [p.lng, p.lat]);
 async function gCompute(req) {
-  await loadGoogle();
-  if (googleBad) throw new Error(t("gDenied"));
-  const { Route } = await google.maps.importLibrary("routes");
-  try { return (await withTimeout(Route.computeRoutes(req), 20000)).routes || []; }
-  catch (e) { throw gError(e); }
+  if (!googleOn()) throw new Error(googleBad ? t("gDenied") : t("gLoadFail"));
+  try {
+    await loadGoogle();
+    const { Route } = await google.maps.importLibrary("routes");
+    return (await withTimeout(Route.computeRoutes(req), 20000)).routes || [];
+  } catch (e) { throw gError(e); }
 }
 async function routesGoogle(a, b) {
   const routes = await gCompute({
@@ -1137,21 +1193,20 @@ async function travelGoogle(pts) {
   if (!routes.length) throw new Error(t("gNoRoute"));
   return { min: routes[0].durationMillis / 60000, km: routes[0].distanceMeters / 1000 };
 }
-let routeNote = "";
+
+// Retourne { routes, note } : la note de repli appartient à cette recherche (pas de variable globale partagée).
 async function getRoutes(a, b) {
-  routeNote = "";
   const notes = [];
   if (googleOn()) {
-    try { return await routesGoogle(a, b); }
+    try { return { routes: await routesGoogle(a, b), note: "" }; }
     catch (e) { notes.push(e.message); }
   }
   const key = $("ttkey").value.trim();
   if (key) {
-    try { const r = await routesTomTom(a, b, key); if (notes.length) routeNote = notes.join(" · ") + " → TomTom."; return r; }
+    try { const r = await routesTomTom(a, b, key); return { routes: r, note: notes.length ? notes.join(" · ") + " → TomTom." : "" }; }
     catch (e) { notes.push(e.message); }
   }
-  if (notes.length) routeNote = t("routeNote", { e: notes.join(" · ") });
-  return routesOSRM(a, b);
+  return { routes: await routesOSRM(a, b), note: notes.length ? t("routeNote", { e: notes.join(" · ") }) : "" };
 }
 let lastRoutes = [], sel = 0;
 const routeName = (r, i) => (r.via ? t("via", { v: r.via }) : t("routeN", { n: i + 1 }));
@@ -1177,15 +1232,15 @@ function chooseRoute(i) { sel = i; lastRoute = lastRoutes[i]; renderRoutes(); re
 /* Vrai détour (trajet) ou temps en voiture (près de moi), par la route, pour les 5 premières stations */
 async function travelTomTom(pts, key) {
   const r = await fetchT(`https://api.tomtom.com/routing/1/calculateRoute/${pts.map(p => `${p.lat},${p.lon}`).join(":")}/json`
-    + `?key=${encodeURIComponent(key)}&traffic=true&travelMode=car&routeType=fastest&departAt=now&routeRepresentation=summaryOnly`);
-  const j = await r.json().catch(() => ({}));
+    + `?key=${encodeURIComponent(key)}&traffic=true&travelMode=car&routeType=fastest&departAt=now&routeRepresentation=summaryOnly`, {}, 12000, "json?");
+  const j = r.data;
   if (!r.ok || !j.routes) throw ttError(r, j);
   const s = j.routes[0].summary;
   return { min: s.travelTimeInSeconds / 60, km: s.lengthInMeters / 1000 };
 }
 async function travelOSRM(pts) {
-  const j = await (await fetchT(`https://router.project-osrm.org/route/v1/driving/${pts.map(p => `${p.lon},${p.lat}`).join(";")}?overview=false`)).json();
-  if (j.code !== "Ok") throw new Error(j.code);
+  const j = (await fetchT(`https://router.project-osrm.org/route/v1/driving/${pts.map(p => `${p.lon},${p.lat}`).join(";")}?overview=false`)).data;
+  if (!j || j.code !== "Ok" || !j.routes || !j.routes.length) throw new Error((j && j.code) || "OSRM");
   return { min: j.routes[0].duration / 60, km: j.routes[0].distance / 1000 };
 }
 const detCache = new Map(), DET_TTL = 10 * 60 * 1000;
@@ -1200,24 +1255,33 @@ async function computeDetours() {
     ? [googleOn() && "google", key && "tomtom", "osrm"].filter(Boolean)
     : [lastRoute.provider];
   const run = (pv, pts) => pv === "google" ? travelGoogle(pts) : pv === "tomtom" ? travelTomTom(pts, key) : travelOSRM(pts);
+  // Disjoncteur : un fournisseur qui échoue (erreur ou délai) n'est plus sollicité pour les stations suivantes de ce lot.
+  // Pire cas : un seul délai par fournisseur, au lieu d'un par station.
+  const dead = new Set();
   const items = lastTop.slice(0, DET_N);
   for (let i = 0; i < items.length; i++) {
     const s = items[i];
-    const ck = [near ? "n" : "r", chain[0], lastA.lat, lastA.lon, near ? "" : `${lastB.lat},${lastB.lon}#${sel}`, s.lat, s.lon].join("|");
-    const hit = detCache.get(ck);
-    if (!hit || Date.now() - hit.at > DET_TTL) {
-      let v = null;
+    const ck = [near ? "n" : "r", lastA.lat, lastA.lon, near ? "" : `${lastB.lat},${lastB.lon}#${sel}#${lastRoute.provider}`, s.lat, s.lon].join("|");
+    const hit = detCache.get(ck), age = hit ? Date.now() - hit.at : Infinity;
+    // Réutilisable : résultat du fournisseur prioritaire (10 min), d'un fournisseur de repli (2 min). Un échec n'est pas mis en cache.
+    const reuse = hit && hit.v && age < (hit.pv === chain[0] ? DET_TTL : 2 * 60 * 1000) && chain.includes(hit.pv);
+    let v = reuse ? hit.v : null;
+    if (!reuse) {
       const pts = near ? [lastA, s] : [lastA, s, lastB];
       for (const pv of chain) {
-        try { const tr = await run(pv, pts); v = near ? tr : { min: tr.min - lastRoute.min, km: tr.km - lastRoute.km }; break; }
-        catch { v = null; }
+        if (dead.has(pv)) continue;
+        try {
+          const tr = await run(pv, pts);
+          v = near ? tr : { min: tr.min - lastRoute.min, km: tr.km - lastRoute.km };
+          if (gen !== detGen) return;
+          detCache.set(ck, { v, pv, at: Date.now() });
+          if (detCache.size > 300) detCache.delete(detCache.keys().next().value);
+          break;
+        } catch { dead.add(pv); }
       }
-      if (gen !== detGen) return;
-      detCache.set(ck, { v, at: Date.now() });
-      if (detCache.size > 300) detCache.delete(detCache.keys().next().value);
     }
     if (gen !== detGen) return;
-    paintDetour(i, detCache.get(ck).v, near);
+    paintDetour(i, v, near);
   }
 }
 const ICON_CAR = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 16h14v-4l-2-5H7l-2 5z"/><circle cx="8" cy="16.5" r="1.6"/><circle cx="16" cy="16.5" r="1.6"/></svg>';
@@ -1473,7 +1537,7 @@ function pickExit() {
 }
 async function reverseLabel(lat, lon) {
   try {
-    const j = await (await fetchT(`https://photon.komoot.io/reverse?lang=${lang}&lat=${lat}&lon=${lon}&limit=5`, {}, 8000)).json();
+    const j = (await fetchT(`https://photon.komoot.io/reverse?lang=${lang}&lat=${lat}&lon=${lon}&limit=5`, {}, 8000)).data || {};
     // Une adresse civique d'abord (plutôt qu'un commerce ou une église voisine), sinon le lieu le plus proche.
     const fs = j.features || [], f = fs.find(x => x.properties.housenumber && x.properties.street) || fs[0];
     if (!f) return "";
@@ -1542,7 +1606,7 @@ function drawExit() {
 }
 async function zoneName(lat, lon) {
   try {
-    const j = await (await fetchT(`https://photon.komoot.io/reverse?lang=${lang}&lat=${lat}&lon=${lon}&limit=1`, {}, 8000)).json();
+    const j = (await fetchT(`https://photon.komoot.io/reverse?lang=${lang}&lat=${lat}&lon=${lon}&limit=1`, {}, 8000)).data || {};
     const p = ((j.features || [])[0] || {}).properties || {};
     return p.district || p.locality || p.street || p.city || "";
   } catch { return ""; }
@@ -1649,7 +1713,7 @@ function stationKey(s) {
   return k;
 }
 const HIST_TTL = 10 * 60 * 1000;
-let histTry = 0;
+const histTry = {}; // un jeton par carburant : la reprise de R ne dépend pas d'un essai de S
 function histValid(d) {
   return d && Number.isFinite(d.t0) && d.s && typeof d.s === "object" &&
     Object.values(d.s).every(v => Array.isArray(v) && v.length % 2 === 0 && v.every(Number.isFinite));
@@ -1659,17 +1723,17 @@ async function histLoad(code) {
   const cur = histData[code];
   if ((cur && Date.now() - cur.at < HIST_TTL) || histErr[code] === "loading" || histErr[code] === "down") return;
   histErr[code] = "loading";
-  const my = ++histTry;
+  const my = histTry[code] = (histTry[code] || 0) + 1;
   try {
     const r = await fetchT(HIST_URL + code + ".json", {}, 15000);
     if (!r.ok) throw new Error(r.status);
-    const d = await r.json();
+    const d = r.data;
     if (!histValid(d)) throw new Error("format");
     histData[code] = { doc: d, at: Date.now() };
     histErr[code] = null;
   } catch {
     histErr[code] = "down";
-    setTimeout(() => { if (histErr[code] === "down" && histTry === my) histErr[code] = null; }, 60000);
+    setTimeout(() => { if (histErr[code] === "down" && histTry[code] === my) { histErr[code] = null; histRender(); } }, 60000);
   }
   histRender();
 }
@@ -2043,7 +2107,9 @@ async function initMap() {
       mapA = g;
     } catch (e) {
       if (my !== mapInit) return;
+      if (!googleBad && Date.now() >= googleDownUntil) markGoogle("down");
       useEsri();
+      syncKey();
       status(t("gLoadFail"), "warn");
     }
   } else useEsri();
@@ -2161,7 +2227,7 @@ function useFav(f) {
 /* Événements */
 // Chaque recherche reçoit un numéro. Changer de mode ou lancer une autre recherche rend les précédentes obsolètes :
 // après chaque attente réseau, une recherche obsolète s'arrête sans rien modifier.
-var searchGen = 0;
+var searchGen = 0, routeNoteNow = "";
 function busy(on) {
   const btn = $("go");
   btn.disabled = on;
@@ -2182,6 +2248,7 @@ $("form").addEventListener("submit", async e => {
     if (m === "near") {
       const a = await geocode("from");
       if (stale()) return;
+      commitPick("from", a);
       lastA = a; lastB = null; lastRoutes = []; lastRoute = null; lastMode = "near"; lastPoly = null;
       $("routesWrap").hidden = true;
       store.set("from", $("from").value);
@@ -2189,14 +2256,14 @@ $("form").addEventListener("submit", async e => {
     } else {
       const [a, b] = await Promise.all([geocode("from"), geocode("to")]);
       if (stale()) return;
-      const routes = await getRoutes(a, b);
+      commitPick("from", a); commitPick("to", b);
+      const { routes, note } = await getRoutes(a, b);
       if (stale()) return;
-      lastA = a; lastB = b; lastRoutes = routes; lastPoly = null;
+      lastA = a; lastB = b; lastRoutes = routes; lastPoly = null; routeNoteNow = note; // affichée avec les autres avertissements
       sel = defaultRoute(lastRoutes); lastRoute = lastRoutes[sel]; lastMode = "route";
       store.set("from", $("from").value); store.set("to", $("to").value);
       renderRoutes();
       render();
-      if (routeNote) status(routeNote, "warn");
     }
   } catch (err) {
     if (!stale()) status(err.message || String(err), "error");
@@ -2237,7 +2304,7 @@ $("swap").addEventListener("click", () => {
 
 /* Démarrage */
 function syncKey() {
-  const g = !!gKey() && !googleBad, tt = !!$("ttkey").value.trim();
+  const g = googleOn(), tt = !!$("ttkey").value.trim();
   $("trafficState").textContent = g ? "Google" : gKey() ? t("gOffState") + (tt ? " · TomTom" : "") : tt ? "TomTom" : t("offState");
   $("trafficState").classList.toggle("on", g || tt);
 }
@@ -2256,7 +2323,7 @@ $("gkey").addEventListener("input", () => { store.set("gkey", gKey()); detCache.
 $("gkey").addEventListener("change", () => {
   const k = gKey();
   if (gmapsPromise) { status(t("gReload"), "warn"); setTimeout(() => location.reload(), 900); return; }
-  googleBad = false;
+  googleBad = false; googleDownUntil = 0;
   if (k) initMap(); else useEsri();
 });
 $("adv").open = !$("ttkey").value.trim() && !gKey();
@@ -2266,7 +2333,7 @@ applyLang();
 setMode(mode);
 renderFavs();
 initMap().catch(() => status(t("mapNeeded"), "warn"));
-loadStations().catch(err => { freshState = "down"; renderFresh(); status(err.message, "error"); });
+ensureStations().catch(err => status(err.message, "error"));
 
 /* Application installable : le service worker n'existe qu'une fois l'appli en ligne (https). */
 if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
