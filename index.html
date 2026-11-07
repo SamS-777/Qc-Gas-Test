@@ -337,7 +337,7 @@ ol.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px }
         </div>
         <div class="num only-near">
           <label class="lbl" for="radius" data-i18n="radius">Rayon</label>
-          <div class="unit"><input id="radius" type="number" inputmode="decimal" min="0.5" max="50" step="0.5" value="3"><span>km</span></div>
+          <div class="unit"><input id="radius" type="number" inputmode="decimal" min="0.5" max="300" step="0.5" value="3"><span>km</span></div>
         </div>
         <div class="num">
           <label class="lbl" for="fillL" data-i18n="fill">Plein</label>
@@ -1040,7 +1040,7 @@ function corridorM() {
 }
 function radiusKm() {
   const v = parseFloat(String($("radius").value).replace(",", "."));
-  return Number.isFinite(v) && v > 0 ? Math.min(50, Math.max(0.5, v)) : 3;
+  return Number.isFinite(v) && v > 0 ? Math.min(300, Math.max(0.5, v)) : 3;
 }
 function fuel() { return +document.querySelector('input[name="fuel"]:checked').value; }
 function opts() { return { fuel: fuel(), fillL: Math.max(1, +$("fillL").value || 40), corridorKm: corridorM() / 1000, radiusKm: radiusKm(), off, rebates }; }
@@ -1063,7 +1063,7 @@ function clearResults() {
   $("summary").hidden = true; $("routesWrap").hidden = true; $("maptag").hidden = true;
   $("empty").hidden = false; $("emptyText").textContent = t(mode === "near" ? "emptyNear" : "emptyRoute");
   status("");
-  if (mapA) mapA.clear();
+  if (mapA) { mapA.clear(); mapA.home(); }
 }
 function rerender() { if (stations && lastMode && lastMode === mode) render(); }
 
@@ -1164,9 +1164,12 @@ function select(i, fromList) {
   if (!fromList) { const c = $("results").children[i]; if (c) c.scrollIntoView({ behavior: "smooth", block: "nearest" }); }
 }
 
+/* Vue de départ : l'île de Montréal (sud-ouest, nord-est) */
+const HOME = [[45.405, -73.95], [45.705, -73.475]];
+
 /* Carte Esri (Leaflet) — sans clé Google, ou en secours */
 function leafletAdapter() {
-  const m = L.map("map", { zoomControl: true, attributionControl: true }).setView([45.53, -73.62], 11);
+  const m = L.map("map", { zoomControl: true, attributionControl: true }).fitBounds(HOME, { padding: [8, 8] });
   m.attributionControl.setPrefix(false);
   // Les tuiles d'OpenStreetMap.org refusent une page ouverte en fichier local : Esri, puis OSM France en secours.
   const esri = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}", {
@@ -1199,6 +1202,7 @@ function leafletAdapter() {
     },
     fit(pts) { if (pts.length) m.fitBounds(L.latLngBounds(pts), { padding: [36, 36] }); },
     flyTo(lat, lon, z) { m.flyTo([lat, lon], Math.max(m.getZoom(), z), { duration: .6 }); },
+    home() { m.fitBounds(HOME, { padding: [8, 8] }); },
     invalidate() { m.invalidateSize(); },
     theme() {},
     destroy() { m.remove(); },
@@ -1229,6 +1233,7 @@ async function googleAdapter() {
     center: { lat: 45.53, lng: -73.62 }, zoom: 11, disableDefaultUI: true, zoomControl: true, clickableIcons: false,
     gestureHandling: "greedy", styles: isDark() ? GOOGLE_DARK : GOOGLE_LIGHT,
   });
+  gm.fitBounds({ south: HOME[0][0], west: HOME[0][1], north: HOME[1][0], east: HOME[1][1] }, 8);
   const info = new InfoWindow({ pixelOffset: new Size(0, -12) });
   // Repère HTML (mêmes pastilles que sur la carte Esri), sans dépendre d'un Map ID.
   class Html extends OverlayView {
@@ -1274,6 +1279,7 @@ async function googleAdapter() {
       gm.fitBounds(b, 36);
     },
     flyTo(lat, lon, z) { gm.panTo({ lat, lng: lon }); if (gm.getZoom() < z) gm.setZoom(z); },
+    home() { gm.fitBounds({ south: HOME[0][0], west: HOME[0][1], north: HOME[1][0], east: HOME[1][1] }, 8); },
     invalidate() {},
     theme() { gm.setOptions({ styles: isDark() ? GOOGLE_DARK : GOOGLE_LIGHT }); },
     destroy() { this.clear(); },
