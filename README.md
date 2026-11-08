@@ -75,6 +75,7 @@ Une tâche automatique (*Actions* → *Historique des prix*) lit le fichier de l
 - **Pour relancer à la main :** même endroit → *Run workflow*.
 - Le premier passage enregistre toutes les stations. Avec les changements suivants, on peut reconstituer le prix de n'importe quelle station à n'importe quel moment depuis le début de la collecte.
 - GitHub peut retarder les passages de 10 à 30 minutes aux heures chargées.
+- **Version de l'appli :** affichée en haut (`v1.0`). À chaque changement visible, la version monte (1.01 pour une correction, 1.1 pour une nouveauté) et une fenêtre « Quoi de neuf » s'affiche au lancement suivant. Le bouton de version montre l'historique complet.
 - **Compactage hebdomadaire :** une fois par semaine, la branche `historique` est remplacée par un seul commit contenant l'état actuel. Les données (dont tout le journal `changes/`) sont intactes ; seules les anciennes versions Git disparaissent, ce qui évite que le dépôt grossisse de plusieurs centaines de Mo par an. Le fichier `.compacte` de la branche indique la date du dernier compactage.
 - **Si l'historique est abîmé :** l'étiquette `historique-precedent` garde l'état d'avant le dernier compactage (avec sa semaine de versions). Pour revenir en arrière : désactiver le workflow, remettre la branche `historique` sur cette étiquette (ou sur un commit plus récent sain), puis réactiver.
 

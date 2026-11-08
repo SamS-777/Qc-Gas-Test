@@ -14,10 +14,18 @@ Description technique complète : `APP_OVERVIEW.md` (anglais). Utilisation et fo
 - **Pas de données confidentielles de son employeur** dans ce projet.
 - **Pas de logos de marque** reproduits.
 
+## Version de l'appli et nouveautés (obligatoire à chaque changement visible)
+
+- `APP_VERSION` dans `index.html` : **1.0** depuis le 2026-11-08. Petite correction → `1.01`, `1.02`… ; nouveauté → `1.1`, `1.2`… ; grosse refonte → `2.0`. Ne jamais réutiliser un numéro.
+- Ajouter une entrée **en tête** de `CHANGELOG` (même fichier) : numéro, date, titre et puces **en français et en anglais**, même nombre de puces. Écrit pour des gens qui ne connaissent pas la mécanique de l'appli : ce qu'ils peuvent faire de nouveau ou ce qui marche mieux, pas comment c'est fait.
+- Au lancement suivant, chaque utilisateur voit une fenêtre « Quoi de neuf » avec les versions qu'il n'a pas encore vues. Le bouton `vX.Y` en haut ouvre l'historique complet.
+- Un changement purement interne (tests, documentation, collecteur) ne change pas `APP_VERSION`.
+- Monter aussi `VERSION` dans `sw.js` (numérotation séparée, voir ci-dessous).
+
 ## Architecture
 
 - `index.html` : toute l'appli (HTML, CSS, JS), **sans build**, un seul fichier. Voulu : pas de dépendance d'outillage.
-- `sw.js` : service worker. **Monter `VERSION` (ex. `essence-v23` → `v23`) à chaque modification de l'appli**, sinon les téléphones gardent l'ancienne version en cache. Mettre à jour aussi la mention dans `APP_OVERVIEW.md`.
+- `sw.js` : service worker. **Monter `VERSION` (ex. `essence-v24` → `v23`) à chaque modification de l'appli**, sinon les téléphones gardent l'ancienne version en cache. Mettre à jour aussi la mention dans `APP_OVERVIEW.md`.
 - `vendor/leaflet/` : Leaflet 1.9.4 inclus dans le dépôt (aucun CDN pour la carte de secours).
 - `scripts/collect.py` : collecteur d'historique, lancé par `.github/workflows/historique.yml` (cron `7,37 * * * *`), écrit dans la branche orpheline `historique`.
 - Sources externes : flux de la Régie de l'énergie (`stations.geojson.gz`), Google Maps (carte et `Route.computeRoutes`), TomTom et OSRM (itinéraires), Photon (géocodage).
@@ -30,6 +38,7 @@ Description technique complète : `APP_OVERVIEW.md` (anglais). Utilisation et fo
 - **Détours :** disjoncteur par lot ; les erreurs propres à une station (`localErr`, ex. `NoRoute`) ne le déclenchent pas ; ne jamais mettre un échec en cache.
 - **Collecteur :** les horodatages passent par `parse_time` (strict, indépendant de la version de Python : `strptime`, pas `fromisoformat`). La validation se fait **avant** le raccourci « inchangé ». Clé de station = `sha1(nom.lower()|adresse.lower())[:10]`, recalculée à l'identique dans `index.html` (`stationKey`) ; un test garantit l'égalité.
 - **Branche `historique` :** compactée une fois par semaine par le workflow (un seul commit, données intactes). L'étiquette `historique-precedent` garde l'état d'avant. Ne pas pousser à la main sur cette branche.
+- **Les tests marquent la version courante comme déjà vue** (`tests/helpers.mjs`), sinon la fenêtre « Quoi de neuf » bloquerait tous les clics. Pour tester un premier lancement : `open(page, { prefs: { seenVersion: undefined } })`.
 - **Accessibilité :** champs d'adresse en combobox ARIA, cartes de résultats au clavier, modes « choisir le centre » et « dessiner » utilisables au clavier. Garder ces comportements en ajoutant des fonctions.
 
 ## Tests (obligatoires avant de pousser)

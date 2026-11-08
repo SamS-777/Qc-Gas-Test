@@ -77,6 +77,21 @@ button, input { font: inherit; color: inherit }
   box-shadow: inset 0 -2px 0 rgba(0,0,0,.12) }
 .mark svg { width: 24px; height: 24px }
 h1 { font: 600 1.75rem/1.05 var(--serif); letter-spacing: -.01em; margin: 0; text-wrap: balance }
+.titlerow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap }
+.verbtn { border: 1px solid var(--line); background: var(--panel); color: var(--muted); border-radius: 99px; padding: 2px 9px; font: 600 .74rem var(--sans); cursor: pointer; white-space: nowrap }
+.verbtn:hover { color: var(--ink) }
+.news { border: 0; border-radius: 16px; padding: 22px 22px 18px; width: min(460px, calc(100vw - 32px)); max-height: min(80vh, 640px); overflow: auto;
+  background: var(--surface); color: var(--ink); box-shadow: 0 12px 40px rgba(0,0,0,.28) }
+.news::backdrop { background: rgba(20,20,19,.45) }
+.news h2 { font: 600 1.35rem/1.15 var(--serif); margin: 0 0 12px }
+.newsbody h3 { font: 700 .95rem var(--sans); margin: 16px 0 4px }
+.newsbody h3:first-child { margin-top: 0 }
+.newsbody h3 small { font-weight: 500; color: var(--muted) }
+.newsbody .nsub { margin: 0 0 6px; color: var(--muted); font-size: .9rem }
+.newsbody ul { margin: 0; padding-left: 1.2em } .newsbody li { margin: 4px 0; line-height: 1.4 }
+.newsbtns { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 18px; flex-wrap: wrap }
+.newsall { border: 0; background: none; color: var(--muted); text-decoration: underline; font: 500 .88rem var(--sans); cursor: pointer; padding: 6px 0 }
+.newsok { border: 0; border-radius: 99px; background: var(--clay); color: var(--on-clay); padding: 10px 24px; font: 700 .95rem var(--sans); cursor: pointer; margin-left: auto }
 .fresh { margin: 3px 0 0; color: var(--muted); font-size: .84rem; display: flex; align-items: center; gap: 7px; flex-wrap: wrap }
 .live { width: 7px; height: 7px; border-radius: 50%; background: var(--good); box-shadow: 0 0 0 3px color-mix(in srgb, var(--good) 22%, transparent); flex: none }
 .live.wait { background: var(--faint); box-shadow: none }
@@ -348,7 +363,7 @@ ol.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px }
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V5a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v16"/><path d="M3 21h13"/><path d="M7 8h5"/><path d="M15 9h2a2 2 0 0 1 2 2v5a1.5 1.5 0 0 0 3 0V8l-3-3"/></svg>
       </div>
       <div class="head-text">
-        <h1 data-i18n="appName">Essence sur mon trajet</h1>
+        <div class="titlerow"><h1 data-i18n="appName">Essence sur mon trajet</h1><button type="button" class="verbtn" id="verBtn" aria-haspopup="dialog"></button></div>
         <p class="fresh"><span class="live wait" id="live"></span><span id="fresh">Chargement des prix de la Régie…</span></p>
       </div>
       <div class="prefs">
@@ -360,6 +375,15 @@ ol.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px }
         </div>
       </div>
     </header>
+
+    <dialog id="news" class="news" aria-labelledby="newsTitle">
+      <h2 id="newsTitle"></h2>
+      <div id="newsBody" class="newsbody"></div>
+      <div class="newsbtns">
+        <button type="button" id="newsAll" class="newsall" data-i18n="newsAll">Toutes les versions</button>
+        <button type="button" id="newsOk" class="newsok" data-i18n="newsOk">Compris</button>
+      </div>
+    </dialog>
 
     <form id="form" class="form" novalidate>
       <div class="seg-row mode-row" role="radiogroup" data-i18n-aria="modeLabel" aria-label="Mode de recherche">
@@ -628,7 +652,7 @@ const I18N = {
     freshLine: "{n} stations en direct", freshAt: " · prix de {t}",
     themeLabel: "Thème", themeAuto: "Auto", themeLight: "Clair", themeDark: "Sombre", langLabel: "Langue",
     modeLabel: "Mode de recherche", modeRoute: "Sur mon trajet", modeNear: "Près de moi", favorites: "Favoris",
-    from: "Départ", to: "Destination", addrPh: "Adresse ou lieu", suggestions: "Suggestions d'adresses", kbdPick: "Clavier : flèches pour déplacer la carte, Entrée pour chercher ici", kbdDraw: "Clavier : flèches pour déplacer la carte, Entrée pour ajouter le centre comme coin", useLoc: "Utiliser ma position", swap: "Inverser départ et destination",
+    from: "Départ", to: "Destination", addrPh: "Adresse ou lieu", newsTitle: "Quoi de neuf", verLabel: "Version {v}", logTitle: "Historique des versions", newsAll: "Toutes les versions", newsOk: "Compris", verTitle: "Version {v} : voir les nouveautés", suggestions: "Suggestions d'adresses", kbdPick: "Clavier : flèches pour déplacer la carte, Entrée pour chercher ici", kbdDraw: "Clavier : flèches pour déplacer la carte, Entrée pour ajouter le centre comme coin", useLoc: "Utiliser ma position", swap: "Inverser départ et destination",
     myLoc: "Ma position", savedLoc: "Position enregistrée",
     fuel: "Carburant", fuelReg: "Régulier", fuelSup: "Super", fuelSupNote: "Indice d'octane non précisé par la Régie", fuelDie: "Diesel",
     corridor: "Écart max du trajet", radius: "Rayon", fill: "Plein",
@@ -693,7 +717,7 @@ const I18N = {
     freshLine: "{n} live stations", freshAt: " · prices as of {t}",
     themeLabel: "Theme", themeAuto: "Auto", themeLight: "Light", themeDark: "Dark", langLabel: "Language",
     modeLabel: "Search mode", modeRoute: "On my route", modeNear: "Near me", favorites: "Favourites",
-    from: "From", to: "To", addrPh: "Address or place", suggestions: "Address suggestions", kbdPick: "Keyboard: arrows move the map, Enter searches here", kbdDraw: "Keyboard: arrows move the map, Enter adds the centre as a corner", useLoc: "Use my location", swap: "Swap start and destination",
+    from: "From", to: "To", addrPh: "Address or place", newsTitle: "What's new", verLabel: "Version {v}", logTitle: "Version history", newsAll: "All versions", newsOk: "Got it", verTitle: "Version {v}: see what's new", suggestions: "Address suggestions", kbdPick: "Keyboard: arrows move the map, Enter searches here", kbdDraw: "Keyboard: arrows move the map, Enter adds the centre as a corner", useLoc: "Use my location", swap: "Swap start and destination",
     myLoc: "My location", savedLoc: "Saved location",
     fuel: "Fuel", fuelReg: "Regular", fuelSup: "Premium", fuelSupNote: "Octane rating not specified by the Régie", fuelDie: "Diesel",
     corridor: "Max distance from route", radius: "Radius", fill: "Fill-up",
@@ -795,6 +819,61 @@ const isDark = () => theme === "dark" || (theme === "auto" && matchMedia("(prefe
 function setTheme(x) { theme = x; store.set("theme", x); applyTheme(); rerender(); }
 matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { if (theme === "auto") { if (mapA) mapA.theme(); rerender(); } });
 
+/* ---------- Version et nouveautés ----------
+   À CHAQUE MODIFICATION visible : monter APP_VERSION (1.0 → 1.01 pour une petite correction, → 1.1 pour une nouveauté)
+   et ajouter une entrée EN TÊTE de CHANGELOG, en mots simples pour quelqu'un qui ne connaît pas la mécanique de l'appli.
+   Au lancement suivant, chaque utilisateur voit les nouveautés depuis la dernière version qu'il a vue. */
+const APP_VERSION = "1.0";
+const CHANGELOG = [
+  { v: "1.0", date: "2026-11-08",
+    fr: { title: "Première version officielle", items: [
+      "Trouve l'essence la moins chère sur ton trajet ou autour de toi, en tenant compte du détour pour aller à chaque station.",
+      "Choisis le centre de ta recherche directement sur la carte, ou dessine ta propre zone.",
+      "Enregistre tes trajets et tes zones préférés pour les relancer en un geste.",
+      "Vois comment les prix ont évolué sur 7 ou 30 jours, pour ta zone ou pour une station.",
+      "Nouveau : passer de « Sur mon trajet » à « Près de moi » ne fait plus perdre ta recherche.",
+      "Tout se fait aussi au clavier, et avec un lecteur d'écran.",
+    ] },
+    en: { title: "First official version", items: [
+      "Find the cheapest gas on your route or around you, counting the detour to reach each station.",
+      "Pick the centre of your search right on the map, or draw your own area.",
+      "Save your favourite routes and areas to run them again in one tap.",
+      "See how prices moved over 7 or 30 days, for your area or for one station.",
+      "New: switching between “On my route” and “Near me” no longer loses your search.",
+      "Everything also works with a keyboard and with a screen reader.",
+    ] } },
+];
+let newsMode = "news", newsList = [];
+function newsRender() {
+  $("newsTitle").textContent = t(newsMode === "log" ? "logTitle" : "newsTitle");
+  const list = newsMode === "log" ? CHANGELOG : newsList;
+  $("newsBody").replaceChildren(...list.flatMap(c => {
+    const txt = c[lang] || c.fr, h = document.createElement("h3"), sm = document.createElement("small"), p = document.createElement("p"), ul = document.createElement("ul");
+    const d = new Date(c.date + "T12:00:00");
+    h.textContent = `${t("verLabel", { v: c.v })} `; sm.textContent = `· ${d.toLocaleDateString(LOC, { day: "numeric", month: "long", year: "numeric" })}`; h.append(sm);
+    p.className = "nsub"; p.textContent = txt.title;
+    ul.replaceChildren(...txt.items.map(x => { const li = document.createElement("li"); li.textContent = x; return li; }));
+    return [h, p, ul];
+  }));
+  $("newsAll").hidden = newsMode === "log" || CHANGELOG.length <= newsList.length;
+}
+function newsOpen(m, list = []) {
+  newsMode = m; newsList = list; newsRender();
+  if (!$("news").open) $("news").showModal();
+  $("newsOk").focus();
+}
+function newsCheck() {
+  const seen = store.get("seenVersion", "");
+  if (seen === APP_VERSION) return;
+  const i = CHANGELOG.findIndex(c => c.v === seen); // versions plus récentes que la dernière vue (sinon : la plus récente)
+  newsOpen("news", i > 0 ? CHANGELOG.slice(0, i) : CHANGELOG.slice(0, 1));
+}
+$("news").addEventListener("close", () => store.set("seenVersion", APP_VERSION));
+$("newsOk").addEventListener("click", () => $("news").close());
+$("newsAll").addEventListener("click", () => { newsMode = "log"; newsRender(); $("newsOk").focus(); });
+$("news").addEventListener("click", e => { if (e.target === $("news")) $("news").close(); }); // clic sur le fond
+$("verBtn").addEventListener("click", () => newsOpen("log"));
+
 /* Langue : textes statiques */
 function applyLang() {
   LOC = lang === "en" ? "en-CA" : "fr-CA";
@@ -810,6 +889,8 @@ function applyLang() {
   syncKey();
   $("goLabel").textContent = goText();
   $("emptyText").textContent = t(mode === "near" ? "emptyNear" : "emptyRoute");
+  $("verBtn").textContent = `v${APP_VERSION}`; $("verBtn").title = t("verTitle", { v: APP_VERSION });
+  if ($("news").open) newsRender();
 }
 function setLang(x) {
   lang = x === "en" ? "en" : "fr";
@@ -2411,6 +2492,7 @@ mode = store.get("mode", "route") === "near" ? "near" : "route";
 applyLang();
 setMode(mode);
 renderFavs();
+newsCheck();
 initMap().catch(() => status(t("mapNeeded"), "warn"));
 ensureStations().catch(err => status(err.message, "error"));
 

@@ -1,7 +1,7 @@
 // Scénarios de l'appli, dont les reproductions des trois revues de code (2026-11-07). Réseau entièrement simulé.
 import { test, expect } from "@playwright/test";
 import { createServer } from "node:http";
-import { mockNet, open, searchNear, searchRoute, detoursDone, text, makeFeed, isoAgo, H } from "./helpers.mjs";
+import { APP_VERSION, mockNet, open, searchNear, searchRoute, detoursDone, text, makeFeed, isoAgo, H } from "./helpers.mjs";
 
 const json = (route, body, status = 200) => route.fulfill({ status, contentType: "application/json", headers: H, body: JSON.stringify(body) });
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -371,4 +371,58 @@ test("changer d'onglet garde la recherche de chaque mode (sans recalculer le tra
   await page.click("label[for=modeNear]");
   expect(await text(page, "#sumTitle")).toBe(nearTitle);
   await expect(page.locator("#from")).toHaveValue(/maisonneuve/i);
+});
+
+/* ---------- Version et nouveautés ---------- */
+test("nouveautés : affichées au premier lancement, puis plus jamais pour la même version", async ({ page }) => {
+  await mockNet(page); await open(page, { prefs: { seenVersion: undefined } });
+  const news = page.locator("#news");
+  await expect(news).toBeVisible();
+  await expect(page.locator("#newsTitle")).toHaveText("Quoi de neuf");
+  await expect(page.locator("#newsBody h3")).toHaveCount(1);
+  await expect(page.locator("#newsBody li").first()).toBeVisible();
+  await expect(page.locator("#newsOk")).toBeFocused();
+  await page.keyboard.press("Escape"); // Échap ferme aussi
+  await expect(news).toBeHidden();
+  await expect.poll(() => page.evaluate(() => localStorage.getItem("et_seenVersion"))).toBe(APP_VERSION);
+  await page.reload(); await page.waitForTimeout(500);
+  await expect(news).toBeHidden();
+});
+
+test("nouveautés : après une mise à jour, seulement les versions pas encore vues", async ({ page }) => {
+  await mockNet(page);
+  await open(page, { prefs: { seenVersion: "0.9" } }); // version inconnue → seulement la plus récente
+  await expect(page.locator("#newsBody h3")).toHaveCount(1);
+  await expect(page.locator("#newsBody h3")).toContainText(APP_VERSION);
+  await page.click("#newsOk");
+  await expect(page.locator("#news")).toBeHidden();
+});
+
+test("bouton de version : ouvre l'historique de toutes les versions, dans la langue choisie", async ({ page }) => {
+  await mockNet(page); await open(page);
+  await expect(page.locator("#news")).toBeHidden();
+  await expect(page.locator("#verBtn")).toHaveText(`v${APP_VERSION}`);
+  await page.click("#verBtn");
+  await expect(page.locator("#newsTitle")).toHaveText("Historique des versions");
+  expect(await page.locator("#newsBody h3").count()).toBe(await page.evaluate(() => CHANGELOG.length));
+  await expect(page.locator("#newsAll")).toBeHidden();
+  await page.click("#newsOk");
+  await page.click("[data-lang-set=en]");
+  await page.click("#verBtn");
+  await expect(page.locator("#newsTitle")).toHaveText("Version history");
+  await expect(page.locator("#newsBody .nsub").first()).toHaveText(await page.evaluate(() => CHANGELOG[0].en.title));
+});
+
+test("historique des versions : chaque entrée est complète, en ordre, et la première est la version courante", async ({ page }) => {
+  await mockNet(page); await open(page);
+  const log = await page.evaluate(() => CHANGELOG);
+  expect(log[0].v).toBe(APP_VERSION);
+  expect(new Set(log.map(c => c.v)).size).toBe(log.length);
+  for (let i = 0; i < log.length; i++) {
+    const c = log[i];
+    expect(c.date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    for (const l of ["fr", "en"]) { expect(c[l].title.length).toBeGreaterThan(0); expect(c[l].items.length).toBeGreaterThan(0); }
+    expect(c.fr.items.length).toBe(c.en.items.length);
+    if (i) { expect(parseFloat(c.v)).toBeLessThan(parseFloat(log[i - 1].v)); expect(c.date <= log[i - 1].date).toBe(true); }
+  }
 });

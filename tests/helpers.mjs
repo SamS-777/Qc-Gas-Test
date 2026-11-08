@@ -4,6 +4,8 @@ import { fileURLToPath } from "node:url";
 
 const here = fileURLToPath(new URL(".", import.meta.url));
 const GSTUB = readFileSync(here + "fixtures/gstub.js", "utf8");
+// Version courante de l'appli : par défaut, les tests la marquent comme déjà vue (pas de fenêtre « Quoi de neuf »).
+export const APP_VERSION = readFileSync(here + "../index.html", "utf8").match(/const APP_VERSION = "([^"]+)"/)[1];
 export const H = { "access-control-allow-origin": "*" };
 
 // Points de référence (Montréal) : A = départ, B = destination.
@@ -94,6 +96,8 @@ export async function mockNet(page, o = {}) {
 
 // Ouvre l'appli avec des préférences initiales (clés et réglages dans localStorage).
 export async function open(page, { prefs = {}, wait = true } = {}) {
+  prefs = { seenVersion: APP_VERSION, ...prefs };
+  for (const k of Object.keys(prefs)) if (prefs[k] === undefined) delete prefs[k]; // undefined : clé absente (premier lancement)
   await page.addInitScript(p => { if (!sessionStorage.getItem("__init")) { localStorage.clear(); for (const [k, v] of Object.entries(p)) localStorage.setItem("et_" + k, v); sessionStorage.setItem("__init", "1"); } }, prefs);
   await page.goto("/");
   if (wait) await page.waitForFunction(() => typeof stations !== "undefined" && stations && stations.length > 500);
