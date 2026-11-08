@@ -157,7 +157,7 @@
 {"k":"0dc33fc927","n":"Couche-Tard #1159","b":"Esso","a":"9255 boul. de l'Acadie, Montréal","r":"Montréal","y":45.53357,"x":-73.65629,"p":[178.9,205.9,279.9]}
 {"k":"0dc5080188","n":"Marché Lève-Tôt 2014 Inc.","b":"Esso","a":"3100 ch. Chemin de la Rivière-Cachée, Boisbriand","r":"Laurentides","y":45.62249,"x":-73.85442,"p":[160.9,187.9,276.9]}
 {"k":"0de0e0f737","n":"3088-9299 Québec Inc","b":"Harnois","a":"1401 ch. de Lavernière, L'Étang-du-Nord","r":"Gaspésie-Îles-de-la-Madeleine","y":47.37196,"x":-61.91289,"p":[183.9,207.9,284.9]}
-{"k":"0de8e2e6b9","n":"7312237 CANADA INC","b":"Petro-Canada","a":"6705 Chevrier , Brossard","r":"Montérégie","y":45.45538,"x":-73.44211,"p":[158.9,186.9,279.9]}
+{"k":"0de8e2e6b9","n":"7312237 CANADA INC","b":"Petro-Canada","a":"6705 Chevrier , Brossard","r":"Montérégie","y":45.45538,"x":-73.44211,"p":[178.9,206.0,279.9]}
 {"k":"0e16d3ae24","n":"Harnois Énergies Inc.","b":"Esso","a":"515 rue Principale, Saint-Roch-de-Richelieu","r":"Montérégie","y":45.89145,"x":-73.15996,"p":[157.9,183.9,275.9]}
 {"k":"0e1cb63ed9","n":"Station service Hardil","b":"Sonic","a":"836 rte de la Cité-des-Jeunes, Saint-Lazare","r":"Montérégie","y":45.37997,"x":-74.10534,"p":[174.9,198.9,279.9]}
 {"k":"0e49f0d1e4","n":"Solutions Mécaniques Francis L'Italien Inc.","b":"","a":"198 rte 132 ouest, Sainte-Luce","r":"Bas-Saint-Laurent","y":48.54526,"x":-68.39584,"p":[189.4,209.4,null]}
@@ -2156,7 +2156,7 @@
 {"k":"dfe18f5a52","n":"9196-9261 QUEBEC INC","b":"Petro-Canada","a":"5995 Cousineau , Longueuil","r":"Montérégie","y":45.49477,"x":-73.4095,"p":[178.9,205.9,null]}
 {"k":"dff61975ac","n":"Nutrinor Energies Voisin Les Escoumins","b":"Nutrinor Énergies","a":"44 rue de la Réserve, Essipit","r":"Côte-Nord","y":48.34146,"x":-69.39496,"p":[187.4,210.4,286.4]}
 {"k":"e00265fce3","n":"CENTRE AUTO ST-ANSELME INC","b":"Ultramar","a":"891 route Bégin, SAINT-ANSELME","r":"Chaudière-Appalaches","y":46.62664,"x":-70.96298,"p":[179.9,206.9,279.9]}
-{"k":"e0066956fe","n":"2529-0230 Québec inc.","b":"Esso","a":"269 rue de la Presqu'ile, Charlemagne","r":"Lanaudière","y":45.73269,"x":-73.49676,"p":[172.9,200.9,279.9]}
+{"k":"e0066956fe","n":"2529-0230 Québec inc.","b":"Esso","a":"269 rue de la Presqu'ile, Charlemagne","r":"Lanaudière","y":45.73269,"x":-73.49676,"p":[168.9,196.9,279.9]}
 {"k":"e00ffaa848","n":"9099-8378  Quebec Inc","b":"Crevier","a":"699 rue du Curé, SHERBROOKE","r":"Estrie","y":45.35519,"x":-71.98773,"p":[181.9,206.9,285.9]}
 {"k":"e02e03e5a8","n":"2538-2813 QUEBEC INC","b":"Ultramar","a":"102 rue Saint-Joseph, GRACEFIELD","r":"Outaouais","y":46.09637,"x":-76.05041,"p":[178.9,205.9,284.9]}
 {"k":"e051d0f407","n":"Couche-Tard #445","b":"Esso","a":"2292 rte Marie-Victorin, Varennes","r":"Montérégie","y":45.68449,"x":-73.43579,"p":[156.9,181.9,260.9]}
