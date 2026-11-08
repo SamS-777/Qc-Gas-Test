@@ -153,6 +153,11 @@ def parse_time(s):
     return d.astimezone(timezone.utc)
 
 
+def read_json(path):
+    with open(path, encoding="utf-8") as fh:
+        return json.load(fh)
+
+
 def epoch_min(stamp):
     return int(datetime.strptime(stamp, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc).timestamp() // 60)
 
@@ -178,7 +183,7 @@ def update_series(data_dir, rows, when):
     paths = {c: os.path.join(sdir, c + ".json") for c in CODES}
     if all(os.path.exists(p) for p in paths.values()):
         for c, p in paths.items():
-            doc = json.load(open(p, encoding="utf-8"))
+            doc = read_json(p)
             t0, debut[c] = doc["t0"], doc.get("debut")
             series[c] = {k: [[t0 + v[i], v[i + 1]] for i in range(0, len(v), 2)] for k, v in doc["s"].items()}
         feed = rows
@@ -222,7 +227,7 @@ def main(data_dir, local=None):
     os.makedirs(os.path.join(data_dir, "changes"), exist_ok=True)
     os.makedirs(os.path.join(data_dir, "summary"), exist_ok=True)
     meta_path = os.path.join(data_dir, "meta.json")
-    meta = json.load(open(meta_path, encoding="utf-8")) if os.path.exists(meta_path) else {}
+    meta = read_json(meta_path) if os.path.exists(meta_path) else {}
 
     doc = fetch(local)
     gen = (doc.get("metadata") or {}).get("generated_at")
@@ -290,7 +295,7 @@ def main(data_dir, local=None):
 
     # Statistiques du jour (heure du Québec) : le dernier passage de la journée l'emporte.
     reg_path = os.path.join(data_dir, "summary", "regions.json")
-    reg = json.load(open(reg_path, encoding="utf-8")) if os.path.exists(reg_path) else {"cols": ["min", "q1", "mediane", "q3", "max", "n"], "jours": {}}
+    reg = read_json(reg_path) if os.path.exists(reg_path) else {"cols": ["min", "q1", "mediane", "q3", "max", "n"], "jours": {}}
     day = when.astimezone(TZ).strftime("%Y-%m-%d")
     reg["jours"][day] = region_stats(cur)
     reg["jours"] = dict(sorted(reg["jours"].items())[-KEEP_DAYS:])
