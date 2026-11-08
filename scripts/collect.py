@@ -22,7 +22,7 @@ import re
 import statistics
 import sys
 import urllib.request
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 
 FEED = "https://regieessencequebec.ca/stations.geojson.gz"
@@ -148,9 +148,17 @@ def parse_time(s):
     if not m:
         raise ValueError(f"horodatage invalide : {s!r}")
     base, frac, tz = m.groups()
-    tz = "+00:00" if tz in (None, "Z") else tz
-    d = datetime.fromisoformat(base + (frac[:7].ljust(7, "0") if frac else "") + tz)  # décalage impossible → ValueError
-    return d.astimezone(timezone.utc)
+    # strptime plutôt que fromisoformat : celui-ci accepte « 24:00 » depuis Python 3.14, strptime le refuse partout.
+    d = datetime.strptime(base, "%Y-%m-%dT%H:%M:%S")  # date ou heure impossible → ValueError
+    if frac:
+        d = d.replace(microsecond=int(frac[1:7].ljust(6, "0")))
+    off = timedelta(0)
+    if tz not in (None, "Z"):
+        h, mn = int(tz[1:3]), int(tz[4:6])
+        if h > 23 or mn > 59:
+            raise ValueError(f"décalage invalide : {s!r}")
+        off = timedelta(hours=h, minutes=mn) * (1 if tz[0] == "+" else -1)
+    return (d - off).replace(tzinfo=timezone.utc)
 
 
 def read_json(path):
