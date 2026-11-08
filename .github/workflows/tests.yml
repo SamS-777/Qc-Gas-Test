@@ -1,0 +1,52 @@
+# Tests automatiques : à chaque modification de la branche main (et sur demande).
+# - collecteur : tests Python de scripts/collect.py (aucun réseau)
+# - navigateur : scénarios Playwright de l'appli, avec tous les services externes simulés
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  collecteur:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tests du collecteur
+        run: python3 -m unittest discover -s tests -p "test_*.py" -v
+
+  navigateur:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: tests
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Installer Playwright
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+      - name: Tests navigateur
+        run: npx playwright test
+      - name: Rapport en cas d'échec
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rapport-playwright
+          path: tests/test-results/
+          retention-days: 7
