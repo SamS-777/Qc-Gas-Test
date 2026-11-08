@@ -1,0 +1,11 @@
+{
+  "name": "essence-tests",
+  "private": true,
+  "description": "Tests automatisés d'Essence sur mon trajet (navigateur, réseau simulé). Hors du site : rien ici n'est chargé par l'appli.",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0"
+  }
+}
