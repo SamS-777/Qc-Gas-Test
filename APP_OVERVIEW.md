@@ -5,7 +5,7 @@
 - **Live site:** https://sams-777.github.io/Qc-Gas-Test/ (GitHub Pages, repo `SamS-777/Qc-Gas-Test`, branch `main`)
 - **Users:** the owner and a few friends. Personal project, no backend, no accounts, no analytics.
 - **UI language:** French by default, English toggle. Code comments are in French.
-- **Status:** working in production. Two external review rounds (Codex, 2026-11-07: review, then a counter-review of v19) have been answered. See `REVIEW_RESPONSE.md` for the point-by-point responses and what changed.
+- **Status:** working in production. Three external review rounds (Codex, 2026-11-07: a review, a counter-review of v19 and one of v20) have been answered. See `REVIEW_RESPONSE.md` for the point-by-point responses and what changed.
 
 ---
 
@@ -113,7 +113,7 @@ A single file. A few markers so the reviewer doesn't have to read it top to bott
 | 839–932 | Feed loading. `loadStations` fetches, detects gzip manually, decompresses with `DecompressionStream` and runs `compact()` into arrays `[lat, lon, name, brand, address, R, S, D]` with range-checked coordinates. It rejects fewer than 500 stations, and a feed older than the one in memory (`parseGen` reads `metadata.generated_at`), **before** replacing data. `ensureStations()` runs a single shared download (`stationLoad`), schedules the next attempt 5 min after a success or 1 min after a failure, and keeps the previous data on failure. `noteText()` composes the persistent warnings: route fallback, stale/old/undated prices (judged on `generated_at`, not download time), and Google refused/down. |
 | 933–1004 | Brand filter and rebates. Stored preferences are type-checked. |
 | 1005–1083 | Geocoding (Photon, Nominatim) and the autocomplete widget. The location bias sent to Photon is rounded to about 1 km. |
-| 1084–1301 | Routing: TomTom, OSRM, Google (`loadGoogle`, `gCompute`, `routesGoogle`, `travelGoogle`, `markGoogle`) and `getRoutes`, which returns `{routes, note}` (no shared global). `computeDetours` is sequential with a per-batch circuit breaker: a provider that fails is skipped for the remaining stations. The cache records the provider that actually answered (10 min for the primary, 2 min for a fallback, failures not cached), is capped at 300 entries and is cleared on key change. |
+| 1084–1301 | Routing: TomTom, OSRM, Google (`loadGoogle`, `gCompute`, `routesGoogle`, `travelGoogle`, `markGoogle`) and `getRoutes`, which returns `{routes, note}` (no shared global). `computeDetours` is sequential with a per-batch circuit breaker: a provider-level failure (timeout, network, quota, refusal, 5xx) skips that provider for the remaining stations, while a station-specific error (`localErr`, e.g. OSRM `NoRoute`) only affects that station. The cache records the provider that actually answered (10 min for the primary, 2 min for a fallback, failures not cached), is capped at 300 entries and is cleared on key change. |
 | 1302–1426 | Settings getters, `setMode` (which cancels any search in flight), `clearResults`, `rerender`, `render` |
 | 1427–1509 | Navigation links, other-stations list and dots helpers |
 | 1510–1683 | Map point picking (placement mode, long-press), polygon drawing mode, `runZone` |
@@ -140,7 +140,7 @@ Key global state:
 - `costco` — legacy, migration only.
 
 ### Service worker (`sw.js`)
-- **Cache name:** `VERSION = "essence-v20"`, bumped manually on each release. Activation deletes only caches starting with `essence-`, because the `github.io` origin is shared with the owner's other projects.
+- **Cache name:** `VERSION = "essence-v21"`, bumped manually on each release. Activation deletes only caches starting with `essence-`, because the `github.io` origin is shared with the owner's other projects.
 - **Install:** the minimal shell (`./`, `index.html`, manifest, Leaflet JS/CSS) must download or the install fails, so the old version stays active. Icons and images are optional.
 - **Navigation:** network-first. Only a valid HTML response replaces the cached `index.html`, and `cache.put` is awaited. The cached page is the offline fallback.
 - **Same-origin files and Google Fonts:** cache-first, with a background refresh kept alive by `event.waitUntil`. Same-origin files are cached only if `ok`.
@@ -165,7 +165,7 @@ Key global state:
 | `state.jsonl` | Last known price, name, brand, address, region and coordinates per station |
 | `summary/regions.json` | Per day (Quebec time), per administrative region and fuel: min, q1, median, q3, max, n. A "Québec" aggregate is included; 400 days are kept. |
 | `series/{R,S,D}.json` | **Read by the app.** Step series for the last 35 days: `{t0 (epoch minutes), debut, maj, fenetre_jours, s: {station: [t, price×10, t, price×10, …]}}` with `t` relative to `t0`; 0 means no price. Each station's first point is its price at the window start. Updated incrementally on each run, and rebuilt from `changes/` if missing. |
-| `meta.json` | Last run, station count, changes on the last run |
+| `meta.json` | Last run that processed a **new** Régie file (`generated_at`, station count, changes recorded). A run on an unchanged file does not touch it, so check liveness in GitHub *Actions*. |
 
 ---
 

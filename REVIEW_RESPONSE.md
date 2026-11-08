@@ -1,6 +1,35 @@
 # Réponse aux revues — Essence sur mon trajet
 
-Ce fichier contient deux réponses : **la réponse à la contre-revue de v19 (v20, en premier)**, puis la réponse initiale à la première revue (v19, plus bas, inchangée sauf P3-9).
+Ce fichier contient trois réponses, de la plus récente à la plus ancienne :
+1. contre-revue de v20 → **v21** ;
+2. contre-revue de v19 → v20 ;
+3. première revue → v19.
+
+---
+
+## Réponse à la contre-revue v20 → version v21
+
+- **Contre-revue :** « Contre-revue — Essence sur mon trajet, v20 », 2026-11-07 (0 P1, 5 P2, 3 P3).
+- **Version corrigée :** service worker `essence-v21`, en ligne.
+- **Position :** les 8 constats sont acceptés sans réserve. Trois d'entre eux (P2-1, P2-3, P2-5) sont des corrections v20 trop étroites ou trop larges.
+- **Vérification :** chaque reproduction de la contre-revue a été rejouée telle que décrite. Toutes les suites antérieures repassent sans erreur JS : proximité, trajet, autres stations, historique, choix du centre, zones, favoris, carte Google simulée (valide, refusée, quota, sans clé), service worker, et scénarios des deux revues précédentes.
+
+| # contre-revue v20 | Statut | Ce qui a changé | Vérification |
+|---|---|---|---|
+| P2-1 Adresse modifiée pendant `getRoutes()` | ✅ | Toute saisie dans Départ ou Destination pendant une recherche appelle `cancelSearch()`, qui incrémente la génération et réactive le bouton. La recherche en cours devient obsolète et ne rend rien. Le compteur des suggestions reste indépendant. | Reproduction exacte (départ `45.5000, -73.5000`, destination `45.6000, -73.6000`, OSRM retardé de 700 ms, destination remplacée après 150 ms) : `lastMode = null`, aucun résumé, bouton actif. Une nouvelle soumission calcule bien le trajet vers `[46, -74]`. |
+| P2-2 `gm_authFailure` laisse `gmapsPromise` pendante | ✅ | Le callback rejette la promesse de chargement (`gDenied`), remet `gmapsPromise` à `null` et marque `googleBad`. `loadGoogle()` et chaque `importLibrary()` sont bornés à 15 s, dans `gCompute()` comme dans `googleAdapter()`. | Script Google simulé qui n'appelle **que** `gm_authFailure` : `loadGoogle()` est **rejetée** (« Clé Google refusée ») en moins de 600 ms, `gmapsPromise` nul, carte Esri, indicateur « Google indisponible ». |
+| P2-3 Disjoncteur déclenché par un `NoRoute` | ✅ | Erreurs typées : `localErr()` marque les erreurs propres à une station (OSRM `code ≠ Ok` comme `NoRoute`, `NoSegment` ou `InvalidQuery` ; TomTom 400 ou réponse sans route ; Google sans route). Une erreur locale donne `null` pour cette station, avec essai du fournisseur suivant pour cette station seulement, sans couper le fournisseur. Seules les erreurs de portée fournisseur (délai, réseau, quota, refus, 5xx) déclenchent le disjoncteur. | `NoRoute` (HTTP 400) pour la 1re station seulement : 5 appels OSRM, 4 temps en voiture affichés (la 1re station n'a pas de badge). Le scénario « OSRM bloqué » donne toujours 5 badges résolus en 12 s. |
+| P2-4 Collecteur : retour « inchangé » avant validation | ✅ | Ordre imposé : (1) `generated_at` **obligatoire**, parsé strictement, pas plus de 10 min dans le futur ; (2) l'heure de `meta.json` est elle-même validée, et si elle est invalide ou future, arrêt avec message de réparation ; (3) seulement ensuite, les tests « inchangé » et « plus ancien ». L'absence d'heure ne reçoit plus `now`. | Sans `generated_at` : refus (code 1). Flux 2099 : refus. `meta.json` à 2099 avec le même flux 2099 : refus (code 1, plus de faux succès). `meta.json` à 2099 avec un flux normal, ou `meta.json` illisible : refus avec instructions de réparation. Passage normal et passage inchangé : OK. |
+| P2-5 Pas de pause après un premier échec sans données | ✅ | La pause s'applique dans tous les états. Pendant la pause : résolution immédiate s'il y a une copie, sinon rejet avec la **dernière erreur** mémorisée (`lastFeedError`), sans nouveau téléchargement. | Régie en 503 dès le démarrage, puis 3 clics sur Rechercher : 1 seul téléchargement au total, message d'erreur de la Régie affiché, bandeau « Prix indisponibles ». |
+| P3-1 `parseGen()` non strict sur le calendrier | ✅ | Les composantes sont vérifiées une à une : mois 1–12, jour ≤ dernier jour du mois (années bissextiles comprises), heure ≤ 23, minutes et secondes ≤ 59, décalage ≤ 23:59. L'instant est construit avec `Date.UTC` ; `Date.parse` n'est plus utilisé. Le fuseau (`Z` ou décalage) est obligatoire. | 31 février, 29 février 2026, 31 avril, 24:00 et +25:00 → `NaN`. 29 février 2024, 7 décimales et `-05:00` → instants corrects. |
+| P3-2 Fin de pause Google sans resynchronisation | ✅ | `markGoogle()` programme `googleBack()` à l'expiration de `googleDownUntil` ; la minuterie est annulée au changement de clé ou à un nouveau marquage. `googleBack()` met à jour l'indicateur, remet la carte Google si elle était passée sur Esri (sauf pendant le choix du centre ou le dessin d'une zone) et réaffiche les avertissements. | Carte Google simulée : `markGoogle("down")` → indicateur « Google indisponible » et minuterie posée. Après passage sur Esri pendant la panne puis expiration : indicateur « Google » et carte Google rétablie. |
+| P3-3 `APP_OVERVIEW.md` : sémantique de `meta.json` | ✅ | Ligne alignée sur le README : dernier passage ayant traité un **nouveau** fichier ; la vivacité se vérifie dans *Actions*. | — |
+
+### Fichiers modifiés en v21
+- **`index.html`** : P2-1, P2-2, P2-3, P2-5, P3-1 et P3-2.
+- **`scripts/collect.py`** : P2-4.
+- **`APP_OVERVIEW.md`** : P3-3, plus la version.
+- **`sw.js`** : version `essence-v21` uniquement.
 
 ---
 
