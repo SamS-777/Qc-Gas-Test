@@ -226,17 +226,30 @@ def main(data_dir, local=None):
 
     doc = fetch(local)
     gen = (doc.get("metadata") or {}).get("generated_at")
-    if gen and gen == meta.get("generated_at"):
-        print(f"Fichier de la Régie inchangé ({gen}) : rien à enregistrer.")
-        return 0
-
+    now = datetime.now(timezone.utc)
+    # 1. Le fichier reçu doit avoir une heure valide et non future — vérifié AVANT tout retour anticipé.
+    if not gen:
+        raise SystemExit("Fichier de la Régie sans heure de production (metadata.generated_at) : refusé, rien n'est enregistré.")
     try:
-        when = parse_time(gen) if gen else datetime.now(timezone.utc)
+        when = parse_time(gen)
     except ValueError as e:
         raise SystemExit(f"Fichier de la Régie refusé : {e}. Rien n'est enregistré.")
-    if (when - datetime.now(timezone.utc)).total_seconds() > FUTURE_TOLERANCE_MIN * 60:
+    if (when - now).total_seconds() > FUTURE_TOLERANCE_MIN * 60:
         raise SystemExit(f"Fichier de la Régie daté dans le futur ({gen}) : refusé, rien n'est enregistré.")
-    prev = parse_time(meta["generated_at"]) if meta.get("generated_at") else None
+    # 2. L'heure déjà enregistrée sert de borne : elle doit elle-même être valide.
+    prev = None
+    if meta.get("generated_at"):
+        try:
+            prev = parse_time(meta["generated_at"])
+        except ValueError:
+            prev = None
+        if prev is None or (prev - now).total_seconds() > FUTURE_TOLERANCE_MIN * 60:
+            raise SystemExit(f"{meta_path} contient une heure invalide ou future ({meta['generated_at']!r}). "
+                             "Réparation : remplacer generated_at par l'heure du dernier passage valide (ou supprimer la clé), puis relancer.")
+    # 3. Seulement maintenant : fichier inchangé ?
+    if gen == meta.get("generated_at"):
+        print(f"Fichier de la Régie inchangé ({gen}) : rien à enregistrer.")
+        return 0
     if prev and when < prev:
         print(f"Fichier de la Régie plus ancien que le dernier enregistré ({gen} < {meta['generated_at']}) : ignoré.")
         return 0
