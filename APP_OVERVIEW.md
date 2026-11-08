@@ -142,7 +142,7 @@ Key global state:
 - `costco` — legacy, migration only.
 
 ### Service worker (`sw.js`)
-- **Cache name:** `VERSION = "essence-v22"`, bumped manually on each release. Activation deletes only caches starting with `essence-`, because the `github.io` origin is shared with the owner's other projects.
+- **Cache name:** `VERSION = "essence-v23"`, bumped manually on each release. Activation deletes only caches starting with `essence-`, because the `github.io` origin is shared with the owner's other projects.
 - **Install:** the minimal shell (`./`, `index.html`, manifest, Leaflet JS/CSS) must download or the install fails, so the old version stays active. Icons and images are optional.
 - **Navigation:** network-first. Only a valid HTML response replaces the cached `index.html`, and `cache.put` is awaited. The cached page is the offline fallback.
 - **Same-origin files and Google Fonts:** cache-first, with a background refresh kept alive by `event.waitUntil`. Same-origin files are cached only if `ok`.
@@ -175,7 +175,7 @@ Key global state:
 
 ## 6. Known limitations and deliberate trade-offs
 
-1. **Single ~2,340-line HTML file, no build.** Automated tests now live in `tests/` and run in GitHub Actions on every push: 31 browser scenarios, 1 service-worker scenario and 11 collector tests. They cover the ranking logic, the async races, feed freshness and failure handling, network timeouts, Google failure states, detour breaker, history retry, map picking and drawing (pointer and keyboard), combobox ARIA, offline start, and every collector guard. Pure functions are tested in the page (the file is not split into modules).
+1. **Single ~2,340-line HTML file, no build.** Automated tests now live in `tests/` and run in GitHub Actions on every push: 32 browser scenarios, 1 service-worker scenario and 11 collector tests. They cover the ranking logic, the async races, feed freshness and failure handling, network timeouts, Google failure states, detour breaker, history retry, map picking and drawing (pointer and keyboard), combobox ARIA, offline start, and every collector guard. Pure functions are tested in the page (the file is not split into modules).
 2. **Station identity relies on name + address.** If the Régie edits either, the history for that station splits into two keys.
 3. **Public demo servers.** The OSRM demo server and Photon/Nominatim have fair-use policies that aren't designed for production. Load is tiny (a handful of users) but it's a dependency risk.
 4. **Google costs.** Each route search makes about 6 traffic-aware Routes computations (1 route + 5 detours), and each map load is billed. Without API restrictions or daily quotas, a leaked key could incur charges. Keys are not in the published code: each user pastes their own, and it is stored only in their browser.

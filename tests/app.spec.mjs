@@ -353,3 +353,22 @@ test("carte Google : Entrée sur la carte cherche aussi au centre", async ({ pag
   await page.waitForSelector("#results li");
   await expect(page.locator("#pickUi")).toBeHidden();
 });
+
+test("changer d'onglet garde la recherche de chaque mode (sans recalculer le trajet)", async ({ page }) => {
+  const calls = await mockNet(page); await open(page);
+  await searchRoute(page); await detoursDone(page);
+  const routeTitle = await text(page, "#sumTitle"), nRoutes = await page.locator("#routes > *").count();
+  const routeCalls = calls.osrmRoute;
+  await searchNear(page, "2175 maisonneuve est");
+  const nearTitle = await text(page, "#sumTitle");
+  await page.click("label[for=modeRoute]");
+  await expect(page.locator("#results li").first()).toBeVisible();
+  expect(await text(page, "#sumTitle")).toBe(routeTitle);
+  await expect(page.locator("#routes > *")).toHaveCount(nRoutes);
+  await expect(page.locator("#from")).toHaveValue(/gagnier/i);
+  await expect(page.locator("#to")).toHaveValue(/maisonneuve/i);
+  expect(calls.osrmRoute).toBe(routeCalls); // aucun nouvel itinéraire demandé
+  await page.click("label[for=modeNear]");
+  expect(await text(page, "#sumTitle")).toBe(nearTitle);
+  await expect(page.locator("#from")).toHaveValue(/maisonneuve/i);
+});

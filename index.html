@@ -1364,13 +1364,27 @@ function fmtDur(min) { const h = Math.floor(min / 60), m = Math.round(min % 60);
 
 /* Mode */
 function goText() { return t(mode === "near" ? "goNear" : "goRoute"); }
-function setMode(m) {
+// Chaque mode garde sa dernière recherche : passer à l'autre onglet puis revenir la réaffiche
+// (prix du flux actuel, sans nouvel appel d'itinéraire). restore=false : une recherche suit tout de suite.
+const savedMode = { route: null, near: null };
+function setMode(m, restore = true) {
+  const prev = mode;
   mode = m === "near" ? "near" : "route";
+  if (prev !== mode && lastMode === prev)
+    savedMode[prev] = { lastA, lastB, lastRoutes, sel, lastPoly, lastPolyName, routeNoteNow,
+                        from: $("from").value, to: $("to").value, pFrom: picked.from, pTo: picked.to };
   store.set("mode", mode);
   $("form").classList.toggle("nearby", mode === "near");
   $(mode === "near" ? "modeNear" : "modeRoute").checked = true;
   cancelSearch();
   clearResults();
+  const sv = restore && prev !== mode && savedMode[mode];
+  if (!sv || !stations) return;
+  ({ lastA, lastB, lastRoutes, sel, lastPoly, lastPolyName, routeNoteNow } = sv);
+  $("from").value = sv.from; $("to").value = sv.to; picked.from = sv.pFrom; picked.to = sv.pTo;
+  lastMode = mode;
+  if (mode === "route") { lastRoute = lastRoutes[sel]; renderRoutes(); }
+  render();
 }
 function clearResults() {
   lastMode = null; lastRoutes = []; lastRoute = null; lastTop = []; markers = []; detGen++;
@@ -2277,7 +2291,7 @@ function syncFavBtn() {
   btn.title = t(on ? "unsaveTitle" : "saveTitle");
 }
 function useFav(f) {
-  if (f.mode !== mode) setMode(f.mode);
+  if (f.mode !== mode) setMode(f.mode, false);
   if (f.poly) { runZone(f.poly, f.name); return; }
   if (f.r) { $("radius").value = f.r; store.set("radiusKm", radiusKm()); }
   const fill = (field, p) => {
