@@ -980,7 +980,7 @@
 {"k":"64c828f17e","n":"Les Pétroles Expert inc.","b":"Shell","a":"3491 rte 157, Notre-Dame-du-Mont-Carmel","r":"Mauricie","y":46.47557,"x":-72.6688,"p":[167.9,193.9,279.9]}
 {"k":"64d7bb4c20","n":"Dépanneur Vidéo Éclair inc.","b":"Petro-Canada","a":"2530 boul. Central, Québec","r":"Capitale-Nationale","y":46.81165,"x":-71.29363,"p":[179.9,204.9,289.9]}
 {"k":"64fd514f5f","n":"Les Entreprises L. & C. Arsenault inc.","b":"Shell","a":"2710 boul. Talbot, Stoneham-et-Tewkesbury","r":"Capitale-Nationale","y":46.98276,"x":-71.36584,"p":[179.9,204.9,282.9]}
-{"k":"65416095b4","n":"Couche-Tard #518","b":"Irving","a":"470 av. Saint-Sacrement, Québec","r":"Capitale-Nationale","y":46.79916,"x":-71.25913,"p":[177.9,202.9,279.9]}
+{"k":"65416095b4","n":"Couche-Tard #518","b":"Irving","a":"470 av. Saint-Sacrement, Québec","r":"Capitale-Nationale","y":46.79916,"x":-71.25913,"p":[175.9,200.9,279.9]}
 {"k":"658989f82d","n":"Les Pétroles du Lac inc.","b":"Petro-Canada","a":"643 rte 94, Shawinigan","r":"Mauricie","y":46.61015,"x":-72.6319,"p":[167.9,195.9,279.9]}
 {"k":"65a59fc485","n":"Accommodation Cap-Santé enr.","b":"Sonic","a":"328 rte 138, Cap-Santé","r":"Capitale-Nationale","y":46.6725,"x":-71.791,"p":[174.9,200.9,null]}
 {"k":"65ba4e80fc","n":"2759-6402 Québec Inc.","b":"Shell","a":"3785 boul. Dagenais ouest, Laval","r":"Laval","y":45.57208,"x":-73.82059,"p":[178.9,206.9,279.9]}
@@ -1058,7 +1058,7 @@
 {"k":"6eeae5f0e4","n":"KEVIN PERREAULT","b":"Ultramar","a":"4980 Boul. Arthur-Sauvé, LAVAL","r":"Laval","y":45.55148,"x":-73.86897,"p":[178.9,205.9,null]}
 {"k":"6f1f9734c3","n":"Dépanneur Boni-Soir (9117-2023 Quebec Inc.)","b":"Esso","a":"1160 rue Philippe-Chartrand, Terrebonne","r":"Lanaudière","y":45.75192,"x":-73.70615,"p":[169.9,211.9,279.9]}
 {"k":"6f2669fcb5","n":"9004-7309 Québec inc.","b":"Shell","a":"584 rue Principale ouest, Farnham","r":"Estrie","y":45.28644,"x":-72.98998,"p":[173.9,201.9,279.9]}
-{"k":"6f30a71e66","n":"9391-1295 QUEBEC INC","b":"Ultramar","a":"10741 Boul. Pie-IX, MONTRÉAL","r":"Montréal","y":45.5901,"x":-73.63587,"p":[163.9,190.9,275.9]}
+{"k":"6f30a71e66","n":"9391-1295 QUEBEC INC","b":"Ultramar","a":"10741 Boul. Pie-IX, MONTRÉAL","r":"Montréal","y":45.5901,"x":-73.63587,"p":[178.9,205.9,275.9]}
 {"k":"6f399d314c","n":"Couche-Tard #505","b":"Irving","a":"1241 aut. Duplessis, L'Ancienne-Lorette","r":"Capitale-Nationale","y":46.78766,"x":-71.35213,"p":[179.9,204.9,279.9]}
 {"k":"6f46914920","n":"9395-6977 Quebec inc.","b":"Shell","a":"1055 rue Jarry est, Montréal","r":"Montréal","y":45.54802,"x":-73.62545,"p":[178.9,206.9,279.9]}
 {"k":"6f54a58465","n":"Dépanneur Daka","b":"Petro-Canada","a":"6 av. Le Gardeur, Baie-Comeau","r":"Côte-Nord","y":49.24322,"x":-68.1494,"p":[185.4,210.4,289.9]}
@@ -1206,7 +1206,7 @@
 {"k":"7e86b17901","n":"Groupe Mondor Inc.","b":"Shell","a":"154 boul. Saint-Laurent est, Louiseville","r":"Mauricie","y":46.25594,"x":-72.9368,"p":[179.9,207.9,289.9]}
 {"k":"7e8c21f181","n":"9530-5934 Québec Inc.","b":"Shell","a":"141 boul. Saint-Joseph, Drummondville","r":"Centre-du-Québec","y":45.89777,"x":-72.52359,"p":[172.7,200.7,279.9]}
 {"k":"7e9bdc7871","n":"Couche-Tard #1308","b":"Esso","a":"3525 ch. des Quatre-Bourgeois, Québec","r":"Capitale-Nationale","y":46.75991,"x":-71.32053,"p":[179.9,204.9,279.9]}
-{"k":"7eb67a5d20","n":"Couche-Tard #376","b":"Couche-Tard","a":"3246 rue Bélanger, Montréal","r":"Montréal","y":45.55702,"x":-73.59383,"p":[166.9,193.9,null]}
+{"k":"7eb67a5d20","n":"Couche-Tard #376","b":"Couche-Tard","a":"3246 rue Bélanger, Montréal","r":"Montréal","y":45.55702,"x":-73.59383,"p":[178.9,205.9,null]}
 {"k":"7eb85386eb","n":"Filgo Lavaltrie","b":"Shell","a":"551-110 rue Notre-Dame, Lavaltrie","r":"Lanaudière","y":45.8721,"x":-73.2942,"p":[174.9,200.9,274.9]}
 {"k":"7ed7219b77","n":"9086-6922 QUEBEC INC","b":"Petro-Canada","a":"7205 Saint-Laurent , Montréal","r":"Montréal","y":45.5351,"x":-73.6186,"p":[178.9,205.9,276.9]}
 {"k":"7ef3963bac","n":"Harnois Énergies Inc.","b":"Esso","a":"209 boul. Brien, Repentigny","r":"Lanaudière","y":45.74758,"x":-73.46075,"p":[165.9,191.9,270.9]}
@@ -1383,7 +1383,7 @@
 {"k":"8f35a11027","n":"Couche-Tard #525","b":"Irving","a":"8025 av. des Églises, Lévis","r":"Chaudière-Appalaches","y":46.72289,"x":-71.26624,"p":[176.9,201.9,null]}
 {"k":"8f41f7230b","n":"Miraco Adstock","b":"Miraco","a":"34 rue Chouinard nord, Adstock","r":"Chaudière-Appalaches","y":46.0084,"x":-71.18121,"p":[179.2,203.9,279.9]}
 {"k":"8f5f5b4f9b","n":"Harnois Énergies Inc.","b":"Esso","a":"201 av. de la Gare, Saint-Sauveur","r":"Laurentides","y":45.89059,"x":-74.14929,"p":[173.9,199.9,276.9]}
-{"k":"8fc5a75351","n":"Aya Services Inc.","b":"Ultramar","a":"660 montée Monette, Saint-Mathieu","r":"Montérégie","y":45.33373,"x":-73.51049,"p":[164.9,191.9,275.9]}
+{"k":"8fc5a75351","n":"Aya Services Inc.","b":"Ultramar","a":"660 montée Monette, Saint-Mathieu","r":"Montérégie","y":45.33373,"x":-73.51049,"p":[178.9,205.9,275.9]}
 {"k":"8fc706f433","n":"La Société Canadian Tire Ltée","b":"Canadian Tire","a":"265 boul. Rideau, Rouyn-Noranda","r":"Abitibi-Témiscamingue","y":48.24325,"x":-79.04073,"p":[185.4,210.4,279.9]}
 {"k":"90096f0117","n":"Gestion Domay inc.","b":"Harnois","a":"5978 rte 220, Orford","r":"Estrie","y":45.38502,"x":-72.15897,"p":[176.9,202.9,274.9]}
 {"k":"901ba79f7c","n":"Accommodation GT inc.","b":"Sonic","a":"107 rue Saint-Pierre, suite 200, Saint-Constant","r":"Montérégie","y":45.37582,"x":-73.56709,"p":[174.9,198.9,279.9]}
@@ -1434,7 +1434,7 @@
 {"k":"9499e3f587","n":"Quickie Mont Bleu","b":"Quickie","a":"207 boul. Mont-Bleu, Gatineau","r":"Outaouais","y":45.46025,"x":-75.7666,"p":[162.9,188.9,null]}
 {"k":"94c4828cbd","n":"9102-7342 QUEBEC INC","b":"Petro-Canada","a":"120 Saint-Raymond , Gatineau","r":"Outaouais","y":45.44709,"x":-75.7439,"p":[162.9,189.9,277.9]}
 {"k":"94c615be65","n":"Station-service Dauphinais","b":"Ultramar","a":"61 route 202, Lacolle","r":"Montérégie","y":45.07139,"x":-73.35629,"p":[155.9,180.9,269.9]}
-{"k":"94f9636624","n":"Couche-Tard #943","b":"Irving","a":"4505 aut. 20, Saint-Cyrille-de-Wendover","r":"Centre-du-Québec","y":45.94917,"x":-72.44688,"p":[170.7,197.9,279.9]}
+{"k":"94f9636624","n":"Couche-Tard #943","b":"Irving","a":"4505 aut. 20, Saint-Cyrille-de-Wendover","r":"Centre-du-Québec","y":45.94917,"x":-72.44688,"p":[172.9,199.9,279.9]}
 {"k":"94fb2911c3","n":"Dépanneur Sprint Panet","b":"Petro-Canada","a":"3667 rue Panet, Saguenay","r":"Saguenay-Lac-Saint-Jean","y":48.40226,"x":-71.23757,"p":[159.2,184.2,272.9]}
 {"k":"950e09a66c","n":"9483-5584 Québec Inc.","b":"Harnois","a":"153 rue Principale, Frampton","r":"Chaudière-Appalaches","y":46.46232,"x":-70.80843,"p":[175.2,201.9,279.9]}
 {"k":"95126a2aa6","n":"Harnois Énergies Inc.","b":"Harnois","a":"60 montée de l'Église, Saint-Colomban","r":"Laurentides","y":45.71428,"x":-74.10626,"p":[172.9,198.9,279.9]}
@@ -1721,7 +1721,7 @@
 {"k":"b506329501","n":"Couche-Tard #1222","b":"Esso","a":"4090 boul. des Sources, Dollard-des-Ormeaux","r":"Montréal","y":45.49314,"x":-73.80745,"p":[178.9,205.9,279.9]}
 {"k":"b56693fc29","n":"Filgo St-Pascal","b":"Sonic","a":"217 rue Rochette, Saint-Pascal","r":"Bas-Saint-Laurent","y":47.52957,"x":-69.81923,"p":[187.2,211.9,279.9]}
 {"k":"b56e98320f","n":"Depanneur Lecavalier inc.","b":"Shell","a":"1110 rue Principale, Sainte-Agathe-des-Monts","r":"Laurentides","y":46.04331,"x":-74.26268,"p":[179.9,207.9,289.9]}
-{"k":"b579ad5c27","n":"9379-4402 Québec inc.","b":"Shell","a":"8700 boul. Leduc, Brossard","r":"Montérégie","y":45.45008,"x":-73.44384,"p":[158.9,186.9,279.9]}
+{"k":"b579ad5c27","n":"9379-4402 Québec inc.","b":"Shell","a":"8700 boul. Leduc, Brossard","r":"Montérégie","y":45.45008,"x":-73.44384,"p":[177.9,205.9,279.9]}
 {"k":"b5932deb08","n":"Super Gaz ltée   # 812","b":"Super Gaz","a":"2043 boul. Sainte-Sophie, Sainte-Sophie","r":"Laurentides","y":45.82351,"x":-73.88999,"p":[164.9,189.9,277.9]}
 {"k":"b59e89d246","n":"Harnois Énergies Inc.","b":"Esso","a":"1515 boul. Lebourgneuf, Québec","r":"Capitale-Nationale","y":46.83306,"x":-71.3015,"p":[177.9,203.9,279.9]}
 {"k":"b5d9a0dc33","n":"Quickie Louise Campagna","b":"Quickie","a":"2 boul. Louise-Campagna, Gatineau","r":"Outaouais","y":45.4303,"x":-75.76334,"p":[162.9,188.9,null]}
@@ -1814,7 +1814,7 @@
 {"k":"be64c63d73","n":"9411-6092 Québec Inc.","b":"Shell","a":"595 boul. Laval, Laval","r":"Laval","y":45.56403,"x":-73.71643,"p":[178.9,206.9,279.9]}
 {"k":"be666519c7","n":"Couche-Tard #370","b":"Couche-Tard","a":"5959 boul. Robert, Montréal","r":"Montréal","y":45.59251,"x":-73.59241,"p":[178.9,205.9,null]}
 {"k":"be69c1bab3","n":"9503-6505 Québec inc.","b":"Mobil","a":"835 boul. Iberville, St-Jean-sur-Richelieu","r":"Montérégie","y":45.30331,"x":-73.23042,"p":[169.9,199.9,289.9]}
-{"k":"be69f2fc49","n":"Couche-Tard #152","b":"Couche-Tard","a":"1323 boul. des Seigneurs, Terrebonne","r":"Lanaudière","y":45.7002,"x":-73.66223,"p":[165.9,192.9,null]}
+{"k":"be69f2fc49","n":"Couche-Tard #152","b":"Couche-Tard","a":"1323 boul. des Seigneurs, Terrebonne","r":"Lanaudière","y":45.7002,"x":-73.66223,"p":[178.9,205.9,null]}
 {"k":"be6d05596b","n":"Station Thetford Mines","b":"Shell","a":"508 boul. Frontenac ouest, Thetford Mines","r":"Chaudière-Appalaches","y":46.09849,"x":-71.31996,"p":[179.2,205.9,279.9]}
 {"k":"be70947126","n":"Harnois Énergies Inc.","b":"Esso","a":"5105 boul. Wilfrid-Hamel, Québec","r":"Capitale-Nationale","y":46.80266,"x":-71.33127,"p":[179.9,205.9,279.9]}
 {"k":"be9f5f30f8","n":"Filgo St-Jérôme","b":"Shell","a":"415 rue Lamontagne, Saint-Jérôme","r":"Laurentides","y":45.76016,"x":-74.02451,"p":[179.9,205.9,279.9]}
@@ -1992,7 +1992,7 @@
 {"k":"d19993dbee","n":"Harnois Énergies Inc.","b":"Esso","a":"4500 côte Rosemont, Trois-Rivières","r":"Mauricie","y":46.35291,"x":-72.60822,"p":[179.9,205.9,279.9]}
 {"k":"d1c9bf3345","n":"La Coop Novago (Alimentation BG inc.)","b":"Sonic","a":"501 rte 352, Saint-Adelphe","r":"Mauricie","y":46.72792,"x":-72.43611,"p":[175.9,199.9,279.9]}
 {"k":"d1d93dc4c4","n":"Filgo Charest","b":"Shell","a":"735 boul. Charest ouest, Québec","r":"Capitale-Nationale","y":46.8043,"x":-71.24345,"p":[177.9,203.9,279.9]}
-{"k":"d1dac55a26","n":"9386-6648 QUEBEC INC","b":"Ultramar","a":"218 boul. Sainte-Anne, SAINTE-ANNE-DES-PLAINES","r":"Laurentides","y":45.76293,"x":-73.81118,"p":[163.9,190.9,279.9]}
+{"k":"d1dac55a26","n":"9386-6648 QUEBEC INC","b":"Ultramar","a":"218 boul. Sainte-Anne, SAINTE-ANNE-DES-PLAINES","r":"Laurentides","y":45.76293,"x":-73.81118,"p":[178.9,205.9,279.9]}
 {"k":"d1e20e7c69","n":"Dépanneur Sprint Louis XIV","b":"Petro-Canada","a":"1640 boul. Louis-XIV, Québec","r":"Capitale-Nationale","y":46.88132,"x":-71.24236,"p":[175.9,200.9,279.9]}
 {"k":"d2014d2bb5","n":"9442-8422 Québec Inc","b":"Ultramar","a":"100 Boul. Bourque, SHERBROOKE","r":"Estrie","y":45.36803,"x":-71.99629,"p":[178.9,205.9,278.9]}
 {"k":"d207c3c62b","n":"Les Pétroles Expert inc.","b":"Petroplus","a":"240 boul. Thibeau, Trois-Rivières","r":"Mauricie","y":46.37152,"x":-72.53597,"p":[179.9,205.9,279.9]}
@@ -2319,7 +2319,7 @@
 {"k":"ef24999e6e","n":"Couche-Tard #1226","b":"Shell","a":"873 boul. Maloney est, Gatineau","r":"Outaouais","y":45.48804,"x":-75.6014,"p":[163.9,192.9,279.9]}
 {"k":"ef2f3b376d","n":"GESTION J & D INC","b":"Ultramar","a":"1016 Boul. Talbot, SAGUENAY","r":"Saguenay-Lac-Saint-Jean","y":48.41176,"x":-71.05197,"p":[159.5,186.9,279.9]}
 {"k":"ef32448379","n":"Couche-Tard #1290","b":"Esso","a":"188 rue Bélanger, Saint-Jérôme","r":"Laurentides","y":45.7944,"x":-74.00553,"p":[179.9,206.9,279.9]}
-{"k":"efc0fa2429","n":"Couche-Tard #150","b":"Couche-Tard","a":"603 boul. du Curé-Labelle, Blainville","r":"Laurentides","y":45.65847,"x":-73.85752,"p":[166.9,193.9,null]}
+{"k":"efc0fa2429","n":"Couche-Tard #150","b":"Couche-Tard","a":"603 boul. du Curé-Labelle, Blainville","r":"Laurentides","y":45.65847,"x":-73.85752,"p":[178.9,205.9,null]}
 {"k":"efc461127b","n":"Dépanneur R.R. 640 Ltée","b":"Ultramar","a":"236 ch. des Anglais, MASCOUCHE","r":"Lanaudière","y":45.73026,"x":-73.65564,"p":[179.9,205.9,279.9]}
 {"k":"efe3fbf29d","n":"Municipalité de Rivière-Bleue","b":"Harnois","a":"160 rue Saint-Jopseph nord, Rivière-Bleue","r":"Bas-Saint-Laurent","y":47.44533,"x":-69.03671,"p":[180.7,200.7,288.9]}
 {"k":"efe539cef0","n":"9008-3619 QUEBEC INC","b":"Shell","a":"4459 route de Fossambault, SAINTE-CATHERINE-DE-LA-JACQUES-CARTIER","r":"Capitale-Nationale","y":46.83792,"x":-71.6086,"p":[176.9,204.9,279.9]}
@@ -2386,7 +2386,7 @@
 {"k":"f5a0753925","n":"DEPANNEUR LES FRERES CLAUDE INC","b":"Ultramar","a":"115 rue de l'Église, ROXTON FALLS","r":"Montérégie","y":45.57642,"x":-72.5249,"p":[170.9,197.9,279.9]}
 {"k":"f5a184fbd3","n":"Harnois Énergies Inc.","b":"Esso","a":"330 boul. Harwood, Vaudreuil-Dorion","r":"Montérégie","y":45.38004,"x":-74.01705,"p":[174.9,200.9,279.9]}
 {"k":"f5a1ed9880","n":"9095-2391 Québec Inc.","b":"Petro-Canada","a":"164 rue Principale, Saint-Aimé-des-Lacs","r":"Capitale-Nationale","y":47.68487,"x":-70.31697,"p":[185.9,210.9,null]}
-{"k":"f5af6b9323","n":"Couche-Tard #151","b":"Couche-Tard","a":"990 montée Masson, Terrebonne","r":"Lanaudière","y":45.70995,"x":-73.62814,"p":[170.9,197.9,null]}
+{"k":"f5af6b9323","n":"Couche-Tard #151","b":"Couche-Tard","a":"990 montée Masson, Terrebonne","r":"Lanaudière","y":45.70995,"x":-73.62814,"p":[178.9,205.9,null]}
 {"k":"f62997e87d","n":"9295-1037 Québec inc.","b":"Shell","a":"1780 av. de Grand-Mère, Shawinigan","r":"Mauricie","y":46.60442,"x":-72.70769,"p":[173.9,206.9,279.9]}
 {"k":"f631ae7f67","n":"Dépanneur Caleb","b":"Petro-Canada","a":"8580 ch. de Saint-Élie, Sherbrooke","r":"Estrie","y":45.38291,"x":-72.07967,"p":[179.9,204.9,274.9]}
 {"k":"f64f337dc4","n":"Dépanneur Sprint Cambronne","b":"Petro-Canada","a":"700 rue Cambronne, Québec","r":"Capitale-Nationale","y":46.87098,"x":-71.19695,"p":[175.9,200.9,279.9]}
