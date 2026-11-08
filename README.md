@@ -10,6 +10,7 @@ Application web installable qui montre les stations-service les moins chères su
 | `manifest.webmanifest` | Nom, icônes et couleurs pour l'installation sur téléphone |
 | `sw.js` | Démarrage instantané et ouverture hors connexion (les prix restent toujours en direct) |
 | `icons/` | Icônes de l'application |
+| `tests/`, `.github/workflows/tests.yml` | Tests automatiques, lancés par GitHub à chaque modification (*Actions* → *Tests*). Voir `tests/README.md` |
 | `vendor/leaflet/` | Bibliothèque de carte Leaflet 1.9.4, hébergée dans le dépôt (plus de dépendance à unpkg) |
 | `scripts/collect.py`, `.github/workflows/historique.yml` | Collecte de l'historique des prix (voir plus bas) |
 
