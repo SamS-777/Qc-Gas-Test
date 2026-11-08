@@ -279,3 +279,77 @@ test("dessiner une zone : stations à l'intérieur seulement, favori enregistré
   await page.click("#favBtn");
   await expect(page.locator(".fav-go").first()).toContainText("Zone");
 });
+
+/* ---------- Clavier et lecteurs d'écran ---------- */
+test("adresse : liste de suggestions accessible (combobox) et choix au clavier", async ({ page }) => {
+  await mockNet(page); await open(page);
+  const from = page.locator("#from");
+  await expect(from).toHaveAttribute("role", "combobox");
+  await expect(from).toHaveAttribute("aria-expanded", "false");
+  await from.fill("10074 gagnier");
+  await expect(page.locator("#fromList [role=option]").first()).toBeVisible();
+  await expect(from).toHaveAttribute("aria-expanded", "true");
+  await page.keyboard.press("ArrowDown");
+  await expect(from).toHaveAttribute("aria-activedescendant", "fromOpt0");
+  await expect(page.locator("#fromOpt0")).toHaveAttribute("aria-selected", "true");
+  await page.keyboard.press("Enter");
+  await expect(from).toHaveValue(/Gagnier/);
+  await expect(from).toHaveAttribute("aria-expanded", "false");
+  expect(await from.getAttribute("aria-activedescendant")).toBeNull();
+});
+
+test("résultats : Tab jusqu'à une station, Entrée la montre sur la carte", async ({ page }) => {
+  await mockNet(page); await open(page); await searchNear(page);
+  const card = page.locator("#results .card").nth(2);
+  await card.focus();
+  await page.keyboard.press("Enter");
+  await expect(card).toHaveClass(/sel/);
+  await expect(card).toHaveAttribute("aria-current", "true");
+  await expect(page.locator("#summary")).toHaveAttribute("aria-live", "polite");
+  expect(await page.locator("section.results").getAttribute("aria-live")).toBeNull(); // la liste entière n'est plus relue
+});
+
+test("choisir le centre au clavier : la carte prend le focus, Entrée cherche ici, Échap annule", async ({ page }) => {
+  await mockNet(page); await open(page);
+  await page.click("label[for=modeNear]");
+  await page.focus("#pickBtn"); await page.keyboard.press("Enter");
+  await expect(page.locator("#pickBtn")).toHaveAttribute("aria-pressed", "true");
+  expect(await page.evaluate(() => document.activeElement === mapFocusEl())).toBe(true);
+  await expect(page.locator("#pickUi .kbdhint")).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.locator("#pickUi")).toBeHidden();
+  await expect(page.locator("#pickBtn")).toBeFocused(); // le focus revient au bouton
+  await page.keyboard.press("Enter");
+  await page.keyboard.press("Enter"); // sur la carte : chercher au centre
+  await page.waitForSelector("#results li");
+  await expect(page.locator("#from")).toHaveValue(/9e Avenue/);
+});
+
+test("dessiner une zone au clavier : flèches, Entrée ajoute le centre, Terminer", async ({ page }) => {
+  await mockNet(page); await open(page);
+  await page.click("label[for=modeNear]");
+  await page.focus("#drawBtn"); await page.keyboard.press("Enter");
+  await page.evaluate(() => mapA.flyTo(45.555, -73.62, 12)); await sleep(600);
+  await expect(page.locator("#drawUi .drawcross")).toBeVisible();
+  const seq = [[], ["ArrowRight", "ArrowRight", "ArrowRight"], ["ArrowDown", "ArrowDown", "ArrowDown"], ["ArrowLeft", "ArrowLeft", "ArrowLeft"]];
+  for (const keys of seq) {
+    for (const k of keys) { await page.keyboard.press(k); await sleep(120); }
+    await sleep(400);
+    await page.keyboard.press("Enter");
+  }
+  await expect(page.locator("#drawMsg")).toContainText("4 points");
+  expect(await page.evaluate(() => new Set(drawPts.map(p => p.join())).size)).toBe(4); // la carte a bien bougé entre les coins
+  await page.click("#drawDone"); await page.waitForSelector("#results li");
+  await expect(page.locator("#sumTitle")).toContainText("dans ta zone");
+});
+
+test("carte Google : Entrée sur la carte cherche aussi au centre", async ({ page }) => {
+  await mockNet(page); await open(page, { prefs: { gkey: "GOOD" } });
+  await expect.poll(() => page.evaluate(() => mapA && mapA.kind)).toBe("google");
+  await page.click("label[for=modeNear]");
+  await page.focus("#pickBtn"); await page.keyboard.press("Enter");
+  expect(await page.evaluate(() => $("map").contains(document.activeElement))).toBe(true);
+  await page.keyboard.press("Enter");
+  await page.waitForSelector("#results li");
+  await expect(page.locator("#pickUi")).toBeHidden();
+});

@@ -142,7 +142,7 @@ Key global state:
 - `costco` — legacy, migration only.
 
 ### Service worker (`sw.js`)
-- **Cache name:** `VERSION = "essence-v21"`, bumped manually on each release. Activation deletes only caches starting with `essence-`, because the `github.io` origin is shared with the owner's other projects.
+- **Cache name:** `VERSION = "essence-v22"`, bumped manually on each release. Activation deletes only caches starting with `essence-`, because the `github.io` origin is shared with the owner's other projects.
 - **Install:** the minimal shell (`./`, `index.html`, manifest, Leaflet JS/CSS) must download or the install fails, so the old version stays active. Icons and images are optional.
 - **Navigation:** network-first. Only a valid HTML response replaces the cached `index.html`, and `cache.put` is awaited. The cached page is the offline fallback.
 - **Same-origin files and Google Fonts:** cache-first, with a background refresh kept alive by `event.waitUntil`. Same-origin files are cached only if `ok`.
@@ -159,6 +159,8 @@ Key global state:
   - Aborts if fewer than 500 stations are read (protects against a malformed feed).
   - **Station key:** `sha1(name.lower() | address.lower())[:10]`, because the Régie provides no ID. The front end recomputes the same key with its own SHA-1 implementation; all 2,463 stations of a test snapshot matched.
 
+- **Weekly compaction:** each run rewrites ~1 MB of files, so the branch would grow by hundreds of MB per year. When `.compacte` (branch root) is older than 7 days or missing, the workflow first points the tag `historique-precedent` at the current tip through the GitHub API (a shallow clone cannot push a tag; if the API call fails the step stops before touching anything), then replaces the branch with a single orphan commit holding the same tree, pushed with `--force-with-lease`. Data is unchanged; the tag keeps one week of Git history for rollback until the next compaction.
+
 **Files written** (branch `historique`, folder `data/`):
 
 | File | Content |
@@ -173,7 +175,7 @@ Key global state:
 
 ## 6. Known limitations and deliberate trade-offs
 
-1. **Single ~2,340-line HTML file, no build.** Automated tests now live in `tests/` and run in GitHub Actions on every push: 26 browser scenarios, 1 service-worker scenario and 11 collector tests. They cover the ranking logic, the async races, feed freshness and failure handling, network timeouts, Google failure states, detour breaker, history retry, map picking and drawing, offline start, and every collector guard. Pure functions are tested in the page (the file is not split into modules).
+1. **Single ~2,340-line HTML file, no build.** Automated tests now live in `tests/` and run in GitHub Actions on every push: 31 browser scenarios, 1 service-worker scenario and 11 collector tests. They cover the ranking logic, the async races, feed freshness and failure handling, network timeouts, Google failure states, detour breaker, history retry, map picking and drawing (pointer and keyboard), combobox ARIA, offline start, and every collector guard. Pure functions are tested in the page (the file is not split into modules).
 2. **Station identity relies on name + address.** If the Régie edits either, the history for that station splits into two keys.
 3. **Public demo servers.** The OSRM demo server and Photon/Nominatim have fair-use policies that aren't designed for production. Load is tiny (a handful of users) but it's a dependency risk.
 4. **Google costs.** Each route search makes about 6 traffic-aware Routes computations (1 route + 5 detours), and each map load is billed. Without API restrictions or daily quotas, a leaked key could incur charges. Keys are not in the published code: each user pastes their own, and it is stored only in their browser.
@@ -186,9 +188,10 @@ Key global state:
    - The area median uses the stations in today's result set, so stations closed during the period are not included.
    - Rebates are applied retroactively as constants.
 8. **Accessibility.**
-   - Map interactions (placement and drawing) are pointer-only.
-   - The chart has an `aria-label` summary but no table view.
-   - Focus management in the map modes is minimal.
+   - Address fields are ARIA comboboxes (`aria-expanded`, `aria-activedescendant`, `role=listbox/option`).
+   - Result cards are focusable; Enter or Space selects one (`aria-current`). Only the summary is a live region, not the whole list.
+   - Map modes: entering placement or drawing moves focus to the map (arrows pan). Enter searches at the centre (placement) or adds the centre as a corner (drawing, with a crosshair). A keyboard hint appears while the map has focus. Escape cancels and returns focus to the mode button, which exposes `aria-pressed`.
+   - Remaining gaps: the chart has an `aria-label` summary but no table view; map markers duplicate the list and are not otherwise announced.
 9. **Global mutable state and some `var` declarations,** used deliberately to avoid temporal-dead-zone errors for functions called at startup. There is no framework.
 10. **README.md is owner-facing and partly older than the code.** Its setup steps are accurate. For the feature set, this overview is authoritative.
 

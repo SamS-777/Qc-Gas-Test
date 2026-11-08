@@ -44,3 +44,29 @@ jobs:
           if git diff --cached --quiet; then echo "Aucun changement."; exit 0; fi
           git commit -q -m "Prix $(date -u +'%Y-%m-%d %H:%M') UTC"
           git push -q origin historique
+
+      # Compactage hebdomadaire : chaque passage réécrit ~1 Mo de fichiers, et Git garde toutes les versions.
+      # Sans ménage, la branche grossirait de plusieurs centaines de Mo par an. Une fois par semaine, elle est
+      # remplacée par un seul commit contenant l'état actuel : les données (séries, journal changes/*.csv,
+      # résumés) sont intactes, seules les anciennes versions Git disparaissent.
+      # Filet de sécurité : l'étiquette « historique-precedent » garde l'état d'avant le compactage
+      # (avec sa semaine d'historique Git), jusqu'au compactage suivant.
+      - name: Compacter (une fois par semaine)
+        working-directory: hist
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          last=$(cat .compacte 2>/dev/null || echo 1970-01-01)
+          age=$(( $(date -u +%s) - $(date -u -d "$last" +%s) ))
+          if [ "$age" -lt 604800 ]; then echo "Compactage : pas encore (dernier : $last)."; exit 0; fi
+          before=$(git rev-parse HEAD)
+          # D'abord le filet de sécurité (par l'API : un clone superficiel ne peut pas pousser d'étiquette). S'il échoue, on s'arrête là.
+          ref="repos/$GITHUB_REPOSITORY/git/refs"
+          gh api -X PATCH "$ref/tags/historique-precedent" -f sha="$before" -F force=true >/dev/null 2>&1 \
+            || gh api "$ref" -f ref=refs/tags/historique-precedent -f sha="$before" >/dev/null
+          date -u +%Y-%m-%d > .compacte
+          git checkout -q --orphan compacte
+          git add -A
+          git commit -q -m "Compactage $(date -u +%Y-%m-%d) : historique Git remis à un seul commit (données intactes)"
+          git push -q --force-with-lease=historique:"$before" origin compacte:historique
+          echo "Compacté : $before → $(git rev-parse HEAD)"
