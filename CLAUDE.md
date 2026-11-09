@@ -25,7 +25,7 @@ Description technique complète : `APP_OVERVIEW.md` (anglais). Utilisation et fo
 ## Architecture
 
 - `index.html` : toute l'appli (HTML, CSS, JS), **sans build**, un seul fichier. Voulu : pas de dépendance d'outillage.
-- `sw.js` : service worker. **Monter `VERSION` (ex. `essence-v24` → `v23`) à chaque modification de l'appli**, sinon les téléphones gardent l'ancienne version en cache. Mettre à jour aussi la mention dans `APP_OVERVIEW.md`.
+- `sw.js` : service worker. **Monter `VERSION` (ex. `essence-v24` → `v25`) à chaque modification de l'appli**, sinon les téléphones gardent l'ancienne version en cache. Mettre à jour aussi la mention dans `APP_OVERVIEW.md`.
 - `vendor/leaflet/` : Leaflet 1.9.4 inclus dans le dépôt (aucun CDN pour la carte de secours).
 - `scripts/collect.py` : collecteur d'historique, lancé par `.github/workflows/historique.yml` (cron `7,37 * * * *`), écrit dans la branche orpheline `historique`.
 - Sources externes : flux de la Régie de l'énergie (`stations.geojson.gz`), Google Maps (carte et `Route.computeRoutes`), TomTom et OSRM (itinéraires), Photon (géocodage).
