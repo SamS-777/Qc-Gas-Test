@@ -65,6 +65,12 @@ export async function mockNet(page, o = {}) {
       const m = model(pts);
       if (u.includes("alternatives")) {
         calls.osrmRoute++;
+        if (pts.length > 2) {
+          const geo = pts.slice(1).flatMap((q, i) => line(pts[i], q, 8).slice(i ? 1 : 0));
+          const next = () => route.fulfill({ status: 200, contentType: "application/json", headers: H, body: JSON.stringify({ code: "Ok", routes: [
+            { distance: m.km * 1000, duration: m.min * 60, geometry: { coordinates: geo }, legs: pts.slice(1).map(() => ({ steps: [{ name: "Rue Test", distance: 1000 }] })) }] }) });
+          return o.osrmRoute ? o.osrmRoute(route, calls.osrmRoute, next) : next();
+        }
         const next = () => route.fulfill({ status: 200, contentType: "application/json", headers: H, body: JSON.stringify({ code: "Ok", routes: [
           { distance: m.km * 1000, duration: m.min * 60, geometry: { coordinates: ibe }, legs: [{ steps: [{ name: "Rue D'Iberville", distance: 6000 }] }] },
           { distance: m.km * 1150, duration: m.min * 66, geometry: { coordinates: pie }, legs: [{ steps: [{ name: "Boulevard Pie-IX", distance: 8000 }] }] }] }) });

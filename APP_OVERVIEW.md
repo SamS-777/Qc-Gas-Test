@@ -39,6 +39,8 @@ External runtime dependencies (no npm, no bundler):
 - **Sur mon trajet (route).**
   - Start and destination are entered as addresses with autocomplete.
   - The app gets up to 3 route alternatives and keeps stations within a corridor of the selected route. The corridor is configurable in metres.
+  - **Stops (since 1.1).** Up to 2 intermediate stops ("+ Ajouter une étape"), each with the same address autocomplete. Stops are mandatory waypoints, passed to every provider (Google `intermediates`, TomTom `a:s1:s2:b`, OSRM `a;s1;s2;b`). With stops, alternatives are not requested (Google rejects them with intermediates), so there is a single route. An empty stop field is ignored. Swap reverses the stops too.
+  - **Detour with stops.** A station's detour is the full trip re-routed through the station, inserted between the stops already passed and the remaining ones (`stopsAlong` + `withStation`), minus the selected route. Stop positions along the route are searched in order, each after the previous one, so a route that comes back past an earlier stop is handled.
   - Each station gets its distance to the route and its position along it.
 - **Près de moi (nearby).** Three ways to define the search area:
   - **Circle.** A centre plus a radius of up to 300 km. The centre comes from an address, "my location" (`navigator.geolocation`), or a point picked on the map. Picking on the map works two ways: a "Choisir le centre" button opens a placement mode with a fixed centre pin, a live ghost circle and a "Chercher ici" button; long-press or right-click on the map is a shortcut.
@@ -65,12 +67,12 @@ External runtime dependencies (no npm, no bundler):
 - **Caveat:** the history only started on 2026-11-07, so the charts are mostly flat or short for now. That is expected.
 
 ### 2.5 Navigation hand-off
-- **Google Maps:** the URL API, `dir/?api=1`. In route mode it uses the station as a waypoint between start and destination. In nearby mode it is origin → station.
+- **Google Maps:** the URL API, `dir/?api=1`. In route mode it uses the station as a waypoint between start and destination, inserted in order among the stops (`waypoints=` separated by `|`). In nearby mode it is origin → station.
 - **Waze:** a deep link, `waze.com/ul?ll=…&navigate=yes`.
 
 ### 2.6 Favourites
 - **Saved from the result title (☆).** Three kinds:
-  - route: from and to;
+  - route: from, to and optional `stops` (a favourite without stops keeps the same key as before 1.1);
   - nearby circle: centre and radius;
   - drawn area: polygon plus a neighbourhood name from reverse geocoding.
 - Favourites are stored in `localStorage`, per device.
@@ -138,11 +140,11 @@ Key global state:
 - `favs`, `brandsOff`, `rebates`;
 - `mode`, `lang`, `theme`, `fuel`;
 - `corridorM`, `radiusKm`, `fillL`;
-- `from`, `to`;
+- `from`, `to`, `stops` (JSON array of the stop fields' text);
 - `costco` — legacy, migration only.
 
 ### Service worker (`sw.js`)
-- **Cache name:** `VERSION = "essence-v25"`, bumped manually on each release. Activation deletes only caches starting with `essence-`, because the `github.io` origin is shared with the owner's other projects.
+- **Cache name:** `VERSION = "essence-v26"`, bumped manually on each release. Activation deletes only caches starting with `essence-`, because the `github.io` origin is shared with the owner's other projects.
 - **Install:** the minimal shell (`./`, `index.html`, manifest, Leaflet JS/CSS) must download or the install fails, so the old version stays active. Icons and images are optional.
 - **Navigation:** network-first. Only a valid HTML response replaces the cached `index.html`, and `cache.put` is awaited. The cached page is the offline fallback.
 - **Same-origin files and Google Fonts:** cache-first, with a background refresh kept alive by `event.waitUntil`. Same-origin files are cached only if `ok`.

@@ -57,7 +57,14 @@
         for (let i = 0; i <= n; i++) { const t = i / n; path.push({ lat: a.lat + (b.lat - a.lat) * t + Math.sin(Math.PI * t) * bend, lng: a.lng + (b.lng - a.lng) * t, altitude: 0 }); }
         return { distanceMeters: d * 1000 * f, durationMillis: d / 30 * 3600000 * f, staticDurationMillis: d / 36 * 3600000 * f, description: desc, path };
       };
-      if (req.intermediates && req.intermediates.length) return { routes: [{ distanceMeters: d * 1000, durationMillis: d / 30 * 3600000 }] };
+      if (req.intermediates && req.intermediates.length) {
+        if (req.computeAlternativeRoutes) throw new Error("INVALID_ARGUMENT: alternative routes are not supported with intermediate waypoints");
+        if (req.fields.includes("path")) {
+          const path = pts.map(p => ({ lat: p.lat, lng: p.lng, altitude: 0 }));
+          return { routes: [{ distanceMeters: d * 1000, durationMillis: d / 30 * 3600000, staticDurationMillis: d / 36 * 3600000, description: "Étapes", path }] };
+        }
+        return { routes: [{ distanceMeters: d * 1000, durationMillis: d / 30 * 3600000 }] };
+      }
       return { routes: req.computeAlternativeRoutes ? [mk(1, "A-40 E et Rue D'Iberville", 0), mk(1.12, "Boulevard Pie-IX", 0.01)] : [mk(1, "A-40 E", 0)] };
     },
   };

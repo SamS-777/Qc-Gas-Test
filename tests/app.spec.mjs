@@ -550,3 +550,159 @@ test.describe("revue 1.01", () => {
     await expect(page.locator("#favRow .fav")).toHaveCount(1);
   });
 });
+
+/* ---------- Version 1.1 : étapes sur le trajet ---------- */
+test.describe("étapes", () => {
+  const STOP = "45.5550, -73.6000"; // coordonnées : pas d'appel au service d'adresses
+  const coordsOf = url => decodeURIComponent(url).split("/driving/")[1].split("?")[0].split(";");
+  async function routeForm(page) {
+    await page.click("label[for=modeRoute]");
+    await page.fill("#from", "10074 j-j gagnier"); await page.fill("#to", "2175 maisonneuve est");
+  }
+
+  test("logique : position des étapes dans l'ordre, station insérée au bon endroit", async ({ page }) => {
+    await mockNet(page); await open(page);
+    const r = await page.evaluate(() => {
+      // Aller-retour : l'étape 2 est sur le chemin du retour, pas sur l'aller qui passe au même endroit.
+      const route = [[-73.6, 45.50], [-73.6, 45.60], [-73.6, 45.50]];
+      const along = stopsAlong(route, [{ lat: 45.58, lon: -73.6 }, { lat: 45.52, lon: -73.6 }]);
+      const a = { n: "A" }, b = { n: "B" }, s1 = { n: "1" }, s2 = { n: "2" };
+      const order = x => withStation(a, [s1, s2], b, { n: "S", alongKm: x }, [5, 10]).map(p => p.n).join("");
+      return { inOrder: along[1] > along[0], firstKm: Math.round(along[0]), order: [order(1), order(7), order(12)] };
+    });
+    expect(r.inOrder).toBe(true);
+    expect(r.firstKm).toBe(9);
+    expect(r.order).toEqual(["AS12B", "A1S2B", "A12SB"]);
+  });
+
+  test("une étape (OSRM) : trajet par l'étape, détours qui la gardent, lien Google Maps complet", async ({ page }) => {
+    const routeUrls = [], travelUrls = [];
+    await mockNet(page, {
+      osrmRoute: (route, n, next) => { routeUrls.push(route.request().url()); return next(); },
+      osrmTravel: (route, n, next) => { travelUrls.push(route.request().url()); return next(); },
+    });
+    await open(page); await routeForm(page);
+    await page.click("#addStop");
+    await expect(page.locator("#stop1")).toBeFocused();
+    await page.fill("#stop1", STOP);
+    await page.click("#go"); await page.waitForSelector("#results li"); await detoursDone(page);
+    const pts = coordsOf(routeUrls.at(-1));
+    expect(pts).toHaveLength(3);
+    expect(pts[1]).toBe("-73.6,45.555");
+    expect(routeUrls.at(-1)).toContain("alternatives=false");
+    await expect(page.locator("#sumMeta")).toContainText("1 étape");
+    expect(await page.locator("#map .endpoint.s").count()).toBe(1);
+    // Chaque détour passe par le départ, l'étape, la station et la destination.
+    expect(travelUrls.length).toBeGreaterThan(0);
+    for (const u of travelUrls) { const p = coordsOf(u); expect(p).toHaveLength(4); expect(p).toContain("-73.6,45.555"); }
+    const href = await page.locator("#results li").first().locator("a.gm").getAttribute("href");
+    const wp = decodeURIComponent(new URL(href).searchParams.get("waypoints")).split("|");
+    expect(wp).toHaveLength(2);
+    expect(wp).toContain("45.555,-73.6");
+  });
+
+  test("Google : l'étape est envoyée, sans trajets alternatifs (refusés par Google avec des étapes)", async ({ page }) => {
+    await mockNet(page); await open(page, { prefs: { gkey: "GOOD" } });
+    await routeForm(page);
+    await page.click("#addStop"); await page.fill("#stop1", STOP);
+    await page.click("#go"); await page.waitForSelector("#results li");
+    const main = await page.evaluate(() => window.__gcalls.filter(c => c[0] === "computeRoutes" && c[5].includes("path")));
+    expect(main.at(-1).slice(3, 5)).toEqual([1, false]);
+    expect(await page.evaluate(() => lastRoute.provider)).toBe("google");
+    await expect(page.locator("#status")).not.toContainText("Google");
+  });
+
+  test("TomTom : l'étape est dans le chemin demandé, sans demande d'alternatives", async ({ page }) => {
+    const urls = [];
+    const ttRoute = { routes: [{ summary: { lengthInMeters: 9000, travelTimeInSeconds: 900, trafficDelayInSeconds: 0 },
+      legs: [{ points: [{ latitude: 45.577, longitude: -73.642 }, { latitude: 45.555, longitude: -73.6 }] }, { points: [{ latitude: 45.555, longitude: -73.6 }, { latitude: 45.5263, longitude: -73.5516 }] }],
+      guidance: { instructions: [] } }] };
+    await mockNet(page, { other: (route, u) => {
+      if (!u.includes("api.tomtom.com")) return route.abort();
+      urls.push(u); return json(route, ttRoute);
+    } });
+    await open(page, { prefs: { ttkey: "TT" } });
+    await routeForm(page);
+    await page.click("#addStop"); await page.fill("#stop1", STOP);
+    await page.click("#go"); await page.waitForSelector("#results li");
+    const main = urls.find(u => !u.includes("summaryOnly"));
+    expect(main.split("calculateRoute/")[1].split("/json")[0].split(":")).toHaveLength(3);
+    expect(main).not.toContain("maxAlternatives");
+  });
+
+  test("2 étapes au maximum ; retirer la première fait remonter la deuxième", async ({ page }) => {
+    await mockNet(page); await open(page);
+    await page.click("label[for=modeRoute]");
+    await page.click("#addStop"); await page.fill("#stop1", "45.5500, -73.6000");
+    await page.click("#addStop"); await page.fill("#stop2", "45.5400, -73.5800");
+    await expect(page.locator("#addStop")).toBeHidden();
+    await page.click("#stop1X");
+    await expect(page.locator("#stop1")).toHaveValue("45.5400, -73.5800");
+    await expect(page.locator("#stop2Row")).toBeHidden();
+    await expect(page.locator("#addStop")).toBeVisible();
+    await expect(page.locator("#stop1")).toBeFocused();
+    await expect(page.locator("#stop1X")).toHaveAttribute("aria-label", "Retirer l'étape 1");
+  });
+
+  test("inverser : départ et destination échangés, étapes dans l'ordre inverse", async ({ page }) => {
+    await mockNet(page); await open(page);
+    await page.click("label[for=modeRoute]");
+    await page.fill("#from", "X"); await page.fill("#to", "Y");
+    await page.click("#addStop"); await page.fill("#stop1", "S1");
+    await page.click("#addStop"); await page.fill("#stop2", "S2");
+    await page.click("#swap");
+    const v = await page.evaluate(() => ["from", "stop1", "stop2", "to"].map(id => $(id).value));
+    expect(v).toEqual(["Y", "S2", "S1", "X"]);
+  });
+
+  test("une étape laissée vide est ignorée", async ({ page }) => {
+    const routeUrls = [];
+    await mockNet(page, { osrmRoute: (route, n, next) => { routeUrls.push(route.request().url()); return next(); } });
+    await open(page); await routeForm(page);
+    await page.click("#addStop");
+    await page.click("#go"); await page.waitForSelector("#results li");
+    expect(coordsOf(routeUrls.at(-1))).toHaveLength(2);
+    await expect(page.locator("#sumMeta")).not.toContainText("étape");
+  });
+
+  test("favori avec étape : enregistré, nommé avec l'étape, relancé avec elle", async ({ page }) => {
+    await mockNet(page); await open(page); await routeForm(page);
+    await page.click("#addStop"); await page.fill("#stop1", STOP);
+    await page.click("#go"); await page.waitForSelector("#results li");
+    await page.click("#favBtn");
+    await expect(page.locator(".fav-go").first()).toHaveText(/→.*→/);
+    await page.click("#stop1X");
+    await page.click(".fav-go");
+    await expect(page.locator("#stop1Row")).toBeVisible();
+    await expect.poll(() => page.evaluate(() => lastStops.length)).toBe(1);
+    await expect(page.locator("#favBtn")).toHaveClass(/on/); // même trajet que le favori
+  });
+
+  test("étapes gardées après un rechargement, et cachées en mode « Près de moi »", async ({ page }) => {
+    await mockNet(page); await open(page); await routeForm(page);
+    await page.click("#addStop"); await page.fill("#stop1", STOP);
+    await page.click("#go"); await page.waitForSelector("#results li");
+    await page.reload(); await page.waitForFunction(() => stations && stations.length > 500);
+    await expect(page.locator("#stop1")).toHaveValue(STOP);
+    await page.click("label[for=modeNear]");
+    await expect(page.locator("#stop1Row")).toBeHidden();
+    await expect(page.locator("#addStop")).toBeHidden();
+  });
+
+  test("changer d'onglet puis revenir : les étapes de la recherche reviennent", async ({ page }) => {
+    await mockNet(page); await open(page); await routeForm(page);
+    await page.click("#addStop"); await page.fill("#stop1", STOP);
+    await page.click("#go"); await page.waitForSelector("#results li");
+    await page.click("label[for=modeNear]");
+    await page.click("label[for=modeRoute]");
+    await expect(page.locator("#stop1")).toHaveValue(STOP);
+    await expect(page.locator("#sumMeta")).toContainText("1 étape");
+  });
+
+  test("ajouter une étape pendant le calcul annule la recherche en cours", async ({ page }) => {
+    await mockNet(page, { osrmRoute: async (route, n, next) => { await sleep(1500); return next(); } }); await open(page);
+    await routeForm(page);
+    await page.click("#go"); await sleep(300); await page.click("#addStop"); await sleep(2000);
+    expect(await page.evaluate(() => ({ lastMode, busy: $("go").disabled }))).toEqual({ lastMode: null, busy: false });
+  });
+});

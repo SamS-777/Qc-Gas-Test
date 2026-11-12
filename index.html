@@ -109,6 +109,10 @@ h1 { font: 600 1.75rem/1.05 var(--serif); letter-spacing: -.01em; margin: 0; tex
 .leg + .leg .pt { top: calc(50% + 4px) }
 .pt-a { border: 3px solid var(--ink); background: var(--surface) }
 .pt-b { background: var(--route); box-shadow: 0 0 0 3px var(--route-soft) }
+.pt-s { width: 12px; height: 12px; left: 15px; background: var(--surface); border: 3px solid var(--route) }
+.addstop { justify-self: start; margin-top: -6px; border: 0; background: transparent; color: var(--clay-ink); font-weight: 600; font-size: .9rem; padding: 4px 6px; border-radius: 8px; cursor: pointer }
+.addstop:hover { background: var(--surface) }
+.addstop[hidden] { display: none }
 .legs::before { content: ""; position: absolute; left: 26px; top: 38px; bottom: 34px; border-left: 2px dotted var(--faint) }
 .locate { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 34px; height: 34px; border-radius: 9px; border: 0; background: transparent; color: var(--muted); display: grid; place-items: center; cursor: pointer }
 .locate:hover { background: var(--panel); color: var(--clay-ink) }
@@ -283,6 +287,7 @@ h1 { font: 600 1.75rem/1.05 var(--serif); letter-spacing: -.01em; margin: 0; tex
 .endpoint { border-radius: 50%; box-shadow: 0 1px 4px rgba(0,0,0,.35) }
 .endpoint.a { background: var(--surface); border: 4px solid #141413 }
 .endpoint.b { background: var(--route); border: 3px solid #fff }
+.endpoint.s { background: var(--surface); border: 4px solid var(--route) }
 .maptag { position: absolute; z-index: 500; right: 12px; top: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 99px; padding: 5px 12px; font-size: .8rem; font-weight: 500; box-shadow: var(--shadow); display: flex; gap: 8px; align-items: center }
 .maptag i { width: 18px; height: 4px; border-radius: 2px; background: var(--route) }
 .pickrow { display: grid; grid-template-columns: 1fr 1fr; gap: 8px }
@@ -407,6 +412,26 @@ ol.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px }
           <ul id="fromList" class="suggest" role="listbox" data-i18n-aria="suggestions" aria-label="Suggestions" hidden></ul>
           <small id="fromHint" class="hint"></small>
         </div>
+        <div class="leg ac leg-stop only-route" id="stop1Row" hidden>
+          <label for="stop1" data-i18n="stop1">Étape 1</label>
+          <span class="pt pt-s"></span>
+          <input id="stop1" autocomplete="off" spellcheck="false" data-i18n-ph="addrPh" placeholder="Adresse ou lieu" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="stop1List" aria-describedby="stop1Hint">
+          <button type="button" class="locate stopx" id="stop1X" data-i18n-title="stop1Remove" data-i18n-aria="stop1Remove" title="Retirer l'étape 1" aria-label="Retirer l'étape 1">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+          </button>
+          <ul id="stop1List" class="suggest" role="listbox" data-i18n-aria="suggestions" aria-label="Suggestions" hidden></ul>
+          <small id="stop1Hint" class="hint"></small>
+        </div>
+        <div class="leg ac leg-stop only-route" id="stop2Row" hidden>
+          <label for="stop2" data-i18n="stop2">Étape 2</label>
+          <span class="pt pt-s"></span>
+          <input id="stop2" autocomplete="off" spellcheck="false" data-i18n-ph="addrPh" placeholder="Adresse ou lieu" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="stop2List" aria-describedby="stop2Hint">
+          <button type="button" class="locate stopx" id="stop2X" data-i18n-title="stop2Remove" data-i18n-aria="stop2Remove" title="Retirer l'étape 2" aria-label="Retirer l'étape 2">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+          </button>
+          <ul id="stop2List" class="suggest" role="listbox" data-i18n-aria="suggestions" aria-label="Suggestions" hidden></ul>
+          <small id="stop2Hint" class="hint"></small>
+        </div>
         <div class="leg ac leg-to">
           <label for="to" data-i18n="to">Destination</label>
           <span class="pt pt-b"></span>
@@ -418,6 +443,7 @@ ol.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px }
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4v16M3 8l4-4 4 4M17 20V4M13 16l4 4 4-4"/></svg>
         </button>
       </div>
+      <button type="button" class="addstop only-route" id="addStop"><span aria-hidden="true">+</span> <span data-i18n="addStop">Ajouter une étape</span></button>
       <div class="pickrow only-near">
         <button type="button" class="pickbtn" id="pickBtn" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s7-6.5 7-12a7 7 0 0 0-14 0c0 5.5 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg><span data-i18n="pickOnMap">Choisir le centre sur la carte</span></button>
         <button type="button" class="pickbtn" id="drawBtn" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 18 9 5l6 9 5-6v10z"/><circle cx="4" cy="18" r="1.6"/><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="14" r="1.6"/><circle cx="20" cy="8" r="1.6"/></svg><span data-i18n="drawZone">Dessiner une zone</span></button>
@@ -542,17 +568,19 @@ function projector(lat0) {
   const kx = 111.32 * Math.cos(lat0 * Math.PI / 180), ky = 110.574;
   return (lat, lon) => [lon * kx, lat * ky];
 }
-function nearestOnRoute(p, pts, cum) {
-  let best = Infinity, along = 0;
-  for (let i = 0; i < pts.length - 1; i++) {
+// from, minAlong : ne chercher qu'après ce point du trajet (segment de départ, km depuis le départ).
+function nearestOnRoute(p, pts, cum, from = 0, minAlong = 0) {
+  let best = Infinity, along = 0, seg = from;
+  for (let i = from; i < pts.length - 1; i++) {
     const [ax, ay] = pts[i], [bx, by] = pts[i + 1];
     const dx = bx - ax, dy = by - ay, len2 = dx * dx + dy * dy;
     let t = len2 ? ((p[0] - ax) * dx + (p[1] - ay) * dy) / len2 : 0;
-    t = t < 0 ? 0 : t > 1 ? 1 : t;
+    const lo = i === from && cum[i + 1] > cum[i] ? Math.min(1, Math.max(0, (minAlong - cum[i]) / (cum[i + 1] - cum[i]))) : 0;
+    t = t < lo ? lo : t > 1 ? 1 : t;
     const d = Math.hypot(ax + t * dx - p[0], ay + t * dy - p[1]);
-    if (d < best) { best = d; along = cum[i] + t * (cum[i + 1] - cum[i]); }
+    if (d < best) { best = d; along = cum[i] + t * (cum[i + 1] - cum[i]); seg = i; }
   }
-  return { dist: best, along };
+  return { dist: best, along, seg };
 }
 function haversineKm(lat1, lon1, lat2, lon2) {
   const r = Math.PI / 180, dLat = (lat2 - lat1) * r, dLon = (lon2 - lon1) * r;
@@ -576,13 +604,40 @@ function finish(out, o) {
   for (const x of out) { x.fill = x.eff / 100 * o.fillL; x.saving = (median - x.eff) / 100 * o.fillL; }
   return { ranked: out, median };
 }
-function rankOnRoute(stations, route, o) {
+// Trajet projeté à plat (km), distances cumulées et boîte englobante ; calculé une fois par tracé.
+const geomCache = new WeakMap();
+function routeGeom(route) {
+  let g = geomCache.get(route);
+  if (g) return g;
   const proj = projector(route.reduce((s, c) => s + c[1], 0) / route.length);
   const pts = route.map(c => proj(c[1], c[0]));
   const cum = [0];
   for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
   let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
   for (const [x, y] of pts) { minX = Math.min(minX, x); maxX = Math.max(maxX, x); minY = Math.min(minY, y); maxY = Math.max(maxY, y); }
+  g = { proj, pts, cum, minX, minY, maxX, maxY };
+  geomCache.set(route, g);
+  return g;
+}
+// Position (km depuis le départ) de chaque étape sur le trajet, dans l'ordre : l'étape k est cherchée après l'étape k−1
+// (un trajet peut repasser près d'une étape déjà faite).
+const alongCache = new WeakMap(); // même tracé et mêmes étapes : pas de nouveau calcul (liens de chaque station)
+function stopsAlong(route, stops) {
+  const c = alongCache.get(route);
+  if (c && c.stops === stops) return c.out;
+  const g = routeGeom(route), out = [];
+  let from = 0, min = 0;
+  for (const s of stops) { const r = nearestOnRoute(g.proj(s.lat, s.lon), g.pts, g.cum, from, min); out.push(r.along); from = r.seg; min = r.along; }
+  alongCache.set(route, { stops, out });
+  return out;
+}
+// Points à visiter pour passer par la station s sans sauter d'étape : départ, étapes avant s, s, étapes après, destination.
+function withStation(a, stops, b, s, along) {
+  const k = along.filter(x => x <= s.alongKm).length;
+  return [a, ...stops.slice(0, k), s, ...stops.slice(k), b];
+}
+function rankOnRoute(stations, route, o) {
+  const { proj, pts, cum, minX, minY, maxX, maxY } = routeGeom(route);
   const pad = o.corridorKm, out = [];
   for (const s of stations) {
     const e = effective(s, o);
@@ -652,7 +707,7 @@ const I18N = {
     freshLine: "{n} stations en direct", freshAt: " · prix de {t}",
     themeLabel: "Thème", themeAuto: "Auto", themeLight: "Clair", themeDark: "Sombre", langLabel: "Langue",
     modeLabel: "Mode de recherche", modeRoute: "Sur mon trajet", modeNear: "Près de moi", favorites: "Favoris",
-    from: "Départ", to: "Destination", addrPh: "Adresse ou lieu", newsTitle: "Quoi de neuf", verLabel: "Version {v}", logTitle: "Historique des versions", newsAll: "Toutes les versions", newsOk: "Compris", verTitle: "Version {v} : voir les nouveautés", suggestions: "Suggestions d'adresses", kbdPick: "Clavier : flèches pour déplacer la carte, Entrée pour chercher ici", kbdDraw: "Clavier : flèches pour déplacer la carte, Entrée pour ajouter le centre comme coin", useLoc: "Utiliser ma position", swap: "Inverser départ et destination",
+    from: "Départ", to: "Destination", stop1: "Étape 1", stop2: "Étape 2", stop1Remove: "Retirer l'étape 1", stop2Remove: "Retirer l'étape 2", addStop: "Ajouter une étape", metaStops: " · {n} étape{s}", addrPh: "Adresse ou lieu", newsTitle: "Quoi de neuf", verLabel: "Version {v}", logTitle: "Historique des versions", newsAll: "Toutes les versions", newsOk: "Compris", verTitle: "Version {v} : voir les nouveautés", suggestions: "Suggestions d'adresses", kbdPick: "Clavier : flèches pour déplacer la carte, Entrée pour chercher ici", kbdDraw: "Clavier : flèches pour déplacer la carte, Entrée pour ajouter le centre comme coin", useLoc: "Utiliser ma position", swap: "Inverser départ et destination",
     myLoc: "Ma position", savedLoc: "Position enregistrée",
     fuel: "Carburant", fuelReg: "Régulier", fuelSup: "Super", fuelSupNote: "Indice d'octane non précisé par la Régie", fuelDie: "Diesel",
     corridor: "Écart max du trajet", radius: "Rayon", fill: "Plein",
@@ -717,7 +772,7 @@ const I18N = {
     freshLine: "{n} live stations", freshAt: " · prices as of {t}",
     themeLabel: "Theme", themeAuto: "Auto", themeLight: "Light", themeDark: "Dark", langLabel: "Language",
     modeLabel: "Search mode", modeRoute: "On my route", modeNear: "Near me", favorites: "Favourites",
-    from: "From", to: "To", addrPh: "Address or place", newsTitle: "What's new", verLabel: "Version {v}", logTitle: "Version history", newsAll: "All versions", newsOk: "Got it", verTitle: "Version {v}: see what's new", suggestions: "Address suggestions", kbdPick: "Keyboard: arrows move the map, Enter searches here", kbdDraw: "Keyboard: arrows move the map, Enter adds the centre as a corner", useLoc: "Use my location", swap: "Swap start and destination",
+    from: "From", to: "To", stop1: "Stop 1", stop2: "Stop 2", stop1Remove: "Remove stop 1", stop2Remove: "Remove stop 2", addStop: "Add a stop", metaStops: " · {n} stop{s}", addrPh: "Address or place", newsTitle: "What's new", verLabel: "Version {v}", logTitle: "Version history", newsAll: "All versions", newsOk: "Got it", verTitle: "Version {v}: see what's new", suggestions: "Address suggestions", kbdPick: "Keyboard: arrows move the map, Enter searches here", kbdDraw: "Keyboard: arrows move the map, Enter adds the centre as a corner", useLoc: "Use my location", swap: "Swap start and destination",
     myLoc: "My location", savedLoc: "Saved location",
     fuel: "Fuel", fuelReg: "Regular", fuelSup: "Premium", fuelSupNote: "Octane rating not specified by the Régie", fuelDie: "Diesel",
     corridor: "Max distance from route", radius: "Radius", fill: "Fill-up",
@@ -823,8 +878,19 @@ matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { if
    À CHAQUE MODIFICATION visible : monter APP_VERSION (1.0 → 1.01 pour une petite correction, → 1.1 pour une nouveauté)
    et ajouter une entrée EN TÊTE de CHANGELOG, en mots simples pour quelqu'un qui ne connaît pas la mécanique de l'appli.
    Au lancement suivant, chaque utilisateur voit les nouveautés depuis la dernière version qu'il a vue. */
-const APP_VERSION = "1.01";
+const APP_VERSION = "1.1";
 const CHANGELOG = [
+  { v: "1.1", date: "2026-11-12",
+    fr: { title: "Des arrêts sur ton trajet", items: [
+      "Ajoute jusqu'à 2 arrêts entre ton départ et ta destination avec « + Ajouter une étape » : l'appli cherche l'essence sur tout le parcours.",
+      "Le détour affiché pour chaque station tient compte de tes arrêts, et le bouton Google Maps te fait passer par la station sans oublier tes arrêts.",
+      "Tes trajets avec arrêts s'enregistrent en favoris comme les autres.",
+    ] },
+    en: { title: "Stops along your route", items: [
+      "Add up to 2 stops between your start and destination with “+ Add a stop”: the app looks for gas along the whole trip.",
+      "The detour shown for each station takes your stops into account, and the Google Maps button takes you through the station without skipping your stops.",
+      "Your routes with stops can be saved as favourites like any other.",
+    ] } },
   { v: "1.01", date: "2026-11-12",
     fr: { title: "Corrections", items: [
       "« Ma position » utilise maintenant ta position du moment, même après avoir rouvert l'appli ou après t'être déplacé.",
@@ -911,7 +977,7 @@ function applyLang() {
   document.querySelectorAll("[data-i18n-title]").forEach(el => { el.title = t(el.dataset.i18nTitle); });
   document.querySelectorAll("[data-i18n-aria]").forEach(el => { el.setAttribute("aria-label", t(el.dataset.i18nAria)); });
   document.querySelectorAll("[data-lang-set]").forEach(b => { const on = b.dataset.langSet === lang; b.classList.toggle("on", on); b.setAttribute("aria-pressed", on); });
-  ["from", "to"].forEach(f => { if (isMyLoc($(f).value)) $(f).value = t("myLoc"); });
+  ["from", "to", ...STOP_IDS].forEach(f => { if (isMyLoc($(f).value)) $(f).value = t("myLoc"); });
   renderFresh();
   syncKey();
   $("goLabel").textContent = goText();
@@ -1144,7 +1210,20 @@ function saveBrands() {
 }
 
 /* Adresses */
-const picked = { from: null, to: null };
+const picked = { from: null, to: null, stop1: null, stop2: null };
+/* Étapes (trajet seulement) : 0 à 2 points entre le départ et la destination, dans l'ordre affiché. */
+const STOP_IDS = ["stop1", "stop2"];
+let lastStops = []; // étapes de la recherche affichée (points géocodés)
+const stopFields = () => STOP_IDS.filter(id => !$(id + "Row").hidden);
+const stopsState = () => stopFields().map(id => ({ v: $(id).value, p: picked[id], h: $(id + "Hint").textContent }));
+function setStops(list) {
+  STOP_IDS.forEach((id, i) => {
+    const x = list[i];
+    $(id + "Row").hidden = !x;
+    $(id).value = x ? x.v : ""; picked[id] = x ? x.p : null; $(id + "Hint").textContent = x ? x.h || "" : "";
+  });
+  $("addStop").hidden = list.length >= STOP_IDS.length;
+}
 function photonLabel(p) {
   const street = [p.housenumber, p.street || (p.housenumber ? "" : p.name)].filter(Boolean).join(" ");
   const place = p.name && p.street && p.name !== p.street ? p.name : "";
@@ -1248,9 +1327,10 @@ function ttError(r, j) {
   const why = (j.detailedError && j.detailedError.message) || (j.error && j.error.description) || `code ${r.status}`;
   return new Error(r.status === 401 || r.status === 403 ? t("ttRefused") : r.status === 429 ? t("ttQuota") : t("ttOther", { w: why }));
 }
-async function routesTomTom(a, b, key) {
-  const url = `https://api.tomtom.com/routing/1/calculateRoute/${a.lat},${a.lon}:${b.lat},${b.lon}/json`
-    + `?key=${encodeURIComponent(key)}&traffic=true&travelMode=car&routeType=fastest&departAt=now&maxAlternatives=2&instructionsType=text&language=${lang === "en" ? "en-US" : "fr-FR"}`;
+// stops : étapes entre le départ et la destination (0 à 2). Avec des étapes, un seul trajet (pas d'alternatives).
+async function routesTomTom(a, b, key, stops = []) {
+  const url = `https://api.tomtom.com/routing/1/calculateRoute/${[a, ...stops, b].map(p => `${p.lat},${p.lon}`).join(":")}/json`
+    + `?key=${encodeURIComponent(key)}&traffic=true&travelMode=car&routeType=fastest&departAt=now${stops.length ? "" : "&maxAlternatives=2"}&instructionsType=text&language=${lang === "en" ? "en-US" : "fr-FR"}`;
   let r;
   try { r = await fetchT(url, {}, 20000, "json?"); } catch { throw new Error(t("ttNoAnswer")); }
   const j = r.data;
@@ -1265,9 +1345,10 @@ async function routesTomTom(a, b, key) {
       delayMin: (s.trafficDelayInSeconds || 0) / 60, via, traffic: true, provider: "tomtom" };
   });
 }
-async function routesOSRM(a, b) {
+async function routesOSRM(a, b, stops = []) {
   let j;
-  try { j = (await fetchT(`https://router.project-osrm.org/route/v1/driving/${a.lon},${a.lat};${b.lon},${b.lat}?overview=full&geometries=geojson&alternatives=3&steps=true`, {}, 15000)).data; }
+  const pts = [a, ...stops, b].map(p => `${p.lon},${p.lat}`).join(";");
+  try { j = (await fetchT(`https://router.project-osrm.org/route/v1/driving/${pts}?overview=full&geometries=geojson&alternatives=${stops.length ? "false" : "3"}&steps=true`, {}, 15000)).data; }
   catch { throw new Error(t("errRouteSvc")); }
   if (!j || j.code !== "Ok" || !j.routes || !j.routes.length) throw new Error(t("errNoRoute"));
   const taken = [];
@@ -1341,10 +1422,12 @@ async function gCompute(req) {
     return (await withTimeout(Route.computeRoutes(req), 20000)).routes || [];
   } catch (e) { throw gError(e); }
 }
-async function routesGoogle(a, b) {
+async function routesGoogle(a, b, stops = []) {
   const routes = await gCompute({
     origin: { lat: a.lat, lng: a.lon }, destination: { lat: b.lat, lng: b.lon },
-    travelMode: "DRIVING", routingPreference: "TRAFFIC_AWARE", computeAlternativeRoutes: true,
+    // Google refuse les trajets alternatifs quand il y a des étapes.
+    ...(stops.length ? { intermediates: stops.map(p => ({ location: { lat: p.lat, lng: p.lon } })) } : {}),
+    travelMode: "DRIVING", routingPreference: "TRAFFIC_AWARE", computeAlternativeRoutes: !stops.length,
     language: lang === "en" ? "en-CA" : "fr-CA", region: "ca",
     fields: ["path", "durationMillis", "staticDurationMillis", "distanceMeters", "description"],
   });
@@ -1366,18 +1449,18 @@ async function travelGoogle(pts) {
 }
 
 // Retourne { routes, note } : la note de repli appartient à cette recherche (pas de variable globale partagée).
-async function getRoutes(a, b) {
+async function getRoutes(a, b, stops = []) {
   const notes = [];
   if (googleOn()) {
-    try { return { routes: await routesGoogle(a, b), note: "" }; }
+    try { return { routes: await routesGoogle(a, b, stops), note: "" }; }
     catch (e) { notes.push(e.message); }
   }
   const key = $("ttkey").value.trim();
   if (key) {
-    try { const r = await routesTomTom(a, b, key); return { routes: r, note: notes.length ? notes.join(" · ") + " → TomTom." : "" }; }
+    try { const r = await routesTomTom(a, b, key, stops); return { routes: r, note: notes.length ? notes.join(" · ") + " → TomTom." : "" }; }
     catch (e) { notes.push(e.message); }
   }
-  return { routes: await routesOSRM(a, b), note: notes.length ? t("routeNote", { e: notes.join(" · ") }) : "" };
+  return { routes: await routesOSRM(a, b, stops), note: notes.length ? t("routeNote", { e: notes.join(" · ") }) : "" };
 }
 let lastRoutes = [], sel = 0;
 const routeName = (r, i) => (r.via ? t("via", { v: r.via }) : t("routeN", { n: i + 1 }));
@@ -1434,15 +1517,16 @@ async function computeDetours() {
   // Pire cas : un seul délai par fournisseur, au lieu d'un par station.
   const dead = new Set();
   const items = lastTop.slice(0, DET_N);
+  const along = near ? [] : stopsAlong(lastRoute.coords, lastStops), stopsKey = lastStops.map(p => `${p.lat},${p.lon}`).join(";");
   for (let i = 0; i < items.length; i++) {
     const s = items[i];
-    const ck = [near ? "n" : "r", lastA.lat, lastA.lon, near ? "" : `${lastB.lat},${lastB.lon}#${sel}#${lastRoute.provider}`, s.lat, s.lon].join("|");
+    const ck = [near ? "n" : "r", lastA.lat, lastA.lon, near ? "" : `${lastB.lat},${lastB.lon}#${stopsKey}#${sel}#${lastRoute.provider}`, s.lat, s.lon].join("|");
     const hit = detCache.get(ck), age = hit ? Date.now() - hit.at : Infinity;
     // Réutilisable : résultat du fournisseur prioritaire (10 min), d'un fournisseur de repli (2 min). Un échec n'est pas mis en cache.
     const reuse = hit && hit.v && age < (hit.pv === chain[0] ? DET_TTL : 2 * 60 * 1000) && chain.includes(hit.pv);
     let v = reuse ? hit.v : null;
     if (!reuse) {
-      const pts = near ? [lastA, s] : [lastA, s, lastB];
+      const pts = near ? [lastA, s] : withStation(lastA, lastStops, lastB, s, along);
       for (const pv of chain) {
         if (dead.has(pv)) continue;
         try {
@@ -1499,8 +1583,8 @@ function setMode(m, restore = true) {
   const prev = mode;
   mode = m === "near" ? "near" : "route";
   if (prev !== mode && lastMode === prev)
-    savedMode[prev] = { lastA, lastB, lastRoutes, sel, lastPoly, lastPolyName, routeNoteNow,
-                        from: $("from").value, to: $("to").value, pFrom: picked.from, pTo: picked.to };
+    savedMode[prev] = { lastA, lastB, lastStops, lastRoutes, sel, lastPoly, lastPolyName, routeNoteNow,
+                        from: $("from").value, to: $("to").value, pFrom: picked.from, pTo: picked.to, stops: stopsState() };
   store.set("mode", mode);
   $("form").classList.toggle("nearby", mode === "near");
   $(mode === "near" ? "modeNear" : "modeRoute").checked = true;
@@ -1508,8 +1592,9 @@ function setMode(m, restore = true) {
   clearResults();
   const sv = restore && prev !== mode && savedMode[mode];
   if (!sv || !stations) return;
-  ({ lastA, lastB, lastRoutes, sel, lastPoly, lastPolyName, routeNoteNow } = sv);
+  ({ lastA, lastB, lastStops, lastRoutes, sel, lastPoly, lastPolyName, routeNoteNow } = sv);
   $("from").value = sv.from; $("to").value = sv.to; picked.from = sv.pFrom; picked.to = sv.pTo;
+  if (mode === "route") setStops(sv.stops);
   lastMode = mode;
   if (mode === "route") { lastRoute = lastRoutes[sel]; renderRoutes(); }
   render();
@@ -1545,7 +1630,8 @@ function render() {
     $("sumMeta").textContent = t("metaNear", { r: num(o.radiusKm, o.radiusKm % 1 ? 1 : 0) }) + med;
   } else {
     $("sumTitle").textContent = n ? t("nStationsRoute", { n, s: plural(n) }) : t("noneRoute");
-    $("sumMeta").textContent = t("metaRoute", { km: num(lastRoute.km, lastRoute.km < 10 ? 1 : 0), dur: fmtDur(lastRoute.min), d: fmtDist(corridorM()) }) + med;
+    $("sumMeta").textContent = t("metaRoute", { km: num(lastRoute.km, lastRoute.km < 10 ? 1 : 0), dur: fmtDur(lastRoute.min), d: fmtDist(corridorM()) })
+      + (lastStops.length ? t("metaStops", { n: lastStops.length, s: plural(lastStops.length) }) : "") + med;
   }
   const noBrand = brandCounts.length && brandCounts.every(([b]) => off.has(b));
   if (noBrand) status(t("warnNoBrand"), "warn");
@@ -1554,7 +1640,7 @@ function render() {
   else { const nt = noteText(); status(nt, nt ? "warn" : ""); }
   lastTop = res.ranked.slice(0, SHOW);
   lastTop.forEach((s, i) => $("results").append(card(s, i, o, near)));
-  const key = near ? (lastPoly ? `z|${lastPoly.flat().join(",")}` : `n|${lastA.lat},${lastA.lon}`) : `r|${lastA.lat},${lastA.lon}|${lastB.lat},${lastB.lon}`;
+  const key = near ? (lastPoly ? `z|${lastPoly.flat().join(",")}` : `n|${lastA.lat},${lastA.lon}`) : `r|${lastA.lat},${lastA.lon}|${lastStops.map(p => `${p.lat},${p.lon}`).join(";")}|${lastB.lat},${lastB.lon}`;
   if (key !== restKey) { restKey = key; restOpen = false; restShown = REST_STEP; histKey = null; }
   lastRest = res.ranked.slice(SHOW);
   lastAll = res.ranked;
@@ -1630,7 +1716,8 @@ function navLinks(s, near) {
     gm.href = `https://www.google.com/maps/dir/?api=1${zoneNoOrigin() ? "" : `&origin=${lastA.lat},${lastA.lon}`}&destination=${s.lat},${s.lon}&travelmode=driving`;
   } else {
     gm.querySelector(".sub").textContent = t("gmSubRoute");
-    gm.href = `https://www.google.com/maps/dir/?api=1&origin=${lastA.lat},${lastA.lon}&destination=${lastB.lat},${lastB.lon}&waypoints=${s.lat},${s.lon}&travelmode=driving`;
+    const via = withStation(lastA, lastStops, lastB, s, stopsAlong(lastRoute.coords, lastStops)).slice(1, -1);
+    gm.href = `https://www.google.com/maps/dir/?api=1&origin=${lastA.lat},${lastA.lon}&destination=${lastB.lat},${lastB.lon}&waypoints=${via.map(p => `${p.lat},${p.lon}`).join("%7C")}&travelmode=driving`;
   }
   const wz = box.querySelector(".wz");
   wz.querySelector(".sub").textContent = t("wazeSub"); wz.title = t("wazeTitle");
@@ -2358,6 +2445,7 @@ function draw(near, o) {
     mapA.polyline(lastRoute.coords, { color: css("--route") || "#2F6BDB", weight: 5, opacity: 1, z: 3 });
     for (const c of lastRoute.coords) pts.push([c[1], c[0]]);
     mapA.endpoint(lastA.lat, lastA.lon, "a");
+    for (const p of lastStops) { mapA.endpoint(p.lat, p.lon, "s"); pts.push([p.lat, p.lon]); }
     mapA.endpoint(lastB.lat, lastB.lon, "b");
     $("maptag").hidden = false;
   }
@@ -2378,21 +2466,24 @@ function draw(near, o) {
 const okPt = p => p && Number.isFinite(p.lat) && Number.isFinite(p.lon) && Math.abs(p.lat) <= 90 && Math.abs(p.lon) <= 180;
 const okFav = f => f && (f.mode === "near" || f.mode === "route") && (Array.isArray(f.poly)
   ? f.poly.length >= 3 && f.poly.every(q => Array.isArray(q) && okPt({ lat: +q[0], lon: +q[1] }))
-  : okPt(f.from) && (f.mode === "near" || okPt(f.to)));
+  : okPt(f.from) && (f.mode === "near" || okPt(f.to))
+    && (f.stops === undefined || (f.mode === "route" && Array.isArray(f.stops) && f.stops.length <= STOP_IDS.length && f.stops.every(okPt))));
 let favs = parseJSON(store.get("favs", "[]"), []);
 favs = Array.isArray(favs) ? favs.filter(okFav) : [];
-for (const f of favs) for (const p of [f.from, f.to]) if (p && ["Position enregistrée", "Saved location"].includes(p.label)) p.label = "@saved";
+for (const f of favs) for (const p of [f.from, f.to, ...(f.stops || [])]) if (p && ["Position enregistrée", "Saved location"].includes(p.label)) p.label = "@saved";
 const favKey = f => f.poly ? "z|" + f.poly.map(p => p.map(x => (+x).toFixed(4)).join(",")).join(";")
-  : [f.mode, f.from.lat.toFixed(4), f.from.lon.toFixed(4), f.to ? `${f.to.lat.toFixed(4)},${f.to.lon.toFixed(4)}` : "", f.r || ""].join("|");
+  : [f.mode, f.from.lat.toFixed(4), f.from.lon.toFixed(4), f.to ? `${f.to.lat.toFixed(4)},${f.to.lon.toFixed(4)}` : "", f.r || ""].join("|")
+    + (f.stops && f.stops.length ? "|" + f.stops.map(p => `${p.lat.toFixed(4)},${p.lon.toFixed(4)}`).join(";") : ""); // sans étape : même clé qu'avant
 function currentFav() {
   if (!lastMode || !lastA) return null;
   if (lastMode === "near" && lastPoly) return { mode: "near", poly: lastPoly.map(p => [+p[0].toFixed(5), +p[1].toFixed(5)]), name: lastPolyName };
   const pt = p => ({ label: p.label === "@me" ? "@saved" : p.label, lat: p.lat, lon: p.lon });
-  return lastMode === "route" ? { mode: "route", from: pt(lastA), to: pt(lastB) } : { mode: "near", from: pt(lastA), to: null, r: radiusKm() };
+  return lastMode === "route" ? { mode: "route", from: pt(lastA), to: pt(lastB), ...(lastStops.length ? { stops: lastStops.map(pt) } : {}) } : { mode: "near", from: pt(lastA), to: null, r: radiusKm() };
 }
 function favName(f) {
   if (f.poly) return t("zoneFav", { p: f.name || t("zoneUnnamed") });
-  return f.mode === "near" ? t("around", { p: shortName(placeLabel(f.from)) }) + (f.r ? ` · ${num(f.r, f.r % 1 ? 1 : 0)} km` : "") : `${shortName(placeLabel(f.from))} → ${shortName(placeLabel(f.to))}`;
+  return f.mode === "near" ? t("around", { p: shortName(placeLabel(f.from)) }) + (f.r ? ` · ${num(f.r, f.r % 1 ? 1 : 0)} km` : "")
+    : [f.from, ...(f.stops || []), f.to].map(p => shortName(placeLabel(p))).join(" → ");
 }
 function renderFavs() {
   $("favs").hidden = !favs.length;
@@ -2400,7 +2491,7 @@ function renderFavs() {
     const w = document.createElement("span"); w.className = "fav";
     const b = document.createElement("button"); b.type = "button"; b.className = "fav-go";
     b.textContent = favName(f);
-    b.title = f.poly ? favName(f) : f.mode === "near" ? t("around", { p: placeLabel(f.from) }) : `${placeLabel(f.from)} → ${placeLabel(f.to)}`;
+    b.title = f.poly ? favName(f) : f.mode === "near" ? t("around", { p: placeLabel(f.from) }) : [f.from, ...(f.stops || []), f.to].map(placeLabel).join(" → ");
     b.addEventListener("click", () => useFav(f));
     const x = document.createElement("button"); x.type = "button"; x.className = "fav-x";
     x.textContent = "×"; x.setAttribute("aria-label", t("removeFav", { n: favName(f) }));
@@ -2431,6 +2522,7 @@ function useFav(f) {
   };
   fill("from", f.from);
   if (f.to) fill("to", f.to);
+  if (f.mode === "route") setStops((f.stops || []).map(p => { const v = placeLabel(p); return { v, p: { ...p, q: v }, h: "" }; }));
   $("form").requestSubmit();
 }
 
@@ -2464,14 +2556,17 @@ $("form").addEventListener("submit", async e => {
       store.set("from", $("from").value);
       render();
     } else {
-      const [a, b] = await Promise.all([geocode("from"), geocode("to")]);
+      // Une étape laissée vide est ignorée.
+      const sf = stopFields().filter(id => $(id).value.trim());
+      const [a, b, ...stops] = await Promise.all([geocode("from"), geocode("to"), ...sf.map(geocode)]);
       if (stale()) return;
-      commitPick("from", a); commitPick("to", b);
-      const { routes, note } = await getRoutes(a, b);
+      commitPick("from", a); commitPick("to", b); sf.forEach((id, i) => commitPick(id, stops[i]));
+      const { routes, note } = await getRoutes(a, b, stops);
       if (stale()) return;
-      lastA = a; lastB = b; lastRoutes = routes; lastPoly = null; routeNoteNow = note; // affichée avec les autres avertissements
+      lastA = a; lastB = b; lastStops = stops; lastRoutes = routes; lastPoly = null; routeNoteNow = note; // affichée avec les autres avertissements
       sel = defaultRoute(lastRoutes); lastRoute = lastRoutes[sel]; lastMode = "route";
       store.set("from", $("from").value); store.set("to", $("to").value);
+      store.set("stops", JSON.stringify(sf.map(id => $(id).value)));
       renderRoutes();
       render();
     }
@@ -2511,6 +2606,7 @@ $("swap").addEventListener("click", () => {
   const f = $("from").value; $("from").value = $("to").value; $("to").value = f;
   [picked.from, picked.to] = [picked.to, picked.from];
   const fh = $("fromHint").textContent; $("fromHint").textContent = $("toHint").textContent; $("toHint").textContent = fh;
+  setStops(stopsState().reverse());
 });
 
 /* Démarrage */
@@ -2519,9 +2615,26 @@ function syncKey() {
   $("trafficState").textContent = g ? "Google" : gKey() ? t("gOffState") + (tt ? " · TomTom" : "") : tt ? "TomTom" : t("offState");
   $("trafficState").classList.toggle("on", g || tt);
 }
-attachSuggest("from"); attachSuggest("to");
+attachSuggest("from"); attachSuggest("to"); STOP_IDS.forEach(attachSuggest);
 $("from").value = store.get("from", "");
 $("to").value = store.get("to", "");
+{
+  const sv = parseJSON(store.get("stops", "[]"), []);
+  setStops(Array.isArray(sv) ? sv.filter(v => typeof v === "string" && v.trim()).slice(0, STOP_IDS.length).map(v => ({ v, p: null })) : []);
+}
+$("addStop").addEventListener("click", () => {
+  if ($("go").disabled) cancelSearch(); // la recherche en cours ne correspondrait plus au formulaire
+  const l = stopsState();
+  if (l.length >= STOP_IDS.length) return;
+  setStops([...l, { v: "", p: null }]);
+  $(STOP_IDS[l.length]).focus();
+});
+STOP_IDS.forEach((id, i) => $(id + "X").addEventListener("click", () => {
+  if ($("go").disabled) cancelSearch();
+  const l = stopsState(); l.splice(i, 1);
+  setStops(l);
+  (l[i] ? $(STOP_IDS[i]) : $("addStop")).focus(); // le focus reste dans le formulaire
+}));
 const savedFuel = document.getElementById("fuel" + store.get("fuel", "0")); if (savedFuel) savedFuel.checked = true;
 $("corridor").value = store.get("corridorM", "300");
 $("radius").value = store.get("radiusKm", "3");
