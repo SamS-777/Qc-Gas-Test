@@ -27,3 +27,15 @@ test("ne supprime que ses propres caches et démarre hors ligne", async ({ page,
   expect(await page.evaluate(() => typeof L)).toBe("object");
   await expect(page).toHaveTitle(/Essence/);
 });
+
+test("une autre page du même dossier ne remplace pas la copie hors ligne de l'appli", async ({ page, context }) => {
+  await mockNet(page);
+  await page.goto("/");
+  await page.evaluate(() => navigator.serviceWorker.ready);
+  await expect.poll(() => page.evaluate(() => caches.keys())).toEqual(expect.arrayContaining([expect.stringMatching(/^essence-/)]));
+  await page.goto("/vendor/"); // le serveur de test renvoie une page HTML (liste de dossier), pas l'appli
+  await expect(page).not.toHaveTitle(/Essence/);
+  await context.setOffline(true);
+  await page.goto("/");
+  await expect(page).toHaveTitle(/Essence/);
+});

@@ -426,3 +426,127 @@ test("historique des versions : chaque entrée est complète, en ordre, et la pr
     if (i) { expect(parseFloat(c.v)).toBeLessThan(parseFloat(log[i - 1].v)); expect(c.date <= log[i - 1].date).toBe(true); }
   }
 });
+
+/* ---------- Version 1.01 : reproductions de la revue de code du 2026-11-12 ---------- */
+test.describe("revue 1.01", () => {
+  test("« Ma position » est relue à chaque recherche, jamais envoyée au service d'adresses", async ({ page }) => {
+    await page.context().grantPermissions(["geolocation"]);
+    await page.context().setGeolocation({ latitude: 45.577, longitude: -73.642 });
+    const calls = await mockNet(page);
+    await open(page, { prefs: { from: "Ma position" } }); // après un rechargement : le champ dit « Ma position », mais la position est vide
+    expect(await page.evaluate(() => here)).toBeNull();
+    await page.click("label[for=modeNear]"); await page.click("#go"); await page.waitForSelector("#results li");
+    expect(calls.photon).toBe(0);
+    expect(await page.evaluate(() => [lastA.label, lastA.lat, lastA.lon])).toEqual(["@me", 45.577, -73.642]);
+    await page.context().setGeolocation({ latitude: 45.52, longitude: -73.58 }); // on s'est déplacé
+    await page.click("#go");
+    await expect.poll(() => page.evaluate(() => lastA.lat)).toBe(45.52);
+  });
+
+  test("« Ma position » sans localisation disponible : message clair, pas de recherche sur le texte", async ({ page }) => {
+    const calls = await mockNet(page);
+    await open(page, { prefs: { from: "Ma position" } }); // permission non accordée
+    await page.click("label[for=modeNear]"); await page.click("#go");
+    await expect(page.locator("#status")).toContainText("Localisation");
+    expect(calls.photon).toBe(0);
+  });
+
+  test("historique arrêté : la courbe s'arrête à la dernière mise à jour et le dit", async ({ page }) => {
+    const now = Math.floor(Date.now() / 60000), t0 = now - 6 * 1440;
+    const series = { t0, debut: t0, maj: new Date((now - 5 * 1440) * 60000).toISOString(), s: {} };
+    await mockNet(page, { hist: route => json(route, series) });
+    await open(page); await searchNear(page);
+    await page.click("#hist summary");
+    await expect(page.locator("#histNote")).toContainText("n'est plus mis à jour");
+    await expect(page.locator("#histNote")).not.toContainText("en retard de 30 à 60 min");
+  });
+
+  test("historique à jour : la note habituelle reste affichée", async ({ page }) => {
+    const now = Math.floor(Date.now() / 60000), t0 = now - 6 * 1440;
+    const series = { t0, debut: t0, maj: new Date((now - 10) * 60000).toISOString(), s: {} };
+    await mockNet(page, { hist: route => json(route, series) });
+    await open(page); await searchNear(page);
+    await page.click("#hist summary");
+    await expect(page.locator("#histNote")).toContainText("en retard de 30 à 60 min");
+  });
+
+  test("clé Google corrigée après un refus : l'appli se recharge et envoie la nouvelle clé", async ({ page }) => {
+    const keys = [];
+    const calls = await mockNet(page, { google: (route, next) => { keys.push(new URL(route.request().url()).searchParams.get("key")); return next(); } });
+    await open(page, { prefs: { gkey: "AUTHFAIL", ttkey: "" } });
+    await sleep(800);
+    await page.evaluate(() => { const el = $("gkey"); el.value = "GOOD"; el.dispatchEvent(new Event("input")); el.dispatchEvent(new Event("change")); });
+    await expect.poll(() => keys, { timeout: 8000 }).toContain("GOOD");
+    expect(calls.google).toBeGreaterThanOrEqual(2);
+  });
+
+  test("dessiner : toucher un bouton de la carte n'ajoute pas de coin", async ({ page }) => {
+    await mockNet(page); await open(page);
+    await page.click("label[for=modeNear]"); await page.click("#drawBtn");
+    await page.click(".leaflet-control-zoom-in"); await page.click(".leaflet-control-zoom-out"); await sleep(200);
+    expect(await page.evaluate(() => drawPts.length)).toBe(0);
+  });
+
+  test("une station illisible est ignorée, les autres s'affichent, et on le dit", async ({ page }) => {
+    const feed = makeFeed();
+    feed.features[3].properties.Name = 12345;      // nombre au lieu d'un texte
+    feed.features[4].properties.Prices = [null];   // liste de prix abîmée
+    await mockNet(page, { feed: route => json(route, feed) }); await open(page);
+    expect(await page.evaluate(() => stations.length)).toBe(798);
+    await searchNear(page);
+    await expect(page.locator("#status")).toContainText("2 station(s) du fichier de la Régie ignorée(s)");
+  });
+
+  test("fichier de la Régie illisible : message en français, pas un message technique", async ({ page }) => {
+    await mockNet(page, { feed: route => route.fulfill({ status: 200, contentType: "text/html", headers: H, body: "<html>Maintenance</html>" }) });
+    await open(page, { wait: false });
+    await page.click("label[for=modeNear]"); await page.fill("#from", "10074 j-j gagnier"); await page.click("#go");
+    await expect(page.locator("#status")).toContainText("illisible");
+    await expect(page.locator("#status")).not.toContainText("Unexpected");
+  });
+
+  test("date des prix invalide au premier chargement : avertissement clair", async ({ page }) => {
+    await mockNet(page, { feed: route => json(route, makeFeed({ gen: "pas une date" })) }); await open(page);
+    await searchNear(page);
+    await expect(page.locator("#status")).toContainText("introuvable ou invalide");
+  });
+
+  test("durées : jamais « 1 h 60 » ni « 60 min »", async ({ page }) => {
+    await mockNet(page); await open(page);
+    expect(await page.evaluate(() => [fmtDur(119.7), fmtDur(59.6), fmtDur(61), fmtDur(5)])).toEqual(["2 h 00", "1 h 00", "1 h 01", "5 min"]);
+  });
+
+  test("inverser pendant le calcul annule la recherche : pas de résultats sous des champs inversés", async ({ page }) => {
+    await mockNet(page, { osrmRoute: async (route, n, next) => { await sleep(1500); return next(); } }); await open(page);
+    await page.click("label[for=modeRoute]"); await page.fill("#from", "10074 j-j gagnier"); await page.fill("#to", "2175 maisonneuve est");
+    await page.click("#go"); await sleep(300); await page.click("#swap"); await sleep(2200);
+    const s = await page.evaluate(() => ({ lastMode, busy: $("go").disabled }));
+    expect(s).toEqual({ lastMode: null, busy: false });
+  });
+
+  test("suggestions d'adresse : la liste ne se rouvre pas après un choix rapide", async ({ page }) => {
+    await mockNet(page); await open(page);
+    await page.fill("#from", "gagnier"); await page.waitForSelector("#fromList li");
+    await page.fill("#from", "gagnier "); // nouvelle recherche d'adresse programmée dans 250 ms…
+    await page.keyboard.press("ArrowDown"); await page.keyboard.press("Enter"); // … mais on choisit tout de suite
+    await sleep(900);
+    await expect(page.locator("#fromList")).toBeHidden();
+  });
+
+  test("lancer une zone enregistrée quitte le mode « choisir le centre »", async ({ page }) => {
+    await mockNet(page); await open(page);
+    await page.click("label[for=modeNear]"); await page.click("#pickBtn");
+    expect(await page.evaluate(() => picking)).toBe(true);
+    await page.evaluate(() => runZone([[45.50, -73.62], [45.50, -73.54], [45.58, -73.58]]));
+    expect(await page.evaluate(() => picking)).toBe(false);
+    await expect(page.locator("#pickUi")).toBeHidden();
+  });
+
+  test("favori abîmé : l'appli démarre quand même", async ({ page }) => {
+    await mockNet(page);
+    const fav = [{ mode: "near", from: { label: 5, lat: 45.5, lon: -73.6 }, to: null, r: 5 }];
+    await open(page, { prefs: { favs: JSON.stringify(fav) } });
+    expect(await page.evaluate(() => stations.length)).toBeGreaterThan(500);
+    await expect(page.locator("#favRow .fav")).toHaveCount(1);
+  });
+});

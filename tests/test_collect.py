@@ -103,6 +103,22 @@ class CollectorTest(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertIn("en double", out)
 
+    def test_station_mal_formee_ignoree_sans_refuser_le_flux(self):
+        doc = feed(iso(self.now - timedelta(hours=1)))
+        doc["features"][3]["properties"]["Name"] = 12345  # nombre au lieu d'un texte
+        doc["features"][4]["properties"]["Prices"] = [None]
+        code, out = self.run_feed(doc)
+        self.assertEqual(code, 0)
+        self.assertIn("illisible", out)
+
+    def test_disponibilite_inconnue_garde_le_prix(self):
+        doc = {"features": [{"geometry": {"coordinates": [-73.6, 45.5]}, "properties": {
+            "Name": "A", "Address": "1 rue", "Status": "En opération",
+            "Prices": [{"GasType": "Régulier", "Price": "170.0¢", "IsAvailable": None},
+                       {"GasType": "Super", "Price": "190.0¢", "IsAvailable": False}]}}]}
+        rec = list(collect.read_feed(doc).values())[0]
+        self.assertEqual(rec["p"], [170.0, None, None])  # comme l'appli : seul « false » exclut un prix
+
     # --- Horodatages (revues 2 et 3) ---
     def test_parse_time_strict(self):
         ok = {"2026-10-13T03:05:01.1489389Z": "2026-10-13T03:05:01.148938+00:00",

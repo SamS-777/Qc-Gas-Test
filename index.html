@@ -695,12 +695,12 @@ const I18N = {
     legBelow: "sous la médiane", legMid: "médiane", legAbove: "au-dessus", difMed: "médiane",
     errFeedBad: "Le fichier de prix de la Régie semble incomplet ({n} stations lues). Réessaie dans quelques minutes.", errTimeout: "Le service n'a pas répondu à temps.",
     feedStale: "Prix de la Régie non rafraîchis : affichage des prix d'il y a {m} min.", feedOld: "Attention : prix de la Régie datés de {d}.",
-    feedNoTime: "Heure des prix de la Régie inconnue.", errFeedOld: "Le fichier de la Régie reçu est plus ancien que celui déjà chargé.", gOffState: "Google indisponible", gFallbackNote: "Google indisponible avec cette clé : carte Esri et trajets sans Google.", gDownNote: "Google ne répond pas pour l'instant : trajets calculés sans Google, nouvel essai dans quelques minutes.",
+    feedNoTime: "⚠ La date des prix de la Régie est introuvable ou invalide : ils pourraient ne pas être à jour.", feedSkipped: "{n} station(s) du fichier de la Régie ignorée(s) (données illisibles).", errFeedRead: "Le fichier de la Régie est illisible pour le moment.", errFeedOld: "Le fichier de la Régie reçu est plus ancien que celui déjà chargé.", gOffState: "Google indisponible", gFallbackNote: "Google indisponible avec cette clé : carte Esri et trajets sans Google.", gDownNote: "Google ne répond pas pour l'instant : trajets calculés sans Google, nouvel essai dans quelques minutes.",
     detourAlt: "≈ 0 · par un autre chemin", mapNeeded: "La carte n'est pas disponible pour l'instant.",
     histTitle: "Évolution du prix", histZoneWho: "médiane de la zone", histBack: "← Toute la zone", histRange: "Période", hist7: "7 j", hist30: "30 j",
     histLoading: "Chargement de l'historique…", histDown: "Historique indisponible pour l'instant.", histEmpty: "Pas encore d'historique pour cette station.",
     histNoteZone: "Médiane des {n} stations de ta recherche, rabais déduits.", histNoteSt: "Prix de cette station.", histNoteStR: "Prix de cette station, rabais de {r} ¢ déduit.",
-    histLag: " Courbe en retard de 30 à 60 min, sauf le dernier point (prix en direct).",
+    histLag: " Courbe en retard de 30 à 60 min, sauf le dernier point (prix en direct).", histStopped: " L'historique n'est plus mis à jour depuis le {d} : la courbe s'arrête à cette date.",
     wazeTitle: "Waze ne prend pas d'arrêt intermédiaire par lien : il te guide jusqu'à la station seulement.",
     calcTime: "Calcul du temps…", calcDetour: "Calcul du détour…", drive: "{m} min en voiture · {km} km", lt1: "moins d'1",
     noDetour: "Aucun détour", detour: "Détour {m}", detourLt1: "de moins d'1 min", popRoute: "à {d} du trajet", popNear: "à {d}",
@@ -760,12 +760,12 @@ const I18N = {
     legBelow: "below median", legMid: "median", legAbove: "above", difMed: "median",
     errFeedBad: "The Régie price file looks incomplete ({n} stations read). Try again in a few minutes.", errTimeout: "The service did not answer in time.",
     feedStale: "Régie prices not refreshed: showing prices from {m} min ago.", feedOld: "Warning: Régie prices dated {d}.",
-    feedNoTime: "Time of the Régie prices unknown.", errFeedOld: "The Régie file received is older than the one already loaded.", gOffState: "Google unavailable", gFallbackNote: "Google unavailable with this key: Esri map and routes without Google.", gDownNote: "Google isn't responding right now: routes calculated without Google, retrying in a few minutes.",
+    feedNoTime: "⚠ The date of the Régie prices is missing or invalid: they may not be up to date.", feedSkipped: "{n} station(s) in the Régie file ignored (unreadable data).", errFeedRead: "The Régie file can't be read right now.", errFeedOld: "The Régie file received is older than the one already loaded.", gOffState: "Google unavailable", gFallbackNote: "Google unavailable with this key: Esri map and routes without Google.", gDownNote: "Google isn't responding right now: routes calculated without Google, retrying in a few minutes.",
     detourAlt: "≈ 0 · via another way", mapNeeded: "The map isn't available right now.",
     histTitle: "Price history", histZoneWho: "area median", histBack: "← Whole area", histRange: "Period", hist7: "7 d", hist30: "30 d",
     histLoading: "Loading history…", histDown: "History unavailable right now.", histEmpty: "No history yet for this station.",
     histNoteZone: "Median of the {n} stations in your search, rebates deducted.", histNoteSt: "This station's price.", histNoteStR: "This station's price, {r}¢ rebate deducted.",
-    histLag: " The curve lags 30–60 min, except the last point (live price).",
+    histLag: " The curve lags 30–60 min, except the last point (live price).", histStopped: " History hasn't been updated since {d}: the curve stops at that date.",
     wazeTitle: "Waze links can't include a stop: it guides you to the station only.",
     calcTime: "Calculating time…", calcDetour: "Calculating detour…", drive: "{m} min drive · {km} km", lt1: "under 1",
     noDetour: "No detour", detour: "Detour {m}", detourLt1: "under 1 min", popRoute: "{d} from route", popNear: "{d} away",
@@ -802,7 +802,7 @@ let mode = "route", lastMedian = 0;
 
 function status(msg, kind = "") { const el = $("status"); el.textContent = msg; el.dataset.kind = kind; el.hidden = !msg; }
 function css(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
-const shortName = l => (l || "").split(",")[0].trim();
+const shortName = l => String(l ?? "").split(",")[0].trim();
 const isMyLoc = q => ["ma position", "my location"].includes(q.trim().toLowerCase());
 const placeLabel = p => (p.label === "@me" ? t("myLoc") : p.label === "@saved" ? t("savedLoc") : p.label);
 
@@ -823,8 +823,35 @@ matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { if
    À CHAQUE MODIFICATION visible : monter APP_VERSION (1.0 → 1.01 pour une petite correction, → 1.1 pour une nouveauté)
    et ajouter une entrée EN TÊTE de CHANGELOG, en mots simples pour quelqu'un qui ne connaît pas la mécanique de l'appli.
    Au lancement suivant, chaque utilisateur voit les nouveautés depuis la dernière version qu'il a vue. */
-const APP_VERSION = "1.0";
+const APP_VERSION = "1.01";
 const CHANGELOG = [
+  { v: "1.01", date: "2026-11-12",
+    fr: { title: "Corrections", items: [
+      "« Ma position » utilise maintenant ta position du moment, même après avoir rouvert l'appli ou après t'être déplacé.",
+      "Si l'historique des prix cesse d'être mis à jour, la courbe s'arrête à la dernière date connue et te le dit, au lieu d'avoir l'air à jour.",
+      "Si tu corriges ta clé Google après une erreur, l'appli la prend en compte tout de suite.",
+      "En mode « dessiner », toucher les boutons + et − de la carte n'ajoute plus de point par erreur.",
+      "Une seule station illisible dans les données de la Régie ne bloque plus l'affichage de toutes les autres.",
+      "Un avertissement plus clair apparaît quand la date des prix est introuvable.",
+      "Les durées s'affichent correctement (« 2 h 00 » au lieu de « 1 h 60 »).",
+      "Inverser le départ et l'arrivée, ou utiliser « Ma position », pendant une recherche ne mélange plus les résultats.",
+      "La liste de suggestions d'adresses ne se rouvre plus après que tu as choisi une adresse.",
+      "Choisir une zone enregistrée pendant que tu choisis un centre sur la carte fonctionne maintenant normalement.",
+      "Un favori abîmé ne peut plus empêcher l'appli de démarrer.",
+    ] },
+    en: { title: "Fixes", items: [
+      "“My location” now uses where you are at that moment, even after reopening the app or moving.",
+      "If the price history stops being updated, the curve stops at the last known date and tells you, instead of looking up to date.",
+      "If you fix your Google key after an error, the app picks it up right away.",
+      "In “draw” mode, tapping the map's + and − buttons no longer adds a point by mistake.",
+      "One unreadable station in the Régie data no longer blocks all the others from showing.",
+      "A clearer warning appears when the date of the prices can't be found.",
+      "Durations now display correctly (“2 h 00” instead of “1 h 60”).",
+      "Swapping start and end, or using “My location”, during a search no longer mixes up the results.",
+      "The address suggestions no longer pop back open after you've picked an address.",
+      "Picking a saved area while choosing a centre on the map now works normally.",
+      "A damaged favourite can no longer stop the app from starting.",
+    ] } },
   { v: "1.0", date: "2026-11-08",
     fr: { title: "Première version officielle", items: [
       "Trouve l'essence la moins chère sur ton trajet ou autour de toi, en tenant compte du détour pour aller à chaque station.",
@@ -937,12 +964,19 @@ function parsePrice(raw) {
 }
 function compact(doc) {
   const out = [];
+  out.skipped = 0; // stations illisibles ignorées (le seuil de 500 stations protège d'un fichier vraiment cassé)
   for (const f of doc.features || []) {
+    try { compactOne(f, out); } catch { out.skipped++; }
+  }
+  return out;
+}
+function compactOne(f, out) {
+  {
     const p = f.properties || {}, c = f.geometry && f.geometry.coordinates;
     const lat = Number(c && c[1]), lon = Number(c && c[0]);
-    if (!Number.isFinite(lat) || !Number.isFinite(lon) || lat < 40 || lat > 65 || lon < -90 || lon > -55) continue;
+    if (!Number.isFinite(lat) || !Number.isFinite(lon) || lat < 40 || lat > 65 || lon < -90 || lon > -55) return;
     const st = (p.Status || "").trim();
-    if (st && st !== "En opération") continue;
+    if (st && st !== "En opération") return;
     const prices = [null, null, null];
     for (const e of p.Prices || []) {
       const i = FUEL_KEYS[e.GasType];
@@ -951,9 +985,8 @@ function compact(doc) {
     const brand = (p.brand || "").trim();
     out.push([lat, lon, (p.Name || "").trim(), brand === "Aucun" ? "" : brand, (p.Address || "").trim(), ...prices]);
   }
-  return out;
 }
-let freshState = "loading", feedStale = false, stationLoad = null, nextFeedTry = 0, lastFeedError = null;
+let freshState = "loading", feedStale = false, feedSkipped = 0, stationLoad = null, nextFeedTry = 0, lastFeedError = null;
 // Un seul téléchargement à la fois, partagé entre le démarrage et les recherches.
 // Après un succès : prochain essai dans 5 min. Après un échec : dans 1 min (les recherches entre-temps utilisent les prix en mémoire).
 function ensureStations() {
@@ -978,6 +1011,7 @@ function noteText() {
   const age = generatedMs ? Math.round((Date.now() - generatedMs) / 60000) : null;
   if (age == null && stations) parts.push(t("feedNoTime"));
   else if (feedStale || age > 30) parts.push(age < 120 ? t("feedStale", { m: age }) : t("feedOld", { d: fmtWhen(generatedMs) }));
+  if (feedSkipped) parts.push(t("feedSkipped", { n: feedSkipped }));
   if (gKey() && googleBad) parts.push(t("gFallbackNote"));
   else if (gKey() && !googleOn()) parts.push(t("gDownNote"));
   return parts.join(" ");
@@ -1014,10 +1048,13 @@ async function loadStations() {
   catch { throw new Error(t("errRegie")); }
   if (!r.ok) throw new Error(t("errRegieCode", { c: r.status }));
   const buf = r.data;
-  const text = buf[0] === 0x1f && buf[1] === 0x8b
-    ? await new Response(new Blob([buf]).stream().pipeThrough(new DecompressionStream("gzip"))).text()
-    : new TextDecoder().decode(buf);
-  const doc = JSON.parse(text);
+  let doc;
+  try {
+    const text = buf[0] === 0x1f && buf[1] === 0x8b
+      ? await new Response(new Blob([buf]).stream().pipeThrough(new DecompressionStream("gzip"))).text()
+      : new TextDecoder().decode(buf);
+    doc = JSON.parse(text);
+  } catch { throw new Error(t("errFeedRead")); }
   // Validé avant de remplacer les données en mémoire : un fichier partiel ne doit pas écraser des prix valides.
   const fresh = compact(doc);
   if (fresh.length < 500) throw new Error(t("errFeedBad", { n: fresh.length }));
@@ -1025,7 +1062,7 @@ async function loadStations() {
   const gen = parseGen(doc.metadata && doc.metadata.generated_at);
   const suspect = !Number.isFinite(gen) || gen > Date.now() + 60 * 60 * 1000; // absente, invalide ou dans le futur
   if (stations && (suspect || gen < generatedMs)) throw new Error(t("errFeedOld")); // jamais de retour en arrière
-  stations = fresh; loadedAt = Date.now(); feedStale = false;
+  stations = fresh; loadedAt = Date.now(); feedStale = false; feedSkipped = fresh.skipped || 0;
   generatedAt = suspect ? null : doc.metadata.generated_at;
   generatedMs = suspect ? 0 : gen;
   freshState = "ok";
@@ -1131,7 +1168,14 @@ async function geocode(field) {
   const q = $(field).value.trim();
   if (!q) throw new Error(t(field === "from" ? "errFrom" : "errTo"));
   if (picked[field] && picked[field].q === q) return picked[field];
-  if (isMyLoc(q) && here) return { lat: here[0], lon: here[1], label: "@me" };
+  if (isMyLoc(q)) {
+    // « Ma position » : toujours relue au moment de chercher (on a pu se déplacer, ou recharger l'appli).
+    // Ce libellé n'est jamais envoyé au service d'adresses.
+    if (!navigator.geolocation) throw new Error(t("locNone"));
+    try { here = await withTimeout(new Promise((ok, no) => navigator.geolocation.getCurrentPosition(p => ok([p.coords.latitude, p.coords.longitude]), no, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 })), 12000); }
+    catch { throw new Error(t("locDenied")); }
+    return { lat: here[0], lon: here[1], label: "@me" };
+  }
   const ll = q.match(/^\s*(-?\d{1,3}\.\d+)\s*,\s*(-?\d{1,3}\.\d+)\s*$/);
   if (ll && Math.abs(+ll[1]) <= 90 && Math.abs(+ll[2]) <= 180) return { lat: +ll[1], lon: +ll[2], label: t("mapPoint") };
   let hits = [];
@@ -1157,6 +1201,7 @@ function attachSuggest(field) {
   const close = () => { show(false); active = -1; mark(); };
   const choose = i => {
     const h = items[i]; if (!h) return;
+    clearTimeout(timer); seq++; // une recherche d'adresse encore en route ne doit pas rouvrir la liste
     input.value = h.label; picked[field] = { ...h, q: h.label };
     $(field + "Hint").textContent = ""; close();
   };
@@ -1261,6 +1306,7 @@ function googleBack() {
   if (mapA && mapA.kind === "esri" && !picking && !drawing) initMap(); // initMap réaffiche aussi les résultats
   else rerender();
 }
+let gScriptTried = false; // le script Google a déjà été demandé : il ne peut plus être rechargé proprement avec une autre clé
 function loadGoogle() {
   if (window.google && google.maps && google.maps.importLibrary) return Promise.resolve();
   if (gmapsPromise) return gmapsPromise;
@@ -1269,6 +1315,7 @@ function loadGoogle() {
     // Google appelle cette fonction si la clé est invalide, l'API non activée ou le site non autorisé.
     // On rejette aussi le chargement : une attente en cours ne doit pas rester bloquée.
     window.gm_authFailure = () => { markGoogle("denied"); gmapsPromise = null; reject(new Error(t("gDenied"))); onGoogleFail(t("gAuthFail")); };
+    gScriptTried = true;
     const s = document.createElement("script");
     s.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(gKey())}&v=weekly&loading=async&callback=__gmReady&language=${lang}&region=CA`;
     s.async = true;
@@ -1441,7 +1488,7 @@ function radiusKm() {
 function fuel() { return +document.querySelector('input[name="fuel"]:checked').value; }
 function opts() { return { fuel: fuel(), fillL: Math.min(200, Math.max(1, +$("fillL").value || 40)), corridorKm: corridorM() / 1000, radiusKm: radiusKm(), off, rebates }; }
 function fmtDist(m) { return m < 1000 ? `${Math.max(10, Math.round(m / 10) * 10)} m` : `${num(m / 1000)} km`; }
-function fmtDur(min) { const h = Math.floor(min / 60), m = Math.round(min % 60); return h ? `${h} h ${String(m).padStart(2, "0")}` : `${m} min`; }
+function fmtDur(min) { min = Math.round(min); const h = Math.floor(min / 60), m = min % 60; return h ? `${h} h ${String(m).padStart(2, "0")}` : `${m} min`; }
 
 /* Mode */
 function goText() { return t(mode === "near" ? "goNear" : "goRoute"); }
@@ -1772,7 +1819,7 @@ async function zoneName(lat, lon) {
   } catch { return ""; }
 }
 async function runZone(poly, name) {
-  drawExit();
+  drawExit(); pickExit();
   const gen = ++searchGen;
   busy(false);
   try {
@@ -1795,7 +1842,7 @@ async function runZone(poly, name) {
 (() => {
   const col = document.querySelector(".mapcol");
   let down = null;
-  col.addEventListener("pointerdown", e => { down = drawing && e.isPrimary && e.button === 0 && e.target.closest("#map") ? [e.clientX, e.clientY, Date.now()] : null; }, true);
+  col.addEventListener("pointerdown", e => { down = drawing && e.isPrimary && e.button === 0 && e.target.closest("#map") && !e.target.closest('.leaflet-control, button, a, [role="button"]') ? [e.clientX, e.clientY, Date.now()] : null; }, true);
   col.addEventListener("pointerup", e => {
     if (!down || !drawing || !mapA) return;
     const [x, y, t0] = down; down = null;
@@ -1843,6 +1890,7 @@ var suppressClick = 0;
 
 /* ---------- Évolution du prix (historique collecté dans la branche « historique » du dépôt) ---------- */
 const HIST_URL = "https://raw.githubusercontent.com/SamS-777/Qc-Gas-Test/historique/data/series/";
+const HIST_STALE_MS = 3 * 36e5; // au-delà, on considère que le collecteur d'historique est arrêté
 let histDays = 7, histKey = null, histData = {}, histErr = {}, lastAll = [];
 const rol = (v, s) => ((v << s) | (v >>> (32 - s))) >>> 0;
 function sha1hex(str) {
@@ -1927,7 +1975,9 @@ function histRender() {
     if (histErr[code] === "down") { msg(t("histDown")); note.textContent = ""; return; }
     msg(t("histLoading")); note.textContent = ""; histLoad(code); return;
   }
-  const now = Date.now(), debut = (doc.debut || doc.t0) * 60000;
+  // Si le collecteur s'est arrêté, la courbe s'arrête à sa dernière mise à jour au lieu de tracer un plat jusqu'à maintenant.
+  const majMs = parseGen(doc.maj), stopped = Number.isFinite(majMs) && Date.now() - majMs > HIST_STALE_MS;
+  const now = stopped ? majMs : Date.now(), debut = (doc.debut || doc.t0) * 60000;
   const start = Math.max(now - histDays * 864e5, debut);
   const st = histStation();
   let pts;
@@ -1935,7 +1985,7 @@ function histRender() {
     const steps = histSteps(doc, histKey, st.rebate || 0);
     let i = 0; while (i + 1 < steps.length && steps[i + 1][0] <= start) i++;
     pts = steps.length ? [[Math.max(start, steps[i][0]), steps[i][1]], ...steps.slice(i + 1).filter(p => p[0] < now)] : [];
-    pts.push([now, st.eff]);
+    if (stopped) { if (pts.length) pts.push([now, pts[pts.length - 1][1]]); } else pts.push([now, st.eff]);
     note.textContent = (st.rebate ? t("histNoteStR", { r: num(st.rebate, st.rebate % 1 ? 1 : 0) }) : t("histNoteSt"));
   } else {
     // Médiane de la zone sur une grille régulière (30 min sur 7 jours, 2 h sur 30 jours), puis le prix en direct.
@@ -1951,10 +2001,10 @@ function histRender() {
       }
     }
     pts = grid.map((tm, g) => [tm, cols[g].length ? median(cols[g]) : null]);
-    pts.push([now, lastMedian]);
+    if (!stopped) pts.push([now, lastMedian]);
     note.textContent = t("histNoteZone", { n: lastAll.length.toLocaleString(LOC) });
   }
-  note.textContent += t("histLag");
+  note.textContent += stopped ? t("histStopped", { d: fmtWhen(majMs) }) : t("histLag");
   if (st && pts.length < 2) { msg(t("histEmpty")); return; }
   drawHist(box, pts, start, now);
 }
@@ -2452,11 +2502,12 @@ $("favBtn").addEventListener("click", () => {
 $("locate").addEventListener("click", () => {
   if (!navigator.geolocation) return status(t("locNone"), "warn");
   navigator.geolocation.getCurrentPosition(
-    p => { here = [p.coords.latitude, p.coords.longitude]; $("from").value = t("myLoc"); picked.from = null; $("fromHint").textContent = ""; },
+    p => { if ($("go").disabled) cancelSearch(); here = [p.coords.latitude, p.coords.longitude]; $("from").value = t("myLoc"); picked.from = null; $("fromHint").textContent = ""; },
     () => status(t("locDenied"), "warn"),
     { enableHighAccuracy: true, timeout: 10000 });
 });
 $("swap").addEventListener("click", () => {
+  if ($("go").disabled) cancelSearch(); // les résultats en cours ne correspondraient plus aux champs inversés
   const f = $("from").value; $("from").value = $("to").value; $("to").value = f;
   [picked.from, picked.to] = [picked.to, picked.from];
   const fh = $("fromHint").textContent; $("fromHint").textContent = $("toHint").textContent; $("toHint").textContent = fh;
@@ -2482,7 +2533,7 @@ $("gkey").addEventListener("input", () => { store.set("gkey", gKey()); detCache.
 // Une clé Google ne peut pas être changée une fois la carte Google chargée : on recharge l'appli.
 $("gkey").addEventListener("change", () => {
   const k = gKey();
-  if (gmapsPromise) { status(t("gReload"), "warn"); setTimeout(() => location.reload(), 900); return; }
+  if (gmapsPromise || gScriptTried) { status(t("gReload"), "warn"); setTimeout(() => location.reload(), 900); return; }
   googleBad = false; googleDownUntil = 0; clearTimeout(googleRetryTimer);
   if (k) initMap(); else useEsri();
 });

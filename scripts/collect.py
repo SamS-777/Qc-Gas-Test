@@ -62,35 +62,49 @@ def station_key(name, address):
     return hashlib.sha1(f"{name.strip().lower()}|{address.strip().lower()}".encode()).hexdigest()[:10]
 
 
+def read_station(f):
+    """Une station du flux -> (clé, fiche), ou None si elle est vide. Lève une exception si elle est mal formée."""
+    p = f.get("properties") or {}
+    name, addr = (p.get("Name") or "").strip(), (p.get("Address") or "").strip()
+    if not name and not addr:
+        return None
+    try:
+        lon, lat = f["geometry"]["coordinates"][:2]
+    except (KeyError, TypeError, ValueError):
+        lon = lat = None
+    prices = [None, None, None]
+    if (p.get("Status") or "").strip() in ("", "En opération"):
+        for e in p.get("Prices") or []:
+            i = FUELS.get(e.get("GasType"))
+            if i is not None and e.get("IsAvailable", True) is not False:
+                prices[i] = parse_price(e.get("Price"))
+    brand = (p.get("brand") or "").strip()
+    return station_key(name, addr), {
+        "n": name, "b": "" if brand == "Aucun" else brand, "a": addr,
+        "r": (p.get("Region") or "").strip(),
+        "y": round(lat, 5) if lat else None, "x": round(lon, 5) if lon else None,
+        "p": prices,
+    }
+
+
 def read_feed(doc):
-    out, dups = {}, 0
+    out, dups, bad = {}, 0, 0
     for f in doc.get("features", []):
-        p = f.get("properties") or {}
-        name, addr = (p.get("Name") or "").strip(), (p.get("Address") or "").strip()
-        if not name and not addr:
-            continue
         try:
-            lon, lat = f["geometry"]["coordinates"][:2]
-        except (KeyError, TypeError, ValueError):
-            lon = lat = None
-        prices = [None, None, None]
-        if (p.get("Status") or "").strip() in ("", "En opération"):
-            for e in p.get("Prices") or []:
-                i = FUELS.get(e.get("GasType"))
-                if i is not None and e.get("IsAvailable", True):
-                    prices[i] = parse_price(e.get("Price"))
-        brand = (p.get("brand") or "").strip()
-        key = station_key(name, addr)
+            one = read_station(f)
+        except (AttributeError, TypeError, ValueError):
+            bad += 1  # une station mal formée ne doit pas faire refuser tout le flux
+            continue
+        if one is None:
+            continue
+        key, rec = one
         if key in out:
             dups += 1  # même nom + adresse (ou collision) : le dernier l'emporte, on le signale
-        out[key] = {
-            "n": name, "b": "" if brand == "Aucun" else brand, "a": addr,
-            "r": (p.get("Region") or "").strip(),
-            "y": round(lat, 5) if lat else None, "x": round(lon, 5) if lon else None,
-            "p": prices,
-        }
+        out[key] = rec
     if dups:
         print(f"Attention : {dups} station(s) en double (même nom et adresse) fusionnée(s).")
+    if bad:
+        print(f"Attention : {bad} station(s) illisible(s) ignorée(s).")
     return out
 
 
