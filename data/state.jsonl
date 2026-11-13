@@ -1427,7 +1427,7 @@
 {"k":"939baf9cf6","n":"9467-5998 Quebec Inc","b":"Ultramar","a":"8383 boul. Saint-Michel, MONTRÉAL","r":"Montréal","y":45.56607,"x":-73.61406,"p":[170.9,197.9,null]}
 {"k":"93b0863c55","n":"Covris Coopérative (St-Édouard)","b":"Sonic","a":"2408 rte Principale, Saint-Édouard-de-Lotbinière","r":"Chaudière-Appalaches","y":46.57187,"x":-71.82687,"p":[173.9,197.9,279.9]}
 {"k":"93c9de2f1c","n":"9102-7342 QUEBEC INC","b":"Petro-Canada","a":"111 Ryan , Mont-Tremblant","r":"Laurentides","y":46.13411,"x":-74.61471,"p":[167.9,194.9,276.9]}
-{"k":"93f84930c4","n":"Couche-Tard #1108","b":"Shell","a":"199 rue Fusey, Trois-Rivières","r":"Mauricie","y":46.36893,"x":-72.52279,"p":[179.9,208.9,279.9]}
+{"k":"93f84930c4","n":"Couche-Tard #1108","b":"Shell","a":"199 rue Fusey, Trois-Rivières","r":"Mauricie","y":46.36893,"x":-72.52279,"p":[174.9,203.9,279.9]}
 {"k":"9400a5b059","n":"Couche-Tard #1176","b":"Esso","a":"3 rue Monchamp, Saint-Constant","r":"Montérégie","y":45.39192,"x":-73.5815,"p":[170.9,197.9,279.9]}
 {"k":"942f14be84","n":"Station St-Nicephore Drummondville","b":"Shell","a":"4571 boul. Saint-Joseph, Drummondville","r":"Centre-du-Québec","y":45.83812,"x":-72.43224,"p":[162.9,188.9,276.9]}
 {"k":"9441be5692","n":"BCP IV Service Station LP","b":"Esso","a":"208 boul. Sainte-Anne ouest, Sainte-Anne-des-Monts","r":"Gaspésie-Îles-de-la-Madeleine","y":49.12275,"x":-66.49934,"p":[179.9,205.9,279.9]}
@@ -2404,7 +2404,7 @@
 {"k":"f717ffc0d3","n":"Couche-Tard #574","b":"Couche-Tard","a":"3240 av. 1, Québec","r":"Capitale-Nationale","y":46.84008,"x":-71.24659,"p":[171.9,196.9,279.9]}
 {"k":"f71d2e5ae4","n":"Marché Guy Desbois inc.","b":"Shell","a":"209 rte 132, Sainte-Thérèse-de-Gaspé","r":"Gaspésie-Îles-de-la-Madeleine","y":48.40825,"x":-64.42582,"p":[189.4,209.4,289.9]}
 {"k":"f731718a44","n":"9467-6012 Quebec Inc","b":"Ultramar","a":"690 rue Dufferin, GRANBY","r":"Estrie","y":45.42795,"x":-72.71706,"p":[171.9,198.9,276.9]}
-{"k":"f74cf9d332","n":"Couche-Tard #862","b":"Petro-Canada","a":"3575 rue Papineau, Trois-Rivières","r":"Mauricie","y":46.3565,"x":-72.57322,"p":[174.7,201.9,null]}
+{"k":"f74cf9d332","n":"Couche-Tard #862","b":"Petro-Canada","a":"3575 rue Papineau, Trois-Rivières","r":"Mauricie","y":46.3565,"x":-72.57322,"p":[174.5,201.9,null]}
 {"k":"f74f11a227","n":"Harnois Énergies Inc.","b":"Esso","a":"1785 rte des Rivières, Lévis","r":"Chaudière-Appalaches","y":46.71114,"x":-71.29117,"p":[173.9,199.9,279.9]}
 {"k":"f753e8b60a","n":"9161-7373 Québec Inc.","b":"Shell","a":"1450 rue Woodland, Montréal","r":"Montréal","y":45.45312,"x":-73.5845,"p":[169.9,197.9,null]}
 {"k":"f77e5c1f48","n":"Couche-Tard #1129","b":"Esso","a":"9 rue des Roses, Victoriaville","r":"Centre-du-Québec","y":46.06217,"x":-71.98997,"p":[171.9,198.9,263.9]}
