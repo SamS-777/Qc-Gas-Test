@@ -706,3 +706,31 @@ test.describe("étapes", () => {
     expect(await page.evaluate(() => ({ lastMode, busy: $("go").disabled }))).toEqual({ lastMode: null, busy: false });
   });
 });
+
+/* ---------- Version 1.2 : ligne de médiane du graphique ---------- */
+test("graphique : ligne de médiane pondérée par la durée de chaque prix", async ({ page }) => {
+  const now = Math.floor(Date.now() / 60000), t0 = now - 8 * 1440;
+  const series = { t0, debut: t0, maj: new Date(now * 60000).toISOString(), s: {} };
+  await mockNet(page, { hist: route => json(route, series) });
+  await open(page); await searchNear(page);
+  const key = await page.evaluate(() => stationKey(lastTop[0]));
+  // 160,0 ¢ pendant 6 des 7 derniers jours, puis 170,0 ¢ le dernier jour : la médiane est 160, pas 165.
+  series.s[key] = [0, 1600, 7 * 1440, 1700];
+  await page.click("#results li >> nth=0");
+  await page.click("#hist summary");
+  const line = page.locator("#histChart line.hist-med");
+  await expect(line).toHaveCount(1);
+  expect(+(await line.getAttribute("data-v"))).toBe(160);
+  await expect(page.locator("#histChart .hist-medtx")).toHaveText("médiane 7 j : 160,0 ¢");
+});
+
+test("médiane pondérée : calcul", async ({ page }) => {
+  await mockNet(page); await open(page);
+  const r = await page.evaluate(() => [
+    timeMedian([[0, 160], [6, 170]], 7),          // 160 pendant 6, 170 pendant 1
+    timeMedian([[0, 170], [1, 160], [2, 175]], 10), // 175 pendant 8
+    timeMedian([[0, null], [5, 150]], 6),         // les trous ne comptent pas
+    timeMedian([[3, 150]], 3),                    // aucune durée : pas de ligne
+  ]);
+  expect(r).toEqual([160, 175, 150, null]);
+});

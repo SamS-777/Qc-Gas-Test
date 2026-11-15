@@ -245,6 +245,8 @@ h1 { font: 600 1.75rem/1.05 var(--serif); letter-spacing: -.01em; margin: 0; tex
 .hist-chart svg { display: block; width: 100%; height: 100% }
 .hist-chart .ax { fill: var(--faint); font: 500 11px var(--sans); font-variant-numeric: tabular-nums }
 .hist-chart .grid { stroke: var(--line); stroke-width: 1 }
+.hist-chart .hist-med { stroke: var(--muted); stroke-width: 2.5; stroke-dasharray: 0 6; stroke-linecap: round }
+.hist-chart .hist-medtx { fill: var(--muted); paint-order: stroke; stroke: var(--surface); stroke-width: 3px; stroke-linejoin: round }
 .hist-chart .msg { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); font-size: .85rem; text-align: center; padding: 0 20px }
 .hist-tip { position: absolute; top: -4px; background: var(--ink); color: var(--bg); font-size: .74rem; font-weight: 500; padding: 4px 8px; border-radius: 8px; white-space: nowrap; pointer-events: none; font-variant-numeric: tabular-nums; box-shadow: var(--shadow) }
 .hist-note { margin: 0; color: var(--faint); font-size: .74rem; line-height: 1.4 }
@@ -755,7 +757,7 @@ const I18N = {
     histTitle: "Évolution du prix", histZoneWho: "médiane de la zone", histBack: "← Toute la zone", histRange: "Période", hist7: "7 j", hist30: "30 j",
     histLoading: "Chargement de l'historique…", histDown: "Historique indisponible pour l'instant.", histEmpty: "Pas encore d'historique pour cette station.",
     histNoteZone: "Médiane des {n} stations de ta recherche, rabais déduits.", histNoteSt: "Prix de cette station.", histNoteStR: "Prix de cette station, rabais de {r} ¢ déduit.",
-    histLag: " Courbe en retard de 30 à 60 min, sauf le dernier point (prix en direct).", histStopped: " L'historique n'est plus mis à jour depuis le {d} : la courbe s'arrête à cette date.",
+    histMed: "médiane {d} j : {m} ¢", histLag: " Courbe en retard de 30 à 60 min, sauf le dernier point (prix en direct).", histStopped: " L'historique n'est plus mis à jour depuis le {d} : la courbe s'arrête à cette date.",
     wazeTitle: "Waze ne prend pas d'arrêt intermédiaire par lien : il te guide jusqu'à la station seulement.",
     calcTime: "Calcul du temps…", calcDetour: "Calcul du détour…", drive: "{m} min en voiture · {km} km", lt1: "moins d'1",
     noDetour: "Aucun détour", detour: "Détour {m}", detourLt1: "de moins d'1 min", popRoute: "à {d} du trajet", popNear: "à {d}",
@@ -820,7 +822,7 @@ const I18N = {
     histTitle: "Price history", histZoneWho: "area median", histBack: "← Whole area", histRange: "Period", hist7: "7 d", hist30: "30 d",
     histLoading: "Loading history…", histDown: "History unavailable right now.", histEmpty: "No history yet for this station.",
     histNoteZone: "Median of the {n} stations in your search, rebates deducted.", histNoteSt: "This station's price.", histNoteStR: "This station's price, {r}¢ rebate deducted.",
-    histLag: " The curve lags 30–60 min, except the last point (live price).", histStopped: " History hasn't been updated since {d}: the curve stops at that date.",
+    histMed: "{d}-day median: {m}¢", histLag: " The curve lags 30–60 min, except the last point (live price).", histStopped: " History hasn't been updated since {d}: the curve stops at that date.",
     wazeTitle: "Waze links can't include a stop: it guides you to the station only.",
     calcTime: "Calculating time…", calcDetour: "Calculating detour…", drive: "{m} min drive · {km} km", lt1: "under 1",
     noDetour: "No detour", detour: "Detour {m}", detourLt1: "under 1 min", popRoute: "{d} from route", popNear: "{d} away",
@@ -878,8 +880,15 @@ matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { if
    À CHAQUE MODIFICATION visible : monter APP_VERSION (1.0 → 1.01 pour une petite correction, → 1.1 pour une nouveauté)
    et ajouter une entrée EN TÊTE de CHANGELOG, en mots simples pour quelqu'un qui ne connaît pas la mécanique de l'appli.
    Au lancement suivant, chaque utilisateur voit les nouveautés depuis la dernière version qu'il a vue. */
-const APP_VERSION = "1.1";
+const APP_VERSION = "1.2";
 const CHANGELOG = [
+  { v: "1.2", date: "2026-11-15",
+    fr: { title: "Repère sur le graphique des prix", items: [
+      "Le graphique « Évolution du prix » montre maintenant une ligne pointillée au prix médian de la période : tu vois tout de suite si le prix d'aujourd'hui est plutôt haut ou plutôt bas.",
+    ] },
+    en: { title: "Reference line on the price chart", items: [
+      "The “Price history” chart now shows a dotted line at the period's median price: you can tell right away whether today's price is on the high or low side.",
+    ] } },
   { v: "1.1", date: "2026-11-12",
     fr: { title: "Des arrêts sur ton trajet", items: [
       "Ajoute jusqu'à 2 arrêts entre ton départ et ta destination avec « + Ajouter une étape » : l'appli cherche l'essence sur tout le parcours.",
@@ -2107,6 +2116,20 @@ function svgEl(tag, attrs, parent) {
   if (parent) parent.append(e);
   return e;
 }
+// Médiane pondérée par la durée : un prix resté 6 jours compte plus qu'un prix d'une heure (courbe en paliers).
+function timeMedian(pts, t1) {
+  const seg = [];
+  for (let i = 0; i < pts.length; i++) {
+    const v = pts[i][1], dt = (i + 1 < pts.length ? pts[i + 1][0] : t1) - pts[i][0];
+    if (v != null && dt > 0) seg.push([v, dt]);
+  }
+  const tot = seg.reduce((a, x) => a + x[1], 0);
+  if (!tot) return null;
+  seg.sort((a, b) => a[0] - b[0]);
+  let acc = 0;
+  for (const [v, dt] of seg) { acc += dt; if (acc >= tot / 2) return v; }
+  return seg[seg.length - 1][0];
+}
 function drawHist(box, pts, t0, t1) {
   const W = box.clientWidth || 320, H = box.clientHeight || 180, L = 38, R = 12, T = 12, B = 24;
   const vals = pts.map(p => p[1]).filter(v => v != null);
@@ -2148,6 +2171,13 @@ function drawHist(box, pts, t0, t1) {
     prev = v;
   }
   const clay = css("--clay") || "#D97757", surf = css("--surface") || "#fff";
+  // Médiane de la période : ligne pointillée et son prix, pour voir si le prix actuel est haut ou bas.
+  const med = timeMedian(pts, t1);
+  if (med != null) {
+    svgEl("line", { x1: L, x2: W - R, y1: Y(med), y2: Y(med), class: "hist-med", "data-v": med }, svg);
+    const mt = svgEl("text", { x: L + 4, y: Y(med) - 5, class: "ax hist-medtx" }, svg);
+    mt.textContent = t("histMed", { d: histDays, m: num(med) });
+  }
   svgEl("path", { d, fill: "none", stroke: clay, "stroke-width": 2, "stroke-linejoin": "round", "stroke-linecap": "round" }, svg);
   const last = pts[pts.length - 1];
   svgEl("circle", { cx: X(last[0]), cy: Y(last[1]), r: 4.5, fill: clay, stroke: surf, "stroke-width": 2 }, svg);
@@ -2170,7 +2200,7 @@ function drawHist(box, pts, t0, t1) {
   };
   const hide = () => { cross.setAttribute("visibility", "hidden"); dot.setAttribute("visibility", "hidden"); tip.hidden = true; };
   hit.addEventListener("pointermove", show); hit.addEventListener("pointerdown", show); hit.addEventListener("pointerleave", hide);
-  svg.setAttribute("aria-label", `${$("histWho").textContent.replace(/^· /, "")} : ${num(vals[0])} → ${num(last[1])} ¢`);
+  svg.setAttribute("aria-label", `${$("histWho").textContent.replace(/^· /, "")} : ${num(vals[0])} → ${num(last[1])} ¢` + (med != null ? ` · ${t("histMed", { d: histDays, m: num(med) })}` : ""));
   box.replaceChildren(svg, tip);
 }
 $("hist").addEventListener("toggle", histRender);
