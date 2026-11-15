@@ -64,7 +64,7 @@ External runtime dependencies (no npm, no bundler):
 - **Station view:** clicking a station (card, compact row, pin or dot) switches the chart to that station's step series. "← Toute la zone" goes back.
 - **Data:** read from `raw.githubusercontent.com/.../historique/data/series/{R,S,D}.json` (see §5).
 - **Drawing:** an inline SVG step line with a crosshair tooltip. No charting library.
-- **Median line (since 1.2):** a dotted horizontal line at the period's median, weighted by how long each price lasted (`timeMedian`), labelled with its price.
+- **Median line (since 1.11):** a dotted horizontal line at the period's median, weighted by how long each price lasted (`timeMedian`), labelled with its price.
 - **Caveat:** the history only started on 2026-11-07, so the charts are mostly flat or short for now. That is expected.
 
 ### 2.5 Navigation hand-off

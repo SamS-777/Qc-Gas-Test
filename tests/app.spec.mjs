@@ -707,7 +707,7 @@ test.describe("étapes", () => {
   });
 });
 
-/* ---------- Version 1.2 : ligne de médiane du graphique ---------- */
+/* ---------- Version 1.11 : ligne de médiane du graphique ---------- */
 test("graphique : ligne de médiane pondérée par la durée de chaque prix", async ({ page }) => {
   const now = Math.floor(Date.now() / 60000), t0 = now - 8 * 1440;
   const series = { t0, debut: t0, maj: new Date(now * 60000).toISOString(), s: {} };
