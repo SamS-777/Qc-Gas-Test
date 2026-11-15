@@ -721,7 +721,12 @@ test("graphique : ligne de médiane pondérée par la durée de chaque prix", as
   const line = page.locator("#histChart line.hist-med");
   await expect(line).toHaveCount(1);
   expect(+(await line.getAttribute("data-v"))).toBe(160);
-  await expect(page.locator("#histChart .hist-medtx")).toHaveText("médiane 7 j : 160,0 ¢");
+  await expect(page.locator("#histChart .hist-medtx")).toHaveText("160,0");
+  await expect(page.locator("#histLegend")).toBeVisible();
+  await expect(page.locator("#histLegend")).toHaveText("Prix médian");
+  // Le prix est écrit hors de la zone de la courbe (à droite de la fin de la ligne).
+  const [lineEnd, textX] = await page.evaluate(() => [+document.querySelector("#histChart line.hist-med").getAttribute("x2"), +document.querySelector("#histChart .hist-medtx").getAttribute("x")]);
+  expect(textX).toBeGreaterThan(lineEnd);
 });
 
 test("médiane pondérée : calcul", async ({ page }) => {

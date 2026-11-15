@@ -64,7 +64,7 @@ External runtime dependencies (no npm, no bundler):
 - **Station view:** clicking a station (card, compact row, pin or dot) switches the chart to that station's step series. "← Toute la zone" goes back.
 - **Data:** read from `raw.githubusercontent.com/.../historique/data/series/{R,S,D}.json` (see §5).
 - **Drawing:** an inline SVG step line with a crosshair tooltip. No charting library.
-- **Median line (since 1.11):** a dotted horizontal line at the period's median, weighted by how long each price lasted (`timeMedian`), labelled with its price.
+- **Median line (since 1.11):** a dotted horizontal line at the period's median, weighted by how long each price lasted (`timeMedian`), its price is written in the right margin, outside the plot, with a "•••• Prix médian" legend above the chart (since 1.12).
 - **Caveat:** the history only started on 2026-11-07, so the charts are mostly flat or short for now. That is expected.
 
 ### 2.5 Navigation hand-off
@@ -145,7 +145,7 @@ Key global state:
 - `costco` — legacy, migration only.
 
 ### Service worker (`sw.js`)
-- **Cache name:** `VERSION = "essence-v27"`, bumped manually on each release. Activation deletes only caches starting with `essence-`, because the `github.io` origin is shared with the owner's other projects.
+- **Cache name:** `VERSION = "essence-v28"`, bumped manually on each release. Activation deletes only caches starting with `essence-`, because the `github.io` origin is shared with the owner's other projects.
 - **Install:** the minimal shell (`./`, `index.html`, manifest, Leaflet JS/CSS) must download or the install fails, so the old version stays active. Icons and images are optional.
 - **Navigation:** network-first. Only a valid HTML response replaces the cached `index.html`, and `cache.put` is awaited. The cached page is the offline fallback.
 - **Same-origin files and Google Fonts:** cache-first, with a background refresh kept alive by `event.waitUntil`. Same-origin files are cached only if `ok`.
