@@ -884,15 +884,8 @@ matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { if
    À CHAQUE MODIFICATION visible : monter APP_VERSION (1.0 → 1.01 pour une petite correction, → 1.1 pour une nouveauté)
    et ajouter une entrée EN TÊTE de CHANGELOG, en mots simples pour quelqu'un qui ne connaît pas la mécanique de l'appli.
    Au lancement suivant, chaque utilisateur voit les nouveautés depuis la dernière version qu'il a vue. */
-const APP_VERSION = "1.12";
+const APP_VERSION = "1.11";
 const CHANGELOG = [
-  { v: "1.12", date: "2026-11-15",
-    fr: { title: "Graphique plus lisible", items: [
-      "Le prix médian s'affiche maintenant à droite du graphique, hors de la courbe, avec une légende au-dessus : il se lit facilement.",
-    ] },
-    en: { title: "Easier-to-read chart", items: [
-      "The median price now shows to the right of the chart, clear of the curve, with a legend above: it's easy to read.",
-    ] } },
   { v: "1.11", date: "2026-11-15",
     fr: { title: "Repère sur le graphique des prix", items: [
       "Le graphique « Évolution du prix » montre maintenant une ligne pointillée au prix médian de la période : tu vois tout de suite si le prix d'aujourd'hui est plutôt haut ou plutôt bas.",
