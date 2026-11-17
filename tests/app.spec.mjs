@@ -739,3 +739,13 @@ test("médiane pondérée : calcul", async ({ page }) => {
   ]);
   expect(r).toEqual([160, 175, 150, null]);
 });
+
+test("la station n° 1 n'a pas l'air sélectionnée tant qu'on ne l'a pas choisie", async ({ page }) => {
+  await mockNet(page); await open(page); await searchNear(page);
+  const border = i => page.evaluate(k => getComputedStyle(document.querySelectorAll("#results .card")[k]).borderColor, i);
+  expect(await border(0)).toBe(await border(1)); // même bordure qu'une station ordinaire
+  await page.click("#results li >> nth=1");
+  expect(await border(1)).not.toBe(await border(0)); // seule la station choisie est encadrée
+  await page.click("#results li >> nth=0");
+  expect(await border(0)).not.toBe(await border(1));
+});
