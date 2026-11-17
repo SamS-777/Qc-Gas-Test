@@ -58,5 +58,5 @@ Commit puis push sur `main`. Vérifier ensuite : CI verte, déploiement Pages r�
 
 ## En suspens
 
-- « Fais le plein maintenant ou attends ? » : modèle prédictif, après avoir exploré les CSV historiques de la Régie (prix moyen quotidien par région, IQCA, prix minimum estimé, prix à la rampe). Les prix de gros pilotent les prix à la pompe : un modèle sur les seuls prix affichés ne vaut pas grand-chose. Comparer à GasWizard avant de conclure. Voir `APP_OVERVIEW.md`.
+- « Quand faire le plein ? » : exploré le 2026-11-17, voir `analyse/README.md`. Le cycle utile est dans la journée (à Montréal et à Laval, hausse vers 23 h–1 h, creux vers 19 h–22 h), pas sur plusieurs jours : un signal testé sur les moyennes quotidiennes de la Régie ne bat pas le hasard. Avant d'ajouter un conseil d'heure dans l'appli, relancer `analyse/cycle_horaire.py` sur au moins un mois d'historique et vérifier que le motif tient. L'IQCA quotidien n'est plus publié depuis juin 2025.
 - Pas demandé pour l'instant : avis de confidentialité ; passage aux modules ES (refonte, seulement si le fichier unique devient ingérable).
