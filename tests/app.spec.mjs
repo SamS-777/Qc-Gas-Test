@@ -749,3 +749,49 @@ test("la station n° 1 n'a pas l'air sélectionnée tant qu'on ne l'a pas choisi
   await page.click("#results li >> nth=0");
   expect(await border(0)).not.toBe(await border(1));
 });
+
+/* ---------- Version 1.12 : vue 24 h et désélection ---------- */
+test("graphique : vue 24 h, graduée en heures, médiane « 24 h »", async ({ page }) => {
+  const now = Math.floor(Date.now() / 60000), t0 = now - 8 * 1440;
+  const series = { t0, debut: t0, maj: new Date(now * 60000).toISOString(), s: {} };
+  await mockNet(page, { hist: route => json(route, series) });
+  await open(page); await searchNear(page);
+  const key = await page.evaluate(() => stationKey(lastTop[0]));
+  series.s[key] = [0, 1600, 7 * 1440 + 600, 1700, 7 * 1440 + 1200, 1650];
+  await page.click("#results li >> nth=0"); await page.click("#hist summary");
+  await page.waitForSelector("#histChart line.hist-med", { state: "attached" });
+  const hourLabels = () => page.evaluate(() => [...document.querySelectorAll("#histChart text.ax")].filter(x => /^\d{1,2} h$/.test(x.textContent)).length);
+  expect(await hourLabels()).toBe(0); // 7 jours : graduations en jours
+  await page.click('.hist-range button[data-days="1"]');
+  await expect(page.locator('.hist-range button[data-days="1"]')).toHaveAttribute("aria-pressed", "true");
+  await expect.poll(hourLabels).toBeGreaterThan(2);
+  expect(await page.locator("#histChart svg").getAttribute("aria-label")).toContain("médiane 24 h");
+});
+
+test("désélection : un clic dans une zone vide ou Échap retire la sélection, pas un clic sur le graphique", async ({ page }) => {
+  await mockNet(page); await open(page); await searchNear(page);
+  const state = () => page.evaluate(() => ({ card: document.querySelectorAll("#results .card.sel").length, pin: document.querySelectorAll("#map .sel").length, hist: histKey }));
+  await page.click("#results li >> nth=1");
+  expect(await state()).toMatchObject({ card: 1, pin: 1 });
+  expect((await state()).hist).not.toBeNull();
+  await page.click("#hist summary"); await page.click("#histChart"); // regarder le graphique ne désélectionne pas
+  expect((await state()).card).toBe(1);
+  await page.click("#sumMeta"); // zone vide (texte du résumé)
+  expect(await state()).toEqual({ card: 0, pin: 0, hist: null });
+  await expect(page.locator("#histWho")).toContainText("médiane de la zone");
+  // Clavier : Échap sur la carte sélectionnée.
+  await page.click("#results li >> nth=2");
+  expect((await state()).card).toBe(1);
+  await page.keyboard.press("Escape");
+  expect(await state()).toEqual({ card: 0, pin: 0, hist: null });
+});
+
+test("désélection : une ligne ouverte des autres stations se referme aussi", async ({ page }) => {
+  await mockNet(page); await open(page); await searchNear(page);
+  await page.click("#restToggle");
+  await page.click("#restList li >> nth=0 >> button");
+  await expect(page.locator("#restList li.open")).toHaveCount(1);
+  await page.click("#sumMeta");
+  await expect(page.locator("#restList li.open")).toHaveCount(0);
+  expect(await page.evaluate(() => histKey)).toBeNull();
+});

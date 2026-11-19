@@ -59,7 +59,7 @@ External runtime dependencies (no npm, no bundler):
 - **Under the list:** a collapsed "Afficher les N autres stations" opens compact rows sorted by price, 50 at a time. Tapping a row centres the map, opens the station's popup and reveals the Google Maps and Waze buttons.
 
 ### 2.4 Price history chart
-- **Where:** a collapsed `<details>` under the result title, with 7-day and 30-day views.
+- **Where:** a collapsed `<details>` under the result title, with 24-hour, 7-day and 30-day views. Clicking an empty part of the page, or pressing Escape, deselects the station and returns to the area view.
 - **Area view:** the median of the current result set at each grid step (30 min for 7 days, 2 h for 30 days), rebates applied, followed by a final live point equal to the current median.
 - **Station view:** clicking a station (card, compact row, pin or dot) switches the chart to that station's step series. "← Toute la zone" goes back.
 - **Data:** read from `raw.githubusercontent.com/.../historique/data/series/{R,S,D}.json` (see §5).
@@ -145,7 +145,7 @@ Key global state:
 - `costco` — legacy, migration only.
 
 ### Service worker (`sw.js`)
-- **Cache name:** `VERSION = "essence-v29"`, bumped manually on each release. Activation deletes only caches starting with `essence-`, because the `github.io` origin is shared with the owner's other projects.
+- **Cache name:** `VERSION = "essence-v30"`, bumped manually on each release. Activation deletes only caches starting with `essence-`, because the `github.io` origin is shared with the owner's other projects.
 - **Install:** the minimal shell (`./`, `index.html`, manifest, Leaflet JS/CSS) must download or the install fails, so the old version stays active. Icons and images are optional.
 - **Navigation:** network-first. Only a valid HTML response replaces the cached `index.html`, and `cache.put` is awaited. The cached page is the offline fallback.
 - **Same-origin files and Google Fonts:** cache-first, with a background refresh kept alive by `event.waitUntil`. Same-origin files are cached only if `ok`.
