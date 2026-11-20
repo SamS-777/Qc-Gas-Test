@@ -1527,7 +1527,7 @@
 {"k":"9dde240fc2","n":"Dépanneur Sprint (av. Larue)","b":"Petro-Canada","a":"2236 av. Larue, Québec","r":"Capitale-Nationale","y":46.88804,"x":-71.16518,"p":[160.9,185.9,null]}
 {"k":"9de38a3298","n":"9360-9998 Québec Inc.","b":"Esso","a":"18401 rue Antoine-Faucon, Montréal","r":"Montréal","y":45.4525,"x":-73.8869,"p":[162.9,188.9,257.9]}
 {"k":"9de727bb36","n":"Gestion Regaieg inc.","b":"Shell","a":"533 boul. Lacombe, Repentigny","r":"Lanaudière","y":45.75623,"x":-73.46371,"p":[183.9,211.9,null]}
-{"k":"9e36d61225","n":"Couche-Tard #1207","b":"Esso","a":"8175 boul. Cousineau, Longueuil","r":"Montérégie","y":45.47567,"x":-73.37977,"p":[132.3,159.9,269.9]}
+{"k":"9e36d61225","n":"Couche-Tard #1207","b":"Esso","a":"8175 boul. Cousineau, Longueuil","r":"Montérégie","y":45.47567,"x":-73.37977,"p":[142.3,169.9,269.9]}
 {"k":"9e758a7813","n":"9196-9261 QUEBEC INC","b":"Petro-Canada","a":"14 de Bromont , Bromont","r":"Estrie","y":45.33202,"x":-72.64844,"p":[199.9,226.9,298.9]}
 {"k":"9e7d3d5b58","n":"Station Service Ridgewood Inc.","b":"Shell","a":"4690 ch. de la Côte-des -Neiges, Montréal","r":"Montréal","y":45.49562,"x":-73.60977,"p":[165.9,197.9,null]}
 {"k":"9e9514c129","n":"Couche-Tard inc.","b":"Harnois","a":"4014 boul. Saint-Joseph, Drummondville","r":"Centre-du-Québec","y":45.85182,"x":-72.45556,"p":[159.3,185.9,269.9]}
@@ -1599,7 +1599,7 @@
 {"k":"a5f74d33df","n":"Les Pétroles Expert inc.","b":"Shell","a":"1525 av. 5, Shawinigan","r":"Mauricie","y":46.52291,"x":-72.74943,"p":[159.9,185.9,276.9]}
 {"k":"a60721b835","n":"Épicerie Raymond Guay inc.","b":"Petro-Canada","a":"1077 rte 169, Saint-Félicien","r":"Saguenay-Lac-Saint-Jean","y":48.66115,"x":-72.4409,"p":[153.4,178.4,266.9]}
 {"k":"a64345b6e4","n":"Petro-Canada 13398","b":"Petro-Canada","a":"3430 440 (desserte sud) est, Laval","r":"Laval","y":45.61006,"x":-73.68411,"p":[162.9,189.9,257.9]}
-{"k":"a643fb4729","n":"Gaz bar Morin","b":"Irving","a":"1818 rue Principale, Pohénégamook","r":"Bas-Saint-Laurent","y":47.48406,"x":-69.27591,"p":[167.7,189.7,274.9]}
+{"k":"a643fb4729","n":"Gaz bar Morin","b":"Irving","a":"1818 rue Principale, Pohénégamook","r":"Bas-Saint-Laurent","y":47.48406,"x":-69.27591,"p":[165.7,187.7,274.9]}
 {"k":"a6728f9df1","n":"Dépanneur SPRINT Lave-auto Rouyn","b":"Petro-Canada","a":"180 rue Gamble ouest, Rouyn-Noranda","r":"Abitibi-Témiscamingue","y":48.24017,"x":-79.02551,"p":[166.4,191.4,269.9]}
 {"k":"a683f4e9ab","n":"Couche-Tard #1201","b":"Couche-Tard","a":"1095 rue de la Visitation, Saint-Charles-Borromée","r":"Lanaudière","y":46.06426,"x":-73.48815,"p":[155.4,182.9,269.9]}
 {"k":"a687c2aaad","n":"Couche-Tard #535","b":"Irving","a":"41 rue Valvue, Québec","r":"Capitale-Nationale","y":46.85657,"x":-71.34696,"p":[168.9,195.9,null]}
@@ -2253,7 +2253,7 @@
 {"k":"e7305c5124","n":"9485-1177 Québec Inc.","b":"Petro-Canada","a":"123 rue Saint-Laurent, Saint-Eustache","r":"Laurentides","y":45.56876,"x":-73.887,"p":[162.9,189.9,257.9]}
 {"k":"e73cb7e6d7","n":"Harnois Énergies Inc.","b":"Harnois","a":"635 rue Beaudry nord, Joliette","r":"Lanaudière","y":46.026,"x":-73.46126,"p":[155.4,181.9,261.9]}
 {"k":"e7417a4bc0","n":"Filgo St-Eustache","b":"Shell","a":"798 boul. Arthur-Sauvé, Saint-Eustache","r":"Laurentides","y":45.58147,"x":-73.92253,"p":[148.9,174.9,259.9]}
-{"k":"e7432004fb","n":"9327-8505 Québec inc.","b":"Shell","a":"4055 boul. Industriel, Laval","r":"Laval","y":45.59822,"x":-73.75,"p":[149.9,177.9,259.9]}
+{"k":"e7432004fb","n":"9327-8505 Québec inc.","b":"Shell","a":"4055 boul. Industriel, Laval","r":"Laval","y":45.59822,"x":-73.75,"p":[162.9,190.9,259.9]}
 {"k":"e760b34dc2","n":"2964-3723 quebec inc","b":"Pétroles Maurice","a":"223 boul. Saint-Luc, Saint-Jean-sur-Richelieu","r":"Montérégie","y":45.35193,"x":-73.29232,"p":[137.9,160.9,244.9]}
 {"k":"e765aeeaf5","n":"9469-1045Québec Inc.","b":"Esso","a":"601 boul. Saint-Jean, Pointe-Claire","r":"Montréal","y":45.45912,"x":-73.82122,"p":[162.9,188.9,257.9]}
 {"k":"e76f7dd6e0","n":"Marché Gendreault Inc.","b":"Harnois","a":"1097 rue Principale, Notre-Dame de Stanbridge","r":"Montérégie","y":45.17037,"x":-73.02963,"p":[159.9,199.9,271.9]}
