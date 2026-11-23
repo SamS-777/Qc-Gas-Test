@@ -1541,7 +1541,7 @@
 {"k":"9f1b81cc22","n":"Couche-Tard #1178","b":"Esso","a":"700 av. Atwater, Montréal","r":"Montréal","y":45.48404,"x":-73.57994,"p":[163.9,190.9,null]}
 {"k":"9f3f41b660","n":"9317-2898 Québec Inc.","b":"Harnois","a":"2342 rte Commerciale sud, Témiscouata-sur-le-Lac","r":"Bas-Saint-Laurent","y":47.61409,"x":-68.80427,"p":[164.9,190.9,264.9]}
 {"k":"9f4418a5cd","n":"Couche-Tard #1245","b":"Esso","a":"853 boul. Albiny-Paquette, Mont-Laurier","r":"Laurentides","y":46.55132,"x":-75.48802,"p":[156.9,183.9,null]}
-{"k":"9f7cfc1440","n":"9108-1349 Québec Inc. Shell Halte 640","b":"Shell","a":"2775 ave. Claude-Léveillé, Terrebonne","r":"Lanaudière","y":45.72178,"x":-73.70188,"p":[155.9,187.9,279.9]}
+{"k":"9f7cfc1440","n":"9108-1349 Québec Inc. Shell Halte 640","b":"Shell","a":"2775 ave. Claude-Léveillé, Terrebonne","r":"Lanaudière","y":45.72178,"x":-73.70188,"p":[163.9,195.9,279.9]}
 {"k":"9f9fca6293","n":"9365-8805 Québec Inc.","b":"Esso","a":"1144 rue Bellevue, Saint-Lambert-de-Lauzon","r":"Chaudière-Appalaches","y":46.58507,"x":-71.21658,"p":[156.9,182.9,264.9]}
 {"k":"9ff3b2ce21","n":"Couche-Tard #1175","b":"Esso","a":"5405 boul. Décarie, Montréal","r":"Montréal","y":45.4861,"x":-73.63363,"p":[163.9,190.9,null]}
 {"k":"9ffddcd42a","n":"Dépanneur Sprint La Pocatière","b":"Petro-Canada","a":"100 av. 6, La Pocatière","r":"Bas-Saint-Laurent","y":47.36577,"x":-70.03736,"p":[169.4,194.4,null]}
@@ -2033,7 +2033,7 @@
 {"k":"d3f8fa80dc","n":"Filgo Pointe-au-Père","b":"Shell","a":"1049 boul. Sainte-Anne, Rimouski","r":"Bas-Saint-Laurent","y":48.51361,"x":-68.4597,"p":[163.4,189.9,264.9]}
 {"k":"d3fd0cfe38","n":"Couche-Tard #1190","b":"Esso","a":"22 place du Commerce, Montréal","r":"Montréal","y":45.46753,"x":-73.53915,"p":[163.9,190.9,269.9]}
 {"k":"d40fe4c136","n":"Mathieu Fontaine","b":"Ultramar","a":"4562 Boul. Saint-Joseph, DRUMMONDVILLE","r":"Centre-du-Québec","y":45.83897,"x":-72.4326,"p":[154.9,181.9,264.9]}
-{"k":"d41cc557bf","n":"La Société Canadian Tire Ltée","b":"Canadian Tire","a":"2005 boul. Crémazie est, Montréal","r":"Montréal","y":45.55609,"x":-73.6194,"p":[151.4,177.4,null]}
+{"k":"d41cc557bf","n":"La Société Canadian Tire Ltée","b":"Canadian Tire","a":"2005 boul. Crémazie est, Montréal","r":"Montréal","y":45.55609,"x":-73.6194,"p":[163.4,189.4,null]}
 {"k":"d41fdf795e","n":"LIBRE SERVICE DANIEL DUPÉRÉ INC","b":"Ultramar","a":"141 Rang 2, Deschambault-Grondines","r":"Capitale-Nationale","y":46.64365,"x":-71.99862,"p":[162.9,189.9,272.9]}
 {"k":"d42cf85b7a","n":"Couche-Tard #553","b":"Irving","a":"527 boul. Louis-XIV, Québec","r":"Capitale-Nationale","y":46.85534,"x":-71.27911,"p":[163.9,190.9,null]}
 {"k":"d4324c7bd0","n":"Couche-Tard #1298","b":"Esso","a":"700 ch. Lucerne, Mont-Royal","r":"Montréal","y":45.50244,"x":-73.6452,"p":[163.9,190.9,269.9]}
@@ -2255,7 +2255,7 @@
 {"k":"e7305c5124","n":"9485-1177 Québec Inc.","b":"Petro-Canada","a":"123 rue Saint-Laurent, Saint-Eustache","r":"Laurentides","y":45.56876,"x":-73.887,"p":[164.9,191.9,255.9]}
 {"k":"e73cb7e6d7","n":"Harnois Énergies Inc.","b":"Harnois","a":"635 rue Beaudry nord, Joliette","r":"Lanaudière","y":46.026,"x":-73.46126,"p":[152.4,178.9,261.9]}
 {"k":"e7417a4bc0","n":"Filgo St-Eustache","b":"Shell","a":"798 boul. Arthur-Sauvé, Saint-Eustache","r":"Laurentides","y":45.58147,"x":-73.92253,"p":[152.9,178.9,259.9]}
-{"k":"e7432004fb","n":"9327-8505 Québec inc.","b":"Shell","a":"4055 boul. Industriel, Laval","r":"Laval","y":45.59822,"x":-73.75,"p":[148.9,176.9,257.9]}
+{"k":"e7432004fb","n":"9327-8505 Québec inc.","b":"Shell","a":"4055 boul. Industriel, Laval","r":"Laval","y":45.59822,"x":-73.75,"p":[163.9,191.9,257.9]}
 {"k":"e760b34dc2","n":"2964-3723 quebec inc","b":"Pétroles Maurice","a":"223 boul. Saint-Luc, Saint-Jean-sur-Richelieu","r":"Montérégie","y":45.35193,"x":-73.29232,"p":[135.9,158.9,239.9]}
 {"k":"e765aeeaf5","n":"9469-1045Québec Inc.","b":"Esso","a":"601 boul. Saint-Jean, Pointe-Claire","r":"Montréal","y":45.45912,"x":-73.82122,"p":[163.9,189.9,255.9]}
 {"k":"e76f7dd6e0","n":"Marché Gendreault Inc.","b":"Harnois","a":"1097 rue Principale, Notre-Dame de Stanbridge","r":"Montérégie","y":45.17037,"x":-73.02963,"p":[151.9,177.9,271.9]}
