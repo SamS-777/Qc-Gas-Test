@@ -722,8 +722,7 @@ test("graphique : ligne de médiane pondérée par la durée de chaque prix", as
   await expect(line).toHaveCount(1);
   expect(+(await line.getAttribute("data-v"))).toBe(160);
   await expect(page.locator("#histChart .hist-medtx")).toHaveText("160,0");
-  await expect(page.locator("#histLegend")).toBeVisible();
-  await expect(page.locator("#histLegend")).toHaveText("Prix médian");
+  await expect(page.locator('#histChips .hchip[data-k="med"]')).toHaveAttribute("aria-pressed", "true");
   // Le prix est écrit hors de la zone de la courbe (à droite de la fin de la ligne).
   const [lineEnd, textX] = await page.evaluate(() => [+document.querySelector("#histChart line.hist-med").getAttribute("x2"), +document.querySelector("#histChart .hist-medtx").getAttribute("x")]);
   expect(textX).toBeGreaterThan(lineEnd);
@@ -794,4 +793,42 @@ test("désélection : une ligne ouverte des autres stations se referme aussi", a
   await page.click("#sumMeta");
   await expect(page.locator("#restList li.open")).toHaveCount(0);
   expect(await page.evaluate(() => histKey)).toBeNull();
+});
+
+/* ---------- Version 1.13 : boutons des lignes de repère ---------- */
+test("graphique : boutons médiane, moyenne, bas, haut et tendance ; choix gardé ; tendance absente en 24 h", async ({ page }) => {
+  const now = Math.floor(Date.now() / 60000), t0 = now - 8 * 1440;
+  const series = { t0, debut: t0, maj: new Date(now * 60000).toISOString(), s: {} };
+  await mockNet(page, { hist: route => json(route, series) });
+  await open(page); await searchNear(page);
+  const key = await page.evaluate(() => stationKey(lastTop[0]));
+  // 7 derniers jours : 160,0 ¢ pendant 6 jours, puis 170,0 ¢ le dernier jour (et le prix en direct au bout).
+  series.s[key] = [0, 1600, 7 * 1440, 1700];
+  await page.click("#results li >> nth=0"); await page.click("#hist summary");
+  await page.waitForSelector("#histChart line.hist-med", { state: "attached" });
+  const chip = k => page.locator(`#histChips .hchip[data-k="${k}"]`);
+  const lines = () => page.evaluate(() => [...document.querySelectorAll("#histChart line.hl")].map(l => l.dataset.k).sort());
+  expect(await lines()).toEqual(["med"]); // médiane seule par défaut
+  for (const k of ["avg", "low", "high", "trend"]) { await chip(k).click(); await expect(chip(k)).toHaveAttribute("aria-pressed", "true"); }
+  await expect(chip("trend")).toBeFocused(); // le focus reste sur le bouton
+  expect(await lines()).toEqual(["avg", "high", "low", "med", "trend"]);
+  const live = await page.evaluate(() => lastTop[0].eff);
+  const v = await page.evaluate(() => Object.fromEntries([...document.querySelectorAll("#histChart line.hl")].map(l => [l.dataset.k, +l.dataset.v])));
+  expect(v.med).toBe(160);
+  expect(v.avg).toBeCloseTo((160 * 6 + 170) / 7, 1); // pondérée par la durée
+  expect(v.low).toBe(Math.min(160, live));
+  expect(v.high).toBe(Math.max(170, live));
+  expect(v.trend).toBeGreaterThan(0); // le prix monte sur la période
+  await expect(chip("trend")).toContainText("¢/j");
+  // Les étiquettes de droite ne se chevauchent pas.
+  const ys = await page.evaluate(() => [...document.querySelectorAll("#histChart text.hl-tx")].map(x => +x.getAttribute("y")).sort((a, b) => a - b));
+  for (let i = 1; i < ys.length; i++) expect(ys[i] - ys[i - 1]).toBeGreaterThanOrEqual(11.9);
+  // Retirer la médiane, puis vérifier que le choix est gardé après un rechargement.
+  await chip("med").click();
+  expect(await lines()).toEqual(["avg", "high", "low", "trend"]);
+  expect(JSON.parse(await page.evaluate(() => localStorage.getItem("et_histLines"))).sort()).toEqual(["avg", "high", "low", "trend"]);
+  // 24 h : pas de bouton ni de ligne de tendance.
+  await page.click('.hist-range button[data-days="1"]');
+  await expect(chip("trend")).toHaveCount(0);
+  expect(await lines()).not.toContain("trend");
 });

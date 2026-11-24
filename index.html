@@ -246,10 +246,23 @@ h1 { font: 600 1.75rem/1.05 var(--serif); letter-spacing: -.01em; margin: 0; tex
 .hist-chart .ax { fill: var(--faint); font: 500 11px var(--sans); font-variant-numeric: tabular-nums }
 .hist-chart .grid { stroke: var(--line); stroke-width: 1 }
 .hist-chart .hist-med { stroke: var(--muted); stroke-width: 2.5; stroke-dasharray: 0 6; stroke-linecap: round }
-.hist-chart .hist-medtx { fill: var(--muted); font: 700 11px var(--sans); font-variant-numeric: tabular-nums }
-.hist-legend { display: flex; align-items: center; gap: 8px; font-size: .78rem; color: var(--muted) }
-.hist-legend[hidden] { display: none }
-.hist-legend i { width: 22px; height: 0; border-top: 3px dotted var(--muted) }
+.hist-chart .hl-tx { fill: var(--muted); font: 700 11px var(--sans); font-variant-numeric: tabular-nums }
+.hist-chart .hl-avg { stroke: var(--ink); stroke-width: 1.2; stroke-dasharray: 4 4 }
+.hist-chart .hl-low, .hist-chart .hl-high { stroke: var(--route); stroke-width: 1.5 }
+.hist-chart .hl-trend { stroke: var(--ink); stroke-width: 2.5; stroke-dasharray: 12 5 }
+.hist-chips { display: flex; flex-wrap: wrap; gap: 6px }
+.hist-chips[hidden] { display: none }
+.hchip { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: none; color: var(--muted); border-radius: 99px; padding: 4px 10px; font: 600 .76rem var(--sans); cursor: pointer; font-variant-numeric: tabular-nums }
+.hchip b { font-weight: 500; color: var(--faint) }
+.hchip[aria-pressed="true"] { border-color: var(--ink); color: var(--ink); background: var(--panel) }
+.hchip[aria-pressed="true"] b { color: var(--muted) }
+.hchip:focus-visible { outline: 2px solid var(--clay); outline-offset: 1px }
+.hchip i { width: 18px; height: 0; flex: none; opacity: .45 }
+.hchip[aria-pressed="true"] i { opacity: 1 }
+.hchip[data-k="med"] i { border-top: 3px dotted var(--muted) }
+.hchip[data-k="avg"] i { border-top: 1px dashed var(--ink) }
+.hchip[data-k="low"] i, .hchip[data-k="high"] i { border-top: 2px solid var(--route) }
+.hchip[data-k="trend"] i { border-top: 3px dashed var(--ink); transform: rotate(-14deg) }
 .hist-chart .msg { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); font-size: .85rem; text-align: center; padding: 0 20px }
 .hist-tip { position: absolute; top: -4px; background: var(--ink); color: var(--bg); font-size: .74rem; font-weight: 500; padding: 4px 8px; border-radius: 8px; white-space: nowrap; pointer-events: none; font-variant-numeric: tabular-nums; box-shadow: var(--shadow) }
 .hist-note { margin: 0; color: var(--faint); font-size: .74rem; line-height: 1.4 }
@@ -524,7 +537,7 @@ ol.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px }
               <button type="button" data-days="1" aria-pressed="false" data-i18n="hist1">24 h</button><button type="button" data-days="7" class="on" aria-pressed="true" data-i18n="hist7">7 j</button><button type="button" data-days="30" aria-pressed="false" data-i18n="hist30">30 j</button>
             </div>
           </div>
-          <div class="hist-legend" id="histLegend" hidden><i aria-hidden="true"></i><span data-i18n="histMedLeg">Prix médian</span></div>
+          <div class="hist-chips" id="histChips" role="group" data-i18n-aria="histLines" aria-label="Lignes de repère" hidden></div>
           <div class="hist-chart" id="histChart"></div>
           <p class="hist-note" id="histNote"></p>
         </div>
@@ -761,7 +774,10 @@ const I18N = {
     histTitle: "Évolution du prix", histZoneWho: "médiane de la zone", histBack: "← Toute la zone", histRange: "Période", hist1: "24 h", hist7: "7 j", hist30: "30 j",
     histLoading: "Chargement de l'historique…", histDown: "Historique indisponible pour l'instant.", histEmpty: "Pas encore d'historique pour cette station.",
     histNoteZone: "Médiane des {n} stations de ta recherche, rabais déduits.", histNoteSt: "Prix de cette station.", histNoteStR: "Prix de cette station, rabais de {r} ¢ déduit.",
-    histMed: "médiane {p} : {m} ¢", histP1: "24 h", histPd: "{d} j", histMedLeg: "Prix médian", histLag: " Courbe en retard de 30 à 60 min, sauf le dernier point (prix en direct).", histStopped: " L'historique n'est plus mis à jour depuis le {d} : la courbe s'arrête à cette date.",
+    histMed: "médiane {p} : {m} ¢", histP1: "24 h", histPd: "{d} j",
+    histLines: "Lignes de repère", hlMed: "Médiane", hlAvg: "Moyenne", hlLow: "Bas", hlHigh: "Haut", hlTrend: "Tendance", hlPerDay: "{v} ¢/j",
+    hlMedT: "Prix médian de la période", hlAvgT: "Prix moyen de la période", hlLowT: "Prix le plus bas de la période", hlHighT: "Prix le plus haut de la période",
+    hlTrendT: "Direction générale du prix sur la période, en cents par jour (7 et 30 jours seulement)", histLag: " Courbe en retard de 30 à 60 min, sauf le dernier point (prix en direct).", histStopped: " L'historique n'est plus mis à jour depuis le {d} : la courbe s'arrête à cette date.",
     wazeTitle: "Waze ne prend pas d'arrêt intermédiaire par lien : il te guide jusqu'à la station seulement.",
     calcTime: "Calcul du temps…", calcDetour: "Calcul du détour…", drive: "{m} min en voiture · {km} km", lt1: "moins d'1",
     noDetour: "Aucun détour", detour: "Détour {m}", detourLt1: "de moins d'1 min", popRoute: "à {d} du trajet", popNear: "à {d}",
@@ -826,7 +842,10 @@ const I18N = {
     histTitle: "Price history", histZoneWho: "area median", histBack: "← Whole area", histRange: "Period", hist1: "24 h", hist7: "7 d", hist30: "30 d",
     histLoading: "Loading history…", histDown: "History unavailable right now.", histEmpty: "No history yet for this station.",
     histNoteZone: "Median of the {n} stations in your search, rebates deducted.", histNoteSt: "This station's price.", histNoteStR: "This station's price, {r}¢ rebate deducted.",
-    histMed: "{p} median: {m}¢", histP1: "24-hour", histPd: "{d}-day", histMedLeg: "Median price", histLag: " The curve lags 30–60 min, except the last point (live price).", histStopped: " History hasn't been updated since {d}: the curve stops at that date.",
+    histMed: "{p} median: {m}¢", histP1: "24-hour", histPd: "{d}-day",
+    histLines: "Reference lines", hlMed: "Median", hlAvg: "Average", hlLow: "Low", hlHigh: "High", hlTrend: "Trend", hlPerDay: "{v}¢/day",
+    hlMedT: "Median price over the period", hlAvgT: "Average price over the period", hlLowT: "Lowest price over the period", hlHighT: "Highest price over the period",
+    hlTrendT: "Overall direction of the price over the period, in cents per day (7 and 30 days only)", histLag: " The curve lags 30–60 min, except the last point (live price).", histStopped: " History hasn't been updated since {d}: the curve stops at that date.",
     wazeTitle: "Waze links can't include a stop: it guides you to the station only.",
     calcTime: "Calculating time…", calcDetour: "Calculating detour…", drive: "{m} min drive · {km} km", lt1: "under 1",
     noDetour: "No detour", detour: "Detour {m}", detourLt1: "under 1 min", popRoute: "{d} from route", popNear: "{d} away",
@@ -884,8 +903,17 @@ matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { if
    À CHAQUE MODIFICATION visible : monter APP_VERSION (1.0 → 1.01 pour une petite correction, → 1.1 pour une nouveauté)
    et ajouter une entrée EN TÊTE de CHANGELOG, en mots simples pour quelqu'un qui ne connaît pas la mécanique de l'appli.
    Au lancement suivant, chaque utilisateur voit les nouveautés depuis la dernière version qu'il a vue. */
-const APP_VERSION = "1.12";
+const APP_VERSION = "1.13";
 const CHANGELOG = [
+  { v: "1.13", date: "2026-11-24",
+    fr: { title: "Plus de repères sur le graphique", items: [
+      "Au-dessus du graphique des prix, des boutons affichent ou cachent la médiane, la moyenne, le prix le plus bas, le plus haut et la tendance : tu choisis ce que tu veux voir, et l'appli s'en souvient.",
+      "La tendance (sur 7 et 30 jours) montre si le prix monte ou baisse en général, en cents par jour.",
+    ] },
+    en: { title: "More reference lines on the chart", items: [
+      "Above the price chart, buttons show or hide the median, average, lowest and highest price, and the trend: you choose what you see, and the app remembers.",
+      "The trend (over 7 and 30 days) shows whether the price is generally going up or down, in cents per day.",
+    ] } },
   { v: "1.12", date: "2026-11-19",
     fr: { title: "Graphique sur 24 h", items: [
       "Le graphique des prix a maintenant une vue « 24 h » : tu vois à quelle heure les prix montent et baissent dans ta zone.",
@@ -2083,7 +2111,7 @@ function histRender() {
   histHead();
   if (!$("hist").open) return;
   const box = $("histChart"), note = $("histNote");
-  const msg = m => { $("histLegend").hidden = true; box.replaceChildren(); const d = document.createElement("div"); d.className = "msg"; d.textContent = m; box.append(d); };
+  const msg = m => { $("histChips").hidden = true; box.replaceChildren(); const d = document.createElement("div"); d.className = "msg"; d.textContent = m; box.append(d); };
   const code = "RSD"[fuel()], doc = histData[code] && histData[code].doc;
   if (!doc || Date.now() - histData[code].at >= HIST_TTL) histLoad(code);
   if (!doc) {
@@ -2149,18 +2177,73 @@ function timeMedian(pts, t1) {
   for (const [v, dt] of seg) { acc += dt; if (acc >= tot / 2) return v; }
   return seg[seg.length - 1][0];
 }
+// Moyenne pondérée par la durée, bas, haut et droite de tendance (moindres carrés sur la courbe échantillonnée).
+function histStats(pts, t0, t1) {
+  let tot = 0, sum = 0;
+  for (let i = 0; i < pts.length; i++) {
+    const v = pts[i][1], dt = (i + 1 < pts.length ? pts[i + 1][0] : t1) - pts[i][0];
+    if (v != null && dt > 0) { tot += dt; sum += v * dt; }
+  }
+  const vals = pts.map(p => p[1]).filter(v => v != null);
+  let n = 0, sx = 0, sy = 0, sxx = 0, sxy = 0, k = 0;
+  const step = (t1 - t0) / 240;
+  for (let tm = t0; step > 0 && tm <= t1; tm += step) {
+    while (k + 1 < pts.length && pts[k + 1][0] <= tm) k++;
+    const v = pts[k] && pts[k][0] <= tm ? pts[k][1] : null;
+    if (v == null) continue;
+    const x = (tm - t0) / 864e5;
+    n++; sx += x; sy += v; sxx += x * x; sxy += x * v;
+  }
+  const den = n * sxx - sx * sx;
+  const slope = n >= 2 && den > 0 ? (n * sxy - sx * sy) / den : null;
+  return {
+    med: timeMedian(pts, t1), avg: tot ? sum / tot : null,
+    low: vals.length ? Math.min(...vals) : null, high: vals.length ? Math.max(...vals) : null,
+    trend: slope == null ? null : { a: (sy - slope * sx) / n, b: slope }, // prix au début, pente en ¢ par jour
+  };
+}
+// Lignes de repère affichées (choix gardé dans ce navigateur) ; la médiane seule par défaut.
+const HIST_LINES = ["med", "avg", "low", "high", "trend"];
+let histOn = new Set(["med"]);
+{ const v = parseJSON(store.get("histLines", ""), null); if (Array.isArray(v)) histOn = new Set(v.filter(x => HIST_LINES.includes(x))); }
+function histChips(st, t0, t1) {
+  const box = $("histChips"), D = (t1 - t0) / 864e5;
+  const keys = HIST_LINES.filter(k => k !== "trend" || histDays > 1); // tendance : 7 et 30 jours seulement
+  const name = { med: "hlMed", avg: "hlAvg", low: "hlLow", high: "hlHigh", trend: "hlTrend" };
+  box.replaceChildren(...keys.map(k => {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "hchip"; b.dataset.k = k;
+    b.setAttribute("aria-pressed", histOn.has(k)); b.title = t(name[k] + "T");
+    const sw = document.createElement("i"); sw.setAttribute("aria-hidden", "true");
+    const v = document.createElement("b");
+    if (k === "trend") v.textContent = st.trend ? t("hlPerDay", { v: (st.trend.b > 0 ? "+" : st.trend.b < 0 ? "−" : "") + num(Math.abs(st.trend.b)) }) : "–";
+    else v.textContent = st[k] != null ? num(st[k]) : "–";
+    b.append(sw, t(name[k]), " ", v);
+    b.addEventListener("click", () => {
+      if (histOn.has(k)) histOn.delete(k); else histOn.add(k);
+      store.set("histLines", JSON.stringify([...histOn]));
+      histRender();
+      $("histChips").querySelector(`[data-k="${k}"]`)?.focus(); // le focus reste sur le bouton (clavier)
+    });
+    return b;
+  }));
+  box.hidden = false;
+  return D;
+}
 function drawHist(box, pts, t0, t1) {
   // R : marge de droite, assez large pour le prix médian écrit hors de la courbe.
   const W = box.clientWidth || 320, H = box.clientHeight || 180, L = 38, R = 46, T = 12, B = 24;
   const vals = pts.map(p => p[1]).filter(v => v != null);
-  const med = timeMedian(pts, t1);
-  $("histLegend").hidden = med == null || !vals.length;
-  if (!vals.length) { box.replaceChildren(); return; }
-  let lo = Math.min(...vals), hi = Math.max(...vals);
+  if (!vals.length) { $("histChips").hidden = true; box.replaceChildren(); return; }
+  if (t1 - t0 < 36e5) t0 = t1 - 36e5;
+  const st = histStats(pts, t0, t1), D = histChips(st, t0, t1);
+  const med = st.med, showTrend = histOn.has("trend") && histDays > 1 && st.trend;
+  // L'échelle inclut les extrémités de la tendance (une droite peut dépasser un peu la courbe).
+  const scale = showTrend ? [...vals, st.trend.a, st.trend.a + st.trend.b * D] : vals;
+  let lo = Math.min(...scale), hi = Math.max(...scale);
   const span = Math.max(hi - lo, 2);
   const stepY = [0.5, 1, 2, 5, 10, 20, 50].find(s => span / s <= 4) || 50;
   lo = Math.floor((lo - span * 0.15) / stepY) * stepY; hi = Math.ceil((hi + span * 0.15) / stepY) * stepY;
-  if (t1 - t0 < 36e5) t0 = t1 - 36e5;
   const X = tm => L + (tm - t0) / (t1 - t0) * (W - L - R), Y = v => T + (hi - v) / (hi - lo) * (H - T - B);
   const svg = svgEl("svg", { viewBox: `0 0 ${W} ${H}`, role: "img" });
   for (let v = lo; v <= hi + 1e-9; v += stepY) {
@@ -2193,11 +2276,27 @@ function drawHist(box, pts, t0, t1) {
     prev = v;
   }
   const clay = css("--clay") || "#D97757", surf = css("--surface") || "#fff";
-  // Médiane de la période : ligne pointillée, et son prix à droite, hors de la courbe (légende au-dessus du graphique).
-  if (med != null) {
-    svgEl("line", { x1: L, x2: W - R, y1: Y(med), y2: Y(med), class: "hist-med", "data-v": med }, svg);
-    const mt = svgEl("text", { x: W - R + 10, y: Y(med) + 4, class: "hist-medtx" }, svg);
-    mt.textContent = num(med);
+  // Lignes de repère choisies : chacune avec son prix dans la marge de droite, hors de la courbe.
+  const tags = [];
+  const cls = { med: "hist-med", avg: "hl-avg", low: "hl-low", high: "hl-high" };
+  for (const k of ["med", "avg", "low", "high"]) {
+    if (!histOn.has(k) || st[k] == null) continue;
+    svgEl("line", { x1: L, x2: W - R, y1: Y(st[k]), y2: Y(st[k]), class: "hl " + cls[k], "data-k": k, "data-v": st[k] }, svg);
+    tags.push({ y: Y(st[k]), text: num(st[k]), k });
+  }
+  if (showTrend) {
+    const yEnd = st.trend.a + st.trend.b * D;
+    svgEl("line", { x1: L, x2: W - R, y1: Y(st.trend.a), y2: Y(yEnd), class: "hl hl-trend", "data-k": "trend", "data-v": st.trend.b }, svg);
+    tags.push({ y: Y(yEnd), text: num(yEnd), k: "trend" });
+  }
+  // Étiquettes : écartées d'au moins 12 px pour rester lisibles quand des lignes sont proches.
+  tags.sort((a, b) => a.y - b.y);
+  for (let i = 1; i < tags.length; i++) tags[i].y = Math.max(tags[i].y, tags[i - 1].y + 12);
+  const over = tags.length ? tags[tags.length - 1].y - (H - B) : 0;
+  if (over > 0) for (const g of tags) g.y -= over;
+  for (const g of tags) {
+    const tx = svgEl("text", { x: W - R + 10, y: g.y + 4, class: "hl-tx" + (g.k === "med" ? " hist-medtx" : ""), "data-k": g.k }, svg);
+    tx.textContent = g.text;
   }
   svgEl("path", { d, fill: "none", stroke: clay, "stroke-width": 2, "stroke-linejoin": "round", "stroke-linecap": "round" }, svg);
   const last = pts[pts.length - 1];
@@ -2221,7 +2320,11 @@ function drawHist(box, pts, t0, t1) {
   };
   const hide = () => { cross.setAttribute("visibility", "hidden"); dot.setAttribute("visibility", "hidden"); tip.hidden = true; };
   hit.addEventListener("pointermove", show); hit.addEventListener("pointerdown", show); hit.addEventListener("pointerleave", hide);
-  svg.setAttribute("aria-label", `${$("histWho").textContent.replace(/^· /, "")} : ${num(vals[0])} → ${num(last[1])} ¢` + (med != null ? ` · ${t("histMed", { p: histDays === 1 ? t("histP1") : t("histPd", { d: histDays }), m: num(med) })}` : ""));
+  const said = [];
+  if (histOn.has("med") && med != null) said.push(t("histMed", { p: histDays === 1 ? t("histP1") : t("histPd", { d: histDays }), m: num(med) }));
+  for (const [k, n] of [["avg", "hlAvg"], ["low", "hlLow"], ["high", "hlHigh"]]) if (histOn.has(k) && st[k] != null) said.push(`${t(n)} ${num(st[k])} ¢`);
+  if (showTrend) said.push(`${t("hlTrend")} ${t("hlPerDay", { v: num(st.trend.b) })}`);
+  svg.setAttribute("aria-label", `${$("histWho").textContent.replace(/^· /, "")} : ${num(vals[0])} → ${num(last[1])} ¢` + said.map(x => " · " + x).join(""));
   box.replaceChildren(svg, tip);
 }
 $("hist").addEventListener("toggle", histRender);

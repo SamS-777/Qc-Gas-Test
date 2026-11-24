@@ -64,7 +64,7 @@ External runtime dependencies (no npm, no bundler):
 - **Station view:** clicking a station (card, compact row, pin or dot) switches the chart to that station's step series. "← Toute la zone" goes back.
 - **Data:** read from `raw.githubusercontent.com/.../historique/data/series/{R,S,D}.json` (see §5).
 - **Drawing:** an inline SVG step line with a crosshair tooltip. No charting library.
-- **Median line (since 1.11):** a dotted horizontal line at the period's median, weighted by how long each price lasted (`timeMedian`), its price is written in the right margin, outside the plot, with a "•••• Prix médian" legend above the chart.
+- **Reference lines (since 1.13):** toggle buttons above the chart, which also act as the legend and show each value: median and average (both weighted by how long each price lasted: `timeMedian`, `histStats`), low, high, and a least-squares trend line in ¢/day (7 and 30 days only). Lines differ by dash pattern and position rather than hue (a validator showed extra hues next to the orange curve are not colour-blind safe). Values are written in the right margin, spread apart so they never overlap. The choice is kept in `localStorage` (`histLines`); the median alone is on by default.
 - **Caveat:** the history only started on 2026-11-07, so the charts are mostly flat or short for now. That is expected.
 
 ### 2.5 Navigation hand-off
@@ -141,11 +141,12 @@ Key global state:
 - `favs`, `brandsOff`, `rebates`;
 - `mode`, `lang`, `theme`, `fuel`;
 - `corridorM`, `radiusKm`, `fillL`;
+- `histLines` (JSON array of the chart reference lines shown);
 - `from`, `to`, `stops` (JSON array of the stop fields' text);
 - `costco` — legacy, migration only.
 
 ### Service worker (`sw.js`)
-- **Cache name:** `VERSION = "essence-v30"`, bumped manually on each release. Activation deletes only caches starting with `essence-`, because the `github.io` origin is shared with the owner's other projects.
+- **Cache name:** `VERSION = "essence-v31"`, bumped manually on each release. Activation deletes only caches starting with `essence-`, because the `github.io` origin is shared with the owner's other projects.
 - **Install:** the minimal shell (`./`, `index.html`, manifest, Leaflet JS/CSS) must download or the install fails, so the old version stays active. Icons and images are optional.
 - **Navigation:** network-first. Only a valid HTML response replaces the cached `index.html`, and `cache.put` is awaited. The cached page is the offline fallback.
 - **Same-origin files and Google Fonts:** cache-first, with a background refresh kept alive by `event.waitUntil`. Same-origin files are cached only if `ok`.
