@@ -726,7 +726,7 @@
 {"k":"49db7869b7","n":"9392-7689 QC Inc","b":"Shell","a":"1625 boul. Saint-Martin ouest, Laval","r":"Laval","y":45.5686,"x":-73.72746,"p":[146.9,174.9,null]}
 {"k":"49e6e95b24","n":"9067-5604 QUEBEC INC","b":"Petro-Canada","a":"451 Samuel-de-Champlain , Boucherville","r":"Montérégie","y":45.59915,"x":-73.44783,"p":[162.9,189.9,null]}
 {"k":"49f82085ca","n":"9483-4843 Québec Inc.","b":"Petro-Canada","a":"2333 rue 8, Shawinigan","r":"Mauricie","y":46.62264,"x":-72.70424,"p":[154.9,181.9,269.9]}
-{"k":"49f8b16980","n":"9375-5122 Québec Inc.","b":"Esso","a":"3576 rue Agnès, Lac-Mégantic","r":"Estrie","y":45.5725,"x":-70.88076,"p":[159.9,187.9,274.9]}
+{"k":"49f8b16980","n":"9375-5122 Québec Inc.","b":"Esso","a":"3576 rue Agnès, Lac-Mégantic","r":"Estrie","y":45.5725,"x":-70.88076,"p":[158.9,186.9,274.9]}
 {"k":"4a21c5665e","n":"Couche-Tard #1278","b":"Couche-Tard","a":"720 ch. Jean-Adam, Saint-Sauveur","r":"Laurentides","y":45.88978,"x":-74.14763,"p":[148.9,175.9,242.9]}
 {"k":"4a32320aea","n":"Couche-Tard #444","b":"Couche-Tard","a":"4900 boul. Grande-Allée, Longueuil","r":"Montérégie","y":45.48168,"x":-73.45281,"p":[162.9,189.9,null]}
 {"k":"4a33e80d93","n":"Dépanneur du Quartier","b":"Shell","a":"1999 rue Notre-Dame ouest, Victoriaville","r":"Centre-du-Québec","y":46.04044,"x":-72.0188,"p":[151.9,177.9,251.9]}
@@ -1114,7 +1114,7 @@
 {"k":"746b18dea0","n":"Libre Service Fermont inc.","b":"Esso","a":"401 rue Le Carrefour, Fermont","r":"Côte-Nord","y":52.79914,"x":-67.08356,"p":[175.0,195.0,270.0]}
 {"k":"7473885725","n":"Dépanneur Sprint Matane Ouest","b":"Petro-Canada","a":"1055 av. du Phare ouest, Matane","r":"Bas-Saint-Laurent","y":48.84738,"x":-67.5534,"p":[164.9,189.9,259.4]}
 {"k":"7486dfb95a","n":"Vivaco Val-des-sources","b":"Sonic","a":"444 rue Binette, Val-des-Sources","r":"Estrie","y":45.77785,"x":-71.92524,"p":[153.9,177.9,255.9]}
-{"k":"74890f7ae2","n":"La Société Canadian Tire Ltée","b":"Canadian Tire","a":"399 boul. Maloney ouest, Gatineau","r":"Outaouais","y":45.48476,"x":-75.6649,"p":[145.6,170.6,246.4]}
+{"k":"74890f7ae2","n":"La Société Canadian Tire Ltée","b":"Canadian Tire","a":"399 boul. Maloney ouest, Gatineau","r":"Outaouais","y":45.48476,"x":-75.6649,"p":[145.6,167.6,246.4]}
 {"k":"74a54b06c6","n":"Station-Sport-Nature","b":"Petro-Canada","a":"471 rte 309, Val-des-Bois","r":"Outaouais","y":45.89902,"x":-75.60564,"p":[146.9,171.9,254.9]}
 {"k":"74ab57eef4","n":"Couche-Tard #332","b":"Couche-Tard","a":"8200 boul. Métropolitain est, Montréal","r":"Montréal","y":45.61002,"x":-73.56113,"p":[162.9,189.9,259.9]}
 {"k":"74b77102c8","n":"Couche-Tard #1083","b":"Couche-Tard","a":"994 rue Saint-Isidore, Saint-Lin–Laurentides","r":"Lanaudière","y":45.86118,"x":-73.75766,"p":[149.9,176.9,253.9]}
