@@ -159,7 +159,7 @@
 {"k":"0dc33fc927","n":"Couche-Tard #1159","b":"Esso","a":"9255 boul. de l'Acadie, Montréal","r":"Montréal","y":45.53357,"x":-73.65629,"p":[162.9,189.9,255.9]}
 {"k":"0dc5080188","n":"Marché Lève-Tôt 2014 Inc.","b":"Esso","a":"3100 ch. Chemin de la Rivière-Cachée, Boisbriand","r":"Laurentides","y":45.62249,"x":-73.85442,"p":[146.9,173.9,245.9]}
 {"k":"0de0e0f737","n":"3088-9299 Québec Inc","b":"Harnois","a":"1401 ch. de Lavernière, L'Étang-du-Nord","r":"Gaspésie-Îles-de-la-Madeleine","y":47.37196,"x":-61.91289,"p":[171.9,194.9,257.9]}
-{"k":"0de8e2e6b9","n":"7312237 CANADA INC","b":"Petro-Canada","a":"6705 Chevrier , Brossard","r":"Montérégie","y":45.45538,"x":-73.44211,"p":[150.9,178.9,268.9]}
+{"k":"0de8e2e6b9","n":"7312237 CANADA INC","b":"Petro-Canada","a":"6705 Chevrier , Brossard","r":"Montérégie","y":45.45538,"x":-73.44211,"p":[162.9,190.9,268.9]}
 {"k":"0e16d3ae24","n":"Harnois Énergies Inc.","b":"Esso","a":"515 rue Principale, Saint-Roch-de-Richelieu","r":"Montérégie","y":45.89145,"x":-73.15996,"p":[138.9,164.9,254.9]}
 {"k":"0e1cb63ed9","n":"Station service Hardil","b":"Sonic","a":"836 rte de la Cité-des-Jeunes, Saint-Lazare","r":"Montérégie","y":45.37997,"x":-74.10534,"p":[155.9,179.9,255.9]}
 {"k":"0e49f0d1e4","n":"Solutions Mécaniques Francis L'Italien Inc.","b":"","a":"198 rte 132 ouest, Sainte-Luce","r":"Bas-Saint-Laurent","y":48.54526,"x":-68.39584,"p":[163.4,193.4,null]}
@@ -1050,7 +1050,7 @@
 {"k":"6ca1fa6095","n":"Couche-Tard #386","b":"Couche-Tard","a":"7151 rue Jarry est, Montréal","r":"Montréal","y":45.60232,"x":-73.57549,"p":[162.9,189.9,null]}
 {"k":"6cc2956b2f","n":"Couche-Tard #184","b":"Couche-Tard","a":"1050 boul. des Seigneurs, Terrebonne","r":"Lanaudière","y":45.70069,"x":-73.64366,"p":[148.9,175.9,255.9]}
 {"k":"6d05803426","n":"Filgo St-André-Avellin","b":"Sonic","a":"615 rte 321 nord, Saint-André-Avellin","r":"Outaouais","y":45.73085,"x":-75.05709,"p":[142.9,166.9,255.9]}
-{"k":"6d08210fea","n":"Couche-Tard #1013","b":"Couche-Tard","a":"101 rte 235, Ange-Gardien","r":"Montérégie","y":45.36471,"x":-72.93321,"p":[139.9,166.9,249.9]}
+{"k":"6d08210fea","n":"Couche-Tard #1013","b":"Couche-Tard","a":"101 rte 235, Ange-Gardien","r":"Montérégie","y":45.36471,"x":-72.93321,"p":[139.9,166.9,243.9]}
 {"k":"6d092171bf","n":"Coopérative de solidarité de St-Luc","b":"Harnois","a":"20 av. du Nord, Matane","r":"Bas-Saint-Laurent","y":48.80105,"x":-67.47354,"p":[164.9,189.9,null]}
 {"k":"6d33d4e2ae","n":"Harnois Énergies Inc.","b":"Harnois","a":"225 rue Saint-Paul, Repentigny","r":"Lanaudière","y":45.75747,"x":-73.47986,"p":[148.9,174.9,244.9]}
 {"k":"6d6991fe4f","n":"Immobilier BSI Inc.","b":"Ultramar","a":"3355 Boul. de la Pinière, TERREBONNE","r":"Lanaudière","y":45.72373,"x":-73.68146,"p":[162.9,189.9,null]}
@@ -2180,7 +2180,7 @@
 {"k":"e0066956fe","n":"2529-0230 Québec inc.","b":"Esso","a":"269 rue de la Presqu'ile, Charlemagne","r":"Lanaudière","y":45.73269,"x":-73.49676,"p":[149.9,177.9,252.9]}
 {"k":"e00ffaa848","n":"9099-8378  Quebec Inc","b":"Crevier","a":"699 rue du Curé, SHERBROOKE","r":"Estrie","y":45.35519,"x":-71.98773,"p":[166.9,191.9,270.9]}
 {"k":"e02e03e5a8","n":"2538-2813 QUEBEC INC","b":"Ultramar","a":"102 rue Saint-Joseph, GRACEFIELD","r":"Outaouais","y":46.09637,"x":-76.05041,"p":[158.9,185.9,259.9]}
-{"k":"e051d0f407","n":"Couche-Tard #445","b":"Esso","a":"2292 rte Marie-Victorin, Varennes","r":"Montérégie","y":45.68449,"x":-73.43579,"p":[137.9,164.9,241.9]}
+{"k":"e051d0f407","n":"Couche-Tard #445","b":"Esso","a":"2292 rte Marie-Victorin, Varennes","r":"Montérégie","y":45.68449,"x":-73.43579,"p":[137.9,164.9,235.9]}
 {"k":"e057622d81","n":"9377-1046 Québec Inc","b":"Ultramar","a":"2681 Boul. du Royaume, SAGUENAY","r":"Saguenay-Lac-Saint-Jean","y":48.4047,"x":-71.17198,"p":[136.8,163.9,269.9]}
 {"k":"e09988b15e","n":"Harnois Énergies Inc.","b":"Harnois","a":"148 ch. Saint-Gabriel, Saint-Gabriel-de-Brandon","r":"Lanaudière","y":46.29088,"x":-73.38171,"p":[149.9,175.9,249.9]}
 {"k":"e09bf57182","n":"Costco Anjou CB","b":"Costco","a":"7373 rue Bombardier, Montréal","r":"Montréal","y":45.60907,"x":-73.58546,"p":[149.9,169.9,null]}
